@@ -1,8 +1,8 @@
 {
   "development": {
-    "username": "root",
-    "password": null,
-    "database": "database_development",
+    "username": "snowy",
+    "password": "b8d8539c-6d21-11ee-969b-24770370",
+    "database": "snowy",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
