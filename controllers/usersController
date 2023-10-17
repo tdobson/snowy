@@ -1,0 +1,24 @@
+exports.getAllUsers = (req, res) => {
+  // Logic to get all users
+  res.send('All users');
+};
+
+exports.getUserById = (req, res) => {
+  // Logic to get a user by ID
+  res.send('A single user');
+};
+
+exports.createUser = (req, res) => {
+  // Logic to create a new user
+  res.send('User created');
+};
+
+exports.updateUser = (req, res) => {
+  // Logic to update a user by ID
+  res.send('User updated');
+};
+
+exports.deleteUser = (req, res) => {
+  // Logic to delete a user by ID
+  res.send('User deleted');
+};
