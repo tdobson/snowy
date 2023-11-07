@@ -1,0 +1,178 @@
+clients
+-------
+client_id: UUID
+name: String
+client_address_1: String
+client_address_2: String
+client_address_3: String
+town: String
+county: String
+post_code: String
+contact_name: String
+contact_email: String
+... (additional attributes for client details)
+
+projects
+--------
+project_id: UUID (also known as Submission ref)
+client_id: UUID (Foreign Key to clients)
+pv_number: String (Pattern: 'PV[0-9]{6}')
+region_id: String
+project_name: String
+dno_mpan_ref: Integer (Foreign Key to dno_details, renamed from DNO MPAN ref)
+ref_number: String
+site_live: Boolean
+application_type: String
+formal_dno_submitted: Boolean
+submission_date: Date
+dno_due_date: Date
+dno_status: String
+quote_received: Boolean
+customer_invoiced_date: Date
+dno_payment_made: Date
+acceptance_form_returned: Boolean
+date_approved: Date
+comments: Text
+deadline_to_connect: Date
+commissioning_form_submitted: Boolean
+number_of_plots_loaded: Integer
+current_project_plots: Integer
+plots_approved: Integer
+plots_with_limiter_required: Integer
+plots_with_mpan: Integer
+plots_with_address: Integer
+auth_letter_sent: Boolean
+mpan_request_sent: Boolean
+schematic_created: Boolean
+g98_application_created: Boolean
+kwp_from_oscar: Float
+current_total_kwp: Float
+total_kwp_with_limitation: Float
+approved_kwp: Float
+... (additional attributes for project details)
+
+plots
+-----
+plot_id: UUID
+project_id: UUID (Foreign Key to projects)
+plot_number: String (Alphanumeric)
+product_id: UUID (Foreign Key to products, nullable)
+tracker_ref: String
+project_number: String
+status: String
+site: String
+region: String
+g99: Boolean
+mpan: String
+postal_name_number: String
+postal_street: String
+postal_postcode: String
+kwp: Float
+module_size: String
+module_qty: Integer
+inverter: String
+panel_specified: String
+strings: Integer
+phase: String
+p1: Integer
+p2: Integer
+p3: Integer
+dual_elevation: Boolean
+status: String
+type_test_ref: String
+project_plot: String
+site_ref: String
+pitch: Float
+orientation: String
+dno_zone: String
+annual_yield: Float
+kwp_with_limitation: Float
+limiter_required: Boolean
+limiter_value_if_not_zero: Float
+plot_approved: Boolean
+landlord_supply: Boolean
+roof_kit: String
+overall_cost: Float
+kk_figure: Float
+... (additional attributes for plot details)
+
+sites
+-----
+site_id: UUID (also known as Internal Ref)
+project_id: UUID (Foreign Key to projects)
+dno_details_id: Integer (Foreign Key to dno_details)
+site_address_line_1: String
+site_address_line_2: String
+site_town: String
+site_county: String
+site_postcode: String
+dno_responsible_name: String
+dno_responsible_email: String
+site_manager_name: String
+site_manager_email: String
+site_manager_phone: String
+... (additional attributes for site details)
+
+
+products
+--------
+product_id: UUID
+type: String
+mcs_reference: String (Alphanumeric)
+mcs_id: Integer
+name: String
+details: Text
+manufacturer: String
+model: String
+mcs_code: String
+... (additional attributes for product details)
+
+dno_details
+-----------
+dno_details_id: Integer
+mpan_prefix: Integer (Unique, could be a Foreign Key if MPAN Prefixes are stored in another table)
+dno_name: String
+address: String
+email_address: String
+contact_no: String
+internal_tel: String
+type: String
+... (additional attributes for DNO details)
+
+region
+------
+region_id: UUID
+region_number: Interger
+region_name: String
+
+form_submissions
+----------------
+submission_id: UUID
+plot_id: UUID (Foreign Key to plots)
+site_id: UUID (Foreign Key to sites)
+product_id: UUID (Foreign Key to products, nullable)
+... (additional attributes for submission details)
+
+users
+------
+user_id
+sso_id
+name
+email
+employer
+team
+
+job_statuses
+---
+job_status_id
+job_status_name
+job_status_code
+
+import_events
+---
+import_id
+import_date
+user_id
+import_ref
+import_source
+import_notes

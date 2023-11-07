@@ -1,7 +1,11 @@
-exports.getAllUsers = (req, res) => {
-  // Logic to get all users
-  res.send('All users');
-};
+exports.getAllUsers = async (req, res, next) => {
+    try {
+        const users = await User.findAll(); // This fetches all users from the 'wp_members_db' table
+        res.status(200).json(users);
+    } catch (error) {
+        next(error);
+    }
+}
 
 exports.getUserById = (req, res) => {
   // Logic to get a user by ID

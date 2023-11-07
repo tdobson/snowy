@@ -2,7 +2,7 @@ const express = require('express');
 const usersController = require('../controllers/usersController');
 
 const router = express.Router();
-// Define your routes, for instance:
+
 /**
  * @swagger
  * /users:
@@ -20,7 +20,9 @@ const router = express.Router();
  *                 properties:
  *                   id:
  *                     type: integer
- *                   name:
+ *                   first_name:
+ *                     type: string
+ *                   last_name:
  *                     type: string
  */
 router.get('/', usersController.getAllUsers);
