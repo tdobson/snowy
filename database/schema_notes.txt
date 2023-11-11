@@ -22,52 +22,74 @@ region: String (Foreign key to region_id)
 project_name: String
 site_id: String (Foreign key to sites)
 dno_mpan_ref: Integer (Foreign Key to dno_details, renamed from DNO MPAN ref)
-ref_number: String
+ref_number: String // legacy ref number
+job_code: String // client project reference
 site_live: Boolean
-application_type: String
-formal_dno_submitted: Boolean
-submission_date: Date
-dno_due_date: Date
-dno_status: String
-quote_received: Boolean
-customer_invoiced_date: Date
-dno_payment_made: Date
-acceptance_form_returned: Boolean
-date_approved: Date
-comments: Text
 deadline_to_connect: Date
-commissioning_form_submitted: Boolean
-number_of_plots_loaded: Integer
+
+// these go back to the client
+near the start of the process, we create a leter of authortiy and a mpan requst. THese go to the client who signs the letter of authority and gives us the mpan numbers in a spreadsheet.
+The mpan numbers are loaded into our system, and the letter of aurotthiy is used to generatlate the schemmatic and  do the g98 etc application
 auth_letter_sent: Boolean
 mpan_request_sent: Boolean
+
 schematic_created: Boolean
-g98_application_created: Boolean
-kwp_from_oscar: Float
-current_total_kwp: Float
-total_kwp_with_limitation: Float
-approved_kwp: Float
-... (additional attributes for project details)
+
+
+application_type: String / g98_application_created: / Application Type [g98/g99/g100 vs Mixed]
+formal_dno_submitted: Boolean // the date the form was submitted
+submission_date: Date // day they submitted paperwork
+dno_due_date: Date // the date the dno should reply
+dno_status: String // state related to the DNO approval
+// has the g98 been created
+approved_kwp: Float // this is the KWP you can have says the DNO
+
+
+// we do an extra bit of work, and they agreed, and they've accepted and paid us.
+quote_received: Boolean // relates to the DNO work - sending an invoice
+customer_invoiced_date: Date //relates
+dno_payment_made: Date //relates
+acceptance_form_returned: Boolean //relates
+date_approved: Date
+comments: Text
+
+
+Auth Letter Sent	Mpan request Sent	Schematic created	G98 Application created	Site plan uploaded	Rams
+Project Complete	Project Invoiced
+
+
+
+
+surveyor name	surveyor tel	surveyor email
+
+derived fields:
+
+kwp_from_oscar: Float // original kwp for site from quote
+current_total_kwp: // current kwp from live data
+total_kwp_with_limitation: Float // this is the live KWP with limitation
+
+
 
 plots
 -----
 plot_id: UUID
 project_id: String (Foreign Key to projects)
 plot_number: String (Alphanumeric)
-plot_specified_id: String (Foreign key to plot_specified)
-plot_installed_id: String (Forieng key to plot_installed)
 tracker_ref: String (Foreign key to status_id)
 status: String (Foreign key to status_id)
 siteId: String  (Foreign Key to sites)
+housetype: String // what the customer calls the type of house
 g99: Boolean
-mpan: String
+mpan: String // dno service number
 postal_name_number: String
 postal_street: String
 postal_postcode: String
 plot_approved: Boolean
-landlord_supply: Boolean
 dno_zone: String
 plot_specified: String
 import_id: String
+commissioning_form_submitted: Boolean
+
 
 plot_specified
 ------
@@ -75,19 +97,16 @@ plot_meta_id: UUID
 date_created: Date
 specified_by: String
 status: String (Foreign key to status_id)
-number of elevations: String
-elevation_1: String (Foreign key to elevations)
-elevation_2: String (Foreign key to elevations)
-elevation_3: String (Foreign key to elevations)
-phase: String
-p1: Integer
-p2: Integer
-p3: Integer
+phase: String // either 1 or 3
+p1: Integer // will be value if 1
+p2: Integer // will be null if 1, but will be
+p3: Integer // will be null if phase is 1 // is it per inverter or per plot? #todo
 annual_yield: Float
 kwp_with_limitation: Float
-limiter_required: Boolean
-limiter_value_if_not_zero: Float
-overall_cost: Float
+limiter_required: Boolean //
+limiter_value_if_not_zero: Float // this is the limiter value if it's defined
+overall_cost: Float // total invoice value of the plot including installation and parts etc
+landlord_supply: Boolean // is the landlord (vs tenant) responsible for supply
 import_id: String (Foreign key to imports)
 ... (additional attributes for plot details)
 
@@ -98,10 +117,6 @@ date_created: Date
 installed_by: String (foreign key to user_id)
 checked_by: String (foreign key to user_id)
 status: String (Foreign key to status_id)
-number of elevations: String
-elevation_1: String (Foreign key to elevations)
-elevation_2: String (Foreign key to elevations)
-elevation_3: String (Foreign key to elevations)
 phase: String
 p1: Integer
 p2: Integer
@@ -113,6 +128,9 @@ limiter_value_if_not_zero: Float
 overall_cost: Float
 import_id: String (Foreign key to imports)
 ... (additional attributes for plot details)
+batteries?
+gen meter?
+
 
 elevations
 ------
@@ -124,7 +142,7 @@ orientation: String
 kk_figure: Float
 kwp: Float
 module_qty: Integer
-inverter: String (product_id)
+inverter: String (product_id) (create an inverter "connected to string 1 inverter")
 panel: String (product_id)
 strings: Integer
 roof_kit: String
@@ -199,6 +217,8 @@ email
 employer
 team
 dispatch_id
+
+// maybe add surveyor name	surveyor tel	surveyor email	Site agent name	Site agent tel	site agent email as records here
 
 job_statuses
 ---
