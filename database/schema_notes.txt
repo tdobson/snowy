@@ -10,15 +10,17 @@ county: String
 post_code: String
 contact_name: String
 contact_email: String
-... (additional attributes for client details)
+contact_phone: String
+import_id: String
 
 projects
 --------
 project_id: UUID (also known as Submission ref)
 client_id: UUID (Foreign Key to clients)
 pv_number: String (Pattern: 'PV[0-9]{6}')
-region_id: String
+region: String (Foreign key to region_id)
 project_name: String
+site_id: String (Foreign key to sites)
 dno_mpan_ref: Integer (Foreign Key to dno_details, renamed from DNO MPAN ref)
 ref_number: String
 site_live: Boolean
@@ -36,11 +38,6 @@ comments: Text
 deadline_to_connect: Date
 commissioning_form_submitted: Boolean
 number_of_plots_loaded: Integer
-current_project_plots: Integer
-plots_approved: Integer
-plots_with_limiter_required: Integer
-plots_with_mpan: Integer
-plots_with_address: Integer
 auth_letter_sent: Boolean
 mpan_request_sent: Boolean
 schematic_created: Boolean
@@ -54,47 +51,84 @@ approved_kwp: Float
 plots
 -----
 plot_id: UUID
-project_id: UUID (Foreign Key to projects)
+project_id: String (Foreign Key to projects)
 plot_number: String (Alphanumeric)
-product_id: UUID (Foreign Key to products, nullable)
-tracker_ref: String
-project_number: String
-status: String
-site: String
-region: String
+plot_specified_id: String (Foreign key to plot_specified)
+plot_installed_id: String (Forieng key to plot_installed)
+tracker_ref: String (Foreign key to status_id)
+status: String (Foreign key to status_id)
+siteId: String  (Foreign Key to sites)
 g99: Boolean
 mpan: String
 postal_name_number: String
 postal_street: String
 postal_postcode: String
-kwp: Float
-module_size: String
-module_qty: Integer
-inverter: String
-panel_specified: String
-strings: Integer
+plot_approved: Boolean
+landlord_supply: Boolean
+dno_zone: String
+plot_specified: String
+import_id: String
+
+plot_specified
+------
+plot_meta_id: UUID
+date_created: Date
+specified_by: String
+status: String (Foreign key to status_id)
+number of elevations: String
+elevation_1: String (Foreign key to elevations)
+elevation_2: String (Foreign key to elevations)
+elevation_3: String (Foreign key to elevations)
 phase: String
 p1: Integer
 p2: Integer
 p3: Integer
-dual_elevation: Boolean
-status: String
-type_test_ref: String
-project_plot: String
-site_ref: String
-pitch: Float
-orientation: String
-dno_zone: String
 annual_yield: Float
 kwp_with_limitation: Float
 limiter_required: Boolean
 limiter_value_if_not_zero: Float
-plot_approved: Boolean
-landlord_supply: Boolean
-roof_kit: String
 overall_cost: Float
-kk_figure: Float
+import_id: String (Foreign key to imports)
 ... (additional attributes for plot details)
+
+plot_installed
+------
+plot_meta_id: UUID
+date_created: Date
+installed_by: String (foreign key to user_id)
+checked_by: String (foreign key to user_id)
+status: String (Foreign key to status_id)
+number of elevations: String
+elevation_1: String (Foreign key to elevations)
+elevation_2: String (Foreign key to elevations)
+elevation_3: String (Foreign key to elevations)
+phase: String
+p1: Integer
+p2: Integer
+p3: Integer
+annual_yield: Float
+kwp_with_limitation: Float
+limiter_required: Boolean
+limiter_value_if_not_zero: Float
+overall_cost: Float
+import_id: String (Foreign key to imports)
+... (additional attributes for plot details)
+
+elevations
+------
+elevation_id: UUID
+plot_ref_id: Foreign key
+type_test_ref: String
+pitch: Float
+orientation: String
+kk_figure: Float
+kwp: Float
+module_qty: Integer
+inverter: String (product_id)
+panel: String (product_id)
+strings: Integer
+roof_kit: String
+
 
 sites
 -----
@@ -125,7 +159,10 @@ details: Text
 manufacturer: String
 model: String
 mcs_code: String
+cost_today: Float
 ... (additional attributes for product details)
+
+
 
 dno_details
 -----------
@@ -161,6 +198,7 @@ name
 email
 employer
 team
+dispatch_id
 
 job_statuses
 ---
@@ -176,3 +214,52 @@ user_id
 import_ref
 import_source
 import_notes
+
+jobs // Jobs are submitted pieces of work that go to people
+-----
+job_id : UUID
+plot_id:
+plot_number
+project_number:
+project_id:
+dispatch_id:
+submission_id: DM submission ID
+dispatched_at
+dispatched_by
+returned_at
+returned_by
+dispatch_team:
+status:
+user_id: linked to users field
+slot_id: String (foriegn key to slots)
+
+jobs/
+status = what the form is, and what if any work can be dispatched
+are users/teams decoupled? What if one is off sick?
+can they send to subcontract company directly?
+properly figure out how to do multi elevations
+
+slots
+----
+slot_id: UUID
+date: date
+location_slot: Integer
+time_slot: Integer
+job_id: String (foreign key to jobs)
+
+
+
+product_pricing? How do we deal with pricing that changes? Pricing for the date
+in a multi elevation, there can me multiple strings of panels, but often 1 inverter, the orientation and direction and pitch etc will be different for each string of panels - each elevantion will need to report on total yield and things per array, but also for the entire installation.
+gen meter is per installation
+
+for each Plot:
+- what was the plot specc'd as?
+- what did the plot come back with?
+
+when building a quote, you want your prices to be fixed at th emoment you *send* the quote, but you still want to monitor the current prices against the quote.
+
+
+Each Plot will have a
+plot_quoted
+table with
