@@ -1,4 +1,8 @@
+// https://docs.google.com/spreadsheets/d//edit#gid=1873048951
+
 function importClientDetails() {
+
+
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Site Log");
   var data = sheet.getDataRange().getValues(); // Adjust range as needed
 

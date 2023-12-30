@@ -9,18 +9,8 @@ function importDnoDetails() {
 
   var conn = Jdbc.getConnection(dbUrl, dbUser, dbPassword);
 
-// Insert into sn_import_events and capture the import_id
-var importId = Utilities.getUuid();
-var currentDate = new Date();
-
-var importStmt = conn.prepareStatement('INSERT INTO sn_import_events (import_id, import_date, user_id, import_ref, import_source, import_notes) VALUES (?, ?, ?, ?, ?, ?)');
-importStmt.setString(1, importId);
-importStmt.setDate(2, currentDate); // Set the current date
-importStmt.setString(3, '1'); // Assuming '1' is the user_id
-importStmt.setString(4, ''); // import_ref can be left empty or filled as needed
-importStmt.setString(5, 'DNO Tracker');
-importStmt.setString(6, 'Importing DNO details');
-importStmt.execute();
+  // Insert into sn_import_events using insertImportEvent function
+  var importId = insertImportEvent(conn, '', 'DNO Tracker', 'Importing DNO details', '1'); // Assuming '1' is the user_id
 
   // Prepare statement for sn_dno_details
   var stmt = conn.prepareStatement('INSERT INTO sn_dno_details '
@@ -36,7 +26,7 @@ importStmt.execute();
     stmt.setString(6, data[i][4]);          // contact_no
     stmt.setString(7, data[i][5]);          // internal_tel
     stmt.setString(8, data[i][6]);          // type
-    stmt.setString(9, importId);            // use the captured import_id
+    stmt.setString(9, importId);            // use the generated import_id
 
     stmt.addBatch();
   }
