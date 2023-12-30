@@ -8,6 +8,7 @@ Project.init({
     projectId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     clientId: {
         type: DataTypes.CHAR(36),

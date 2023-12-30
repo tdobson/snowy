@@ -8,6 +8,7 @@ Site.init({
     siteId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     projectId: {
         type: DataTypes.CHAR(36),

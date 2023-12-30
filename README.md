@@ -20,7 +20,7 @@ The API is built using Express, Sequelize ORM, and MySQL. It adheres to the MVC 
 ## Directory Structure
 
 - `./tests`: Contains test files, such as `users.test.js`, indicating the use of a testing framework like Jest.
-- `./routes`: Holds API route definitions. `users.js` defines routes for user operations, and `index.js` serves as a central router file.
+- `./routes`: Holds API route definitions. `userRoutes.js` defines routes for user operations, and `index.js` serves as a central router file.
 - `./models`: Contains Sequelize models like `user.js`, defining data structures and relationships. `index.js` exports the Sequelize instance.
 - `./config`: Configuration files, including `swagger.js` for Swagger setup and `config.json` for database settings.
 - `./index.js`: Main application entry point. Sets up middleware, routes, error handling, and server initialization.

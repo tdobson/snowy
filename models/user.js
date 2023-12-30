@@ -8,6 +8,7 @@ User.init({
     userId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     ssoId: DataTypes.STRING(255),
     name: {

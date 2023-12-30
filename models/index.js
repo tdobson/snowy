@@ -36,23 +36,34 @@ User.hasMany(ImportEvent, { foreignKey: 'userId' });
 User.hasMany(Client, { foreignKey: 'contactId' });
 User.hasMany(Site, { foreignKey: 'siteManagerId' });
 
+Site.belongsTo(Project, { foreignKey: 'projectId' });
+
 Client.hasMany(Project, { foreignKey: 'clientId' });
+Client.belongsTo(User, { foreignKey: 'contactId' });
 
 Project.belongsTo(User, { foreignKey: 'userId' });
 Project.belongsTo(Client, { foreignKey: 'clientId' });
-Project.belongsTo(DnoDetail, { foreignKey: 'dnoDetailsId' });
+Project.belongsTo(DnoDetail, { foreignKey: 'dnoDetailsId' }); // is this right?
 Project.belongsTo(Region, { foreignKey: 'regionId' });
 Project.belongsTo(Site, { foreignKey: 'siteId' });
 Project.hasMany(Plot, { foreignKey: 'projectId' });
 Project.hasMany(Job, { foreignKey: 'projectId' });
 Project.hasOne(ProjectProcess, { foreignKey: 'projectId' });
 
+
 Plot.belongsTo(Project, { foreignKey: 'projectId' });
 Plot.belongsTo(Site, { foreignKey: 'site' });
-Plot.belongsTo(Address, { foreignKey: 'plotAddressId' });
+Plot.belongsTo(Address, { foreignKey: 'plotAddressId' }); // is this right? todo
 Plot.hasMany(PlotSpec, { foreignKey: 'plotId' });
 Plot.hasMany(PlotInstall, { foreignKey: 'plotId' });
 Plot.hasMany(FormSubmission, { foreignKey: 'plotId' });
+
+User.hasMany(ImportEvent, { foreignKey: 'importedBy' });
+User.hasMany(ImportEvent, { foreignKey: 'modifiedBy' });
+ImportEvent.belongsTo(User, { foreignKey: 'importedBy' });
+ImportEvent.belongsTo(User, { foreignKey: 'modifiedBy' });
+
+Address.belongsTo(Region, { foreignKey: 'addressRegionId' });
 
 // Additional associations based on your schema
 // Add here...

@@ -301,12 +301,17 @@ CREATE TABLE IF NOT EXISTS sn_status (
 CREATE TABLE IF NOT EXISTS sn_import_events (
     import_id CHAR(36) NOT NULL,     -- Unique identifier for each import event.
     import_date DATE NOT NULL,                -- Date of the import event.
-    user_id CHAR(36),                -- Foreign key to 'sn_users', identifying the user who performed the import.
+    imported_by CHAR(36) NOT NULL,                -- Foreign key to 'sn_users', identifying the user who performed the import.
+    modified_date DATE NOT NULL,             -- Date of the last modification event.
+    modified_by CHAR(36),                -- Foreign key to 'sn_users', identifying the user who performed the import.
+    modification_ref VARCHAR(255), -- Reference identifier for the import eve
     import_ref VARCHAR(255),         -- Reference identifier for the import event.
     import_source VARCHAR(255),      -- Source of the imported data.
     import_notes TEXT,               -- Additional notes or comments about the import event.
     PRIMARY KEY (import_id),
-    FOREIGN KEY (user_id) REFERENCES sn_users(user_id)
+    FOREIGN KEY (imported_by) REFERENCES sn_users(user_id)
+        FOREIGN KEY (modified_by) REFERENCES sn_users(user_id)
+
 );
 
 

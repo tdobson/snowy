@@ -8,6 +8,7 @@ Status.init({
     statusId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     statusState: {
         type: DataTypes.STRING,

@@ -13,13 +13,25 @@ ImportEvent.init({
         type: DataTypes.DATE,
         allowNull: false
     },
-    userId: {
+    importedBy: {
         type: DataTypes.CHAR(36),
         references: {
             model: 'sn_users', // Ensure this matches your users table name
             key: 'user_id',
         }
     },
+    modifiedDate: {
+        type: DataTypes.DATE,
+        allowNull: false
+    },
+    modifiedBy: {
+        type: DataTypes.CHAR(36),
+        references: {
+            model: 'sn_users', // Ensure this matches your users table name
+            key: 'user_id',
+        }
+    },
+    modificationRef: DataTypes.STRING,
     importRef: DataTypes.STRING,
     importSource: DataTypes.STRING,
     importNotes: DataTypes.TEXT,

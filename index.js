@@ -4,10 +4,12 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const { sequelize } = require('./models'); // Importing sequelize connection
-const usersRoutes = require('./routes/users');
+const userRoutes = require('./routes/userRoutes');
+const projectRoutes = require('./routes/projectRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./config/swagger');
+
 
 const app = express();
 
@@ -18,7 +20,8 @@ app.use(helmet());
 app.use(morgan('combined'));
 
 // Routes
-app.use('/users', usersRoutes);
+app.use('/users', userRoutes);
+app.use('/projects', projectRoutes);
 
 // API Documentation with Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));

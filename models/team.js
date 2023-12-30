@@ -8,6 +8,7 @@ Team.init({
     teamId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     teamName: {
         type: DataTypes.STRING,

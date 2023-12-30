@@ -8,6 +8,7 @@ Slot.init({
     slotId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     date: {
         type: DataTypes.DATE,
