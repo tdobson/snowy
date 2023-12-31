@@ -20,6 +20,9 @@ User.init({
         allowNull: false,
         unique: true
     },
+    password: {
+        type: DataTypes.STRING(255)
+    },
     phone: DataTypes.STRING(255),
     employer: DataTypes.STRING(255),
     teamId: {

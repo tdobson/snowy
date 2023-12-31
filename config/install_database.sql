@@ -255,6 +255,7 @@ CREATE TABLE IF NOT EXISTS sn_users (
     sso_id VARCHAR(255),                   -- Single Sign-On identifier for the user, if applicable.
     name VARCHAR(255) NOT NULL,            -- Full name of the user.
     email VARCHAR(255) UNIQUE NOT NULL,    -- Email address of the user. Marked unique to prevent duplicate entries.
+    password VARCHAR(255),                  -- salted bcrypt2 password. can be null as not all users actually can login.
     phone VARCHAR(255),                    -- Phone address of the user.
     employer VARCHAR(255),                 -- Name of the user's employer. Helps in categorizing users by their organization.
     team CHAR(36),                         -- Foreign key linking to the 'sn_teams' table. Indicates the team the user belongs to.
