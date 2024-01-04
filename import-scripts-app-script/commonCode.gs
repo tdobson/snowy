@@ -1,6 +1,6 @@
 
 
-These functions are available:
+// These functions are available:
 
 /**
  * Inserts an import event into the sn_import_events table and returns the import_id.
@@ -13,21 +13,29 @@ These functions are available:
  * @returns {string} The generated UUID for the new import event.
  */
 function insertImportEvent(conn, importRef, source, notes, userId) {
-  var importId = Utilities.getUuid();
-  var currentDate = new Date();
-  var formattedDate = Utilities.formatDate(currentDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
+    var importId = Utilities.getUuid();
+    var currentDate = new Date();
+    var formattedDate = Utilities.formatDate(currentDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
 
-  var importStmt = conn.prepareStatement('INSERT INTO sn_import_events (import_id, import_date, user_id, import_ref, import_source, import_notes) VALUES (?, ?, ?, ?, ?, ?)');
-  importStmt.setString(1, importId);
-  importStmt.setString(2, formattedDate);
-  importStmt.setString(3, userId);
-  importStmt.setString(4, importRef);
-  importStmt.setString(5, source);
-  importStmt.setString(6, notes);
-  importStmt.execute();
+    var importStmt = conn.prepareStatement('INSERT INTO sn_import_events '
+        + '(import_id, import_date, imported_by, modified_date, modified_by, modification_ref, import_ref, import_source, import_notes) '
+        + 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-  return importId;
+    importStmt.setString(1, importId);
+    importStmt.setString(2, formattedDate);
+    importStmt.setString(3, userId); // imported_by
+    importStmt.setString(4, formattedDate); // modified_date
+    importStmt.setString(5, userId); // modified_by
+    importStmt.setString(6, ''); // modification_ref, assuming no value for new import, can be updated later
+    importStmt.setString(7, importRef);
+    importStmt.setString(8, source);
+    importStmt.setString(9, notes);
+
+    importStmt.execute();
+
+    return importId;
 }
+
 
 
 /**
@@ -214,5 +222,316 @@ function findValueInSheetWithThreeCriteria(spreadsheetId, sheetName, plotSearchC
 }
 
 
+function getRegionIdFromPostcode(postcode) {
+  // Replace with your database connection details
+  var dbUrl = 'jdbc:mysql://your_mysql_host:port/your_database';
+  var dbUser = 'your_username';
+  var dbPassword = 'your_password';
+
+  // API URL for fetching country from postcode
+  var apiUrl = 'https://api.postcodes.io/postcodes/' + encodeURIComponent(postcode);
+
+  // Fetching the response from the API
+  var response = UrlFetchApp.fetch(apiUrl);
+  var json = JSON.parse(response.getContentText());
+
+  // Extract the country from the API response
+  var country = json.result.country;
+
+  // Connect to the database
+  var conn = Jdbc.getConnection(dbUrl, dbUser, dbPassword);
+
+  // Prepare the SQL statement to fetch region_id
+  var stmt = conn.prepareStatement('SELECT region_id FROM sn_region WHERE region_name = ?');
+  stmt.setString(1, country);
+
+  // Execute the query
+  var rs = stmt.executeQuery();
+  var regionId = null;
+
+  // If a region is found, set the regionId
+  if (rs.next()) {
+    regionId = rs.getString('region_id');
+  }
+
+  // Close the connection
+  rs.close();
+  stmt.close();
+  conn.close();
+
+  // Return the region_id or null if not found
+  return regionId;
+}
 
 
+
+/**
+ * Retrieves values from specified columns in a Google Sheets spreadsheet.
+ *
+ * @param {string} sheetId - The ID of the spreadsheet.
+ * @param {string} sheetName - The name of the individual sheet within the spreadsheet.
+ * @param {Object} columnObject - An object where the keys are property names and the values are column names in the sheet.
+ *
+ * @returns {Object} An object with the same keys as columnObject, where the values are either the first non-falsy value found in the respective column or an error message ("Value not found" or "Column not found").
+ *
+ * @example
+ *
+ * var result = getSheetValues('yourSheetIdHere', 'yourSheetNameHere', {columnMan: "Name", columnLady: "LastName"});
+ * console.log(result);
+ * // Output might be: {columnMan: "Bob", columnLady:"Monroe"}
+ *
+ */
+function querySheets(sheetId, selectColumns, fromSheets, joinOn, where) {
+  var spreadsheet = SpreadsheetApp.openById(sheetId);
+  var sheet1 = spreadsheet.getSheetByName(fromSheets[0]);
+  var sheet2 = spreadsheet.getSheetByName(fromSheets[1]);
+
+  var data1 = sheet1.getDataRange().getValues();
+  var data2 = sheet2.getDataRange().getValues();
+
+  var headers1 = data1[0];
+  var headers2 = data2[0];
+
+  var joinIndex1 = headers1.indexOf(joinOn[0]);
+  var joinIndex2 = headers2.indexOf(joinOn[1]);
+
+  var selectIndices1 = selectColumns[0].map(function(col) { return headers1.indexOf(col); });
+  var selectIndices2 = selectColumns[1].map(function(col) { return headers2.indexOf(col); });
+
+  var whereColumnIndex = headers1.indexOf(where.column);
+
+
+
+  var result = [];
+
+  for(var i = 1; i < data1.length; i++) {
+    for(var j = 1; j < data2.length; j++) {
+      if(data1[i][joinIndex1] === data2[j][joinIndex2] && data1[i][whereColumnIndex] === where.value) {
+        var row = {};
+        selectIndices1.forEach(function(idx) {
+          if(idx !== -1) row[formatColumnName(headers1[idx])] = data1[i][idx];
+        });
+        selectIndices2.forEach(function(idx) {
+          if(idx !== -1) row[formatColumnName(headers2[idx])] = data2[j][idx];
+        });
+        result.push(row);
+      }
+    }
+  }
+  return result;
+}
+
+
+function formatColumnName(name) {
+  // Replace non-alphanumeric characters with underscores
+  name = name.replace(/[^a-zA-Z0-9]/g, '_');
+
+  // Replace numbers with words
+  const numberToWordMap = {
+    '0': 'zero',
+    '1': 'one',
+    '2': 'two',
+    '3': 'three',
+    '4': 'four',
+    '5': 'five',
+    '6': 'six',
+    '7': 'seven',
+    '8': 'eight',
+    '9': 'nine',
+  };
+
+  name = name.replace(/[0-9]/g, (match) => numberToWordMap[match]);
+
+  return name;
+}
+
+
+function filter2dArray(array, columnName, search) {
+  for(let i = 0; i < array.length; i++) {
+    if(String(array[i][columnName]) === String(search)) {
+      return array[i];
+    }
+  }
+  return null; // or an empty array [] depending on what you want to return when no match is found
+}
+
+
+
+
+function searchValueInSheet(sheetId, sheetName, searchColumnName, searchValue, returnColumnName) {
+  try {
+    var spreadsheet = SpreadsheetApp.openById(sheetId);
+    var sheet = spreadsheet.getSheetByName(sheetName);
+
+    // Get the first row of the sheet (column names)
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+    // Format the column names using the formatColumnName function
+    var formattedHeaders = headers.map(formatColumnName);
+console.log("Search Col Name", searchColumnName)
+    // Find the index of the formatted search column
+    var searchColumnIndex = formattedHeaders.indexOf(formatColumnName(searchColumnName));
+
+    if (searchColumnIndex !== -1) {
+      // Get all data rows
+      var data = sheet.getDataRange().getValues();
+
+      // Iterate through data rows
+      for (var i = 1; i < data.length; i++) { // Start from 1 to skip header row
+        var rowData = data[i];
+
+        // Check if the search value matches the value in the search column
+        if (rowData[searchColumnIndex] === searchValue) {
+          // Find the index of the formatted return column
+          var returnColumnIndex = formattedHeaders.indexOf(formatColumnName(returnColumnName));
+
+          if (returnColumnIndex !== -1) {
+            // Return the value from the return column in the matching row
+            return rowData[returnColumnIndex];
+          }
+        }
+      }
+      // If no matching row is found, return an appropriate message or value
+      return "No matching row found";
+    } else {
+      // If the search column is not found, return an error message
+      return "Search column not found";
+    }
+  } catch (error) {
+    // Handle any errors that may occur during execution
+    console.log(searchColumnName, searchValue, returnColumnName)
+    return "Error: " + error.message;
+  }
+}
+
+function checkForNullAndNotCreated(trackerValuesbyPlotNumber) {
+  const properties = ["Mpan", "SITE_ADDRESS_LINE_one", "SITE_ADDRESS_LINE_two", "SITE_TOWN", "CountyID", "SITE_POSTCODE", "Overall_Cost", "Project_Plot", "Annual_Yield", "Standalone", "RoofKit"];
+
+if (trackerValuesbyPlotNumber === null){
+  trackerValuesbyPlotNumber = {}
+}
+
+  for (const property of properties) {
+    if (!trackerValuesbyPlotNumber.hasOwnProperty(property)) {
+      trackerValuesbyPlotNumber[property] = "Value not found";
+    } else if (trackerValuesbyPlotNumber[property] === null) {
+      trackerValuesbyPlotNumber[property] = "Value not found";
+    }
+  }
+
+  return trackerValuesbyPlotNumber;
+}
+
+
+function searchForMatch(plotNumber, projectNumber, sheetName, columnIndex1, columnIndex2) {
+  var spreadsheet = SpreadsheetApp.openById(mcsSheetID);
+  var sheet = spreadsheet.getSheetByName(sheetName);
+
+  if (!sheet) {
+    throw new Error('Sheet not found: ' + sheetName);
+  }
+
+  var data = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < data.length; i++) { // Start from row 2 (index 1)
+    var row = data[i];
+    var cellValue1 = row[columnIndex1 - 1].toString(); // Adjust for 1-based index
+    var cellValue2 = row[columnIndex2 - 1].toString(); // Adjust for 1-based index
+    //console.log(cellValue1, cellValue2)
+    if (cellValue1 === plotNumber.toString() && cellValue2 === projectNumber.toString()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function appendToSheet(sheet, data) {
+  // this may be causing problems by not handling the data object right when setting error messages, but we'll see
+  var startRow = sheet.getLastRow() + 1;
+  var numRows = data.length;
+  var numCols = data[0].length;
+  var range = sheet.getRange(startRow, 1, numRows, numCols);
+
+  // If the number of rows in the data is less than the number of rows in the range,
+  // adjust the range to match the number of rows in the data
+  if (numRows < range.getNumRows()) {
+    var diffRows = range.getNumRows() - numRows;
+    range = sheet.getRange(startRow, 1, numRows + diffRows, numCols);
+  }
+
+  range.setValues(data);
+
+
+  // Resize columns to fit data
+  sheet.autoResizeColumns(1, numCols);
+}
+
+
+function getCountyFromPostcode(postcode) {
+  try {
+    var response = UrlFetchApp.fetch("https://wikishire.co.uk/lookup/postcode?pc=" + encodeURIComponent(postcode));
+    var data = response.getContentText();
+
+
+      return data;
+
+  } catch (error) {
+    console.error("Error fetching county: ", error.message);
+    return null;
+  }
+}
+
+function setCountyID(trackerValuesbyPlotNumber, mcsSheetID) {
+  var countyID = 0;
+
+  if (trackerValuesbyPlotNumber) {
+    if (trackerValuesbyPlotNumber.SITE_POSTCODE) {
+      let countyName = getCountyFromPostcode(trackerValuesbyPlotNumber.SITE_POSTCODE);
+      if (countyName !== '' && countyName !== null) {
+        console.log(countyName);
+        countyID = searchValueInSheet(mcsSheetID, "County MCS Lookups", "Description", countyName, "ID");
+        if (typeof countyID === 'undefined' || countyID.includes("found")) countyID = "0";
+        return countyID;
+      }
+    }
+
+    if (trackerValuesbyPlotNumber.POSTAL_POSTCODE) {
+      let countyName = getCountyFromPostcode(trackerValuesbyPlotNumber.POSTAL_POSTCODE);
+      if (countyName !== '' && countyName !== null) {
+        console.log(countyName);
+        countyID = searchValueInSheet(mcsSheetID, "County MCS Lookups", "Description", countyName, "ID");
+      if (typeof countyID === 'undefined' || countyID.includes("found")) countyID = "0";
+        return countyID;
+      } else {
+        console.error("County name not found");
+        countyID = 0;
+        return countyID;
+      }
+    } else {
+      console.error("Both trackerValuesbyPlotNumber.SITE_POSTCODE and trackerValuesbyPlotNumber.POSTAL_POSTCODE are undefined");
+      countyID = 0;
+      return countyID;
+    }
+  } else {
+    console.error("trackerValuesbyPlotNumber is undefined");
+    countyID = 0;
+    return countyID;
+  }
+}
+
+
+function convertNumbersAndBooleansToStrings(obj) {
+  for (var key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      if (typeof obj[key] === "number" && obj[key] === 0) {
+        obj[key] = String(obj[key]);
+      } else if (typeof obj[key] === "boolean") {
+        obj[key] = String(obj[key]);
+      } else if (typeof obj[key] === "object") {
+        // If the property is an object, recursively call the function
+        convertNumbersAndBooleansToStrings(obj[key]);
+      }
+    }
+  }
+}
