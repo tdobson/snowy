@@ -1,76 +1,63 @@
 # Snowy API
 
-Snowy API is a Node.js-based backend system designed to interact with a MySQL database. It provides a JSON API for various operations, primarily focused on user management, and serves information to a front-end application - called Alcazar 1.0 which is based on  React.
+Snowy API is a comprehensive backend system designed for managing solar panel installations and related processes. It is built on Node.js and interacts with a MySQL database, providing a JSON API for various operations. The system is primarily focused on user management, project tracking, and integration with external data sources like Google Sheets.
 
-## Overview
+## Features
 
-The API is built using Express, Sequelize ORM, and MySQL. It adheres to the MVC (Model-View-Controller) architecture, ensuring a clear separation of concerns. The project is structured to be robust, maintainable, and scalable.
+- **User Management**: Create, read, update, and delete user information. Includes authentication and password reset functionalities.
+- **Project Management**: Manage solar panel installation projects, including details like client information, site data, and project status.
+- **Data Import**: Import data from Google Sheets into the Snowy database, facilitating seamless integration of external data sources.
+- **Authentication**: Secure routes with JWT-based authentication middleware.
+- **Error Handling**: Centralized error handling for consistent API responses.
+- **API Documentation**: Interactive API documentation using Swagger.
 
-## Libraries Used
+## Technologies
 
-- **Express**: Web application framework for Node.js, used for routing and middleware.
+- **Node.js**: JavaScript runtime for building the server-side application.
+- **Express**: Web framework for Node.js, used for routing and middleware.
 - **Sequelize**: Promise-based ORM for Node.js, used for database operations.
 - **MySQL**: Database system used for data storage.
 - **Swagger**: API documentation and exploration tool.
-- **Morgan**: HTTP request logger middleware.
-- **Helmet**: Middleware for securing HTTP headers.
-- **Cors**: Middleware for enabling CORS (Cross-Origin Resource Sharing).
-- **Body-parser**: Middleware for parsing incoming request bodies.
+- **JWT (JSON Web Tokens)**: Used for secure authentication.
+- **Bcryptjs**: Library for hashing and comparing passwords.
+- **Nodemailer**: (Not visible installed yet) for sending emails, like password reset emails.
+
+## Getting Started
+
+1. Clone the repository.
+2. Install dependencies: `npm install`.
+3. Set up your MySQL database and update the `./config/config.json` file with your database credentials.
+4. Run the server: `npm start`.
+5. Access the API at: `http://localhost:3000/`.
+6. Explore the API documentation at: `http://localhost:3000/api-docs`.
 
 ## Directory Structure
 
-- `./tests`: Contains test files, such as `users.test.js`, indicating the use of a testing framework like Jest.
-- `./routes`: Holds API route definitions. `userRoutes.js` defines routes for user operations, and `index.js` serves as a central router file.
-- `./models`: Contains Sequelize models like `user.js`, defining data structures and relationships. `index.js` exports the Sequelize instance.
-- `./config`: Configuration files, including `swagger.js` for Swagger setup and `config.json` for database settings.
-- `./index.js`: Main application entry point. Sets up middleware, routes, error handling, and server initialization.
-- `./import-scripts-app-script`: Google Apps Script files for importing data into the system from external sources.
-- `./database`: SQL scripts for database setup, including schema and initial data loading.
-- `./middleware`: Custom Express middleware, such as `validation.js`, `errorHandler.js`, and `authentication.js`.
-- `./docs`: Contains Swagger documentation in `swagger.yaml`.
-- `./utils`: Utility functions and helpers, like `helpers.js`.
-- `./controllers`: Controllers like `usersController` that handle the logic for routes.
+- `./models`: Sequelize models for database tables.
+- `./routes`: Express routes for handling API requests.
+- `./controllers`: Controllers to handle the logic for each route.
+- `./middleware`: Custom Express middleware, including authentication and error handling.
+- `./utils`: Utility functions, including helpers for hashing passwords and managing import events.
+- `./import-scripts-app-script`: Google Apps Script files for importing data.
+- `./docs`: Swagger API documentation.
+- `./config`: Configuration files, including database and Swagger setup.
 
-### Additional Notes on Specific Files
+## API Endpoints
 
-- `./package.json`: Defines project metadata and dependencies.
-- `./middleware/validation.js`: Placeholder for request validation logic.
-- `./middleware/errorHandler.js`: Centralized error handling middleware.
-- `./middleware/authentication.js`: Middleware for handling JWT-based authentication.
-- `./utils/helpers.js`: Utility functions for common tasks.
-- `./controllers/usersController`: Contains functions for handling user-related routes.
+- **User Routes**: `/users` for managing users.
+- **Project Routes**: `/projects` for managing projects.
+- **Authentication Routes**: `/auth` for user authentication.
 
-### Import Scripts in `./import-scripts-app-script`
+## Future Enhancements
 
-These Google Apps Script files (`import_clients.gs`, `import_dno.gs`, `importRegion.gs`, etc.) are used for importing data from Google Sheets into the Snowy database. They establish database connections, prepare SQL statements, and handle data transformation and insertion. This allows for seamless integration of external data sources into the Snowy system.
-
-## Design Decisions
-
-- **Sequelize ORM**: Facilitates database operations, migrations, and seeders without writing raw SQL. It's also database agnostic.
-- **Swagger**: Provides interactive documentation, allowing users to test endpoints directly.
-- **Middleware Choices**: Reflects a focus on security (`helmet`), logging (`morgan`), and functionality (`cors`, `body-parser`).
-- **Centralized Error Handling**: Ensures uniform error responses.
-- **Sequential Database Connection**: Guarantees that the app starts only after a successful database connection.
-
-## Development and Deployment
-
-- Install dependencies: `npm install`
-- Start the development server: `npm start`
-- Configure MySQL based on `./config/config.json`. Adjust settings for different environments.
-
-## API Documentation
-
-Access the interactive API documentation at `http://localhost:3000/api-docs`.
-
-## Future Improvements
-
-- Integrate JWT or other authentication methods.
-- Expand the testing suite with Jest or Mocha.
+- Expand testing suite for robustness.
+- Implement rate limiting and additional security checks.
+- Explore integration with additional external services.
 
 ## Contributing
 
-Contributions are welcome. Please submit issues, fork the repository, and send pull requests.
+Contributions to the Snowy API are welcome. Please follow the standard fork-and-pull request workflow.
 
+## License
 
----
-
+This project is all rights reserved.
