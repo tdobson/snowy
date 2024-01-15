@@ -28,52 +28,96 @@
  * @param {Object} rowData - Row data object containing DNO details.
  * @returns {void}
  */
-function importDnoDetails() {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("DNO-List");
-    var data = sheet.getDataRange().getValues(); // Get data from the sheet
+ function importDnoDetails() {
+       var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("DNO-List");
+       var data = sheet.getDataRange().getValues();
 
-    // Database connection details
+       var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
+       var importId = insertImportEvent(conn, '', 'DNO Tracker', 'Importing DNO details', '4df57691-4d43-4cfb-9338-00e4cfafa63d');
+
+       var checkDnoStmt = conn.prepareStatement('SELECT * FROM sn_dno_details WHERE mpan_prefix = ?');
+       var insertDnoStmt = conn.prepareStatement('INSERT INTO sn_dno_details (dno_details_id, mpan_prefix, dno_name, address, email_address, contact_no, internal_tel, type, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+       var updateDnoStmt = conn.prepareStatement('UPDATE sn_dno_details SET dno_name = ?, address = ?, email_address = ?, contact_no = ?, internal_tel = ?, type = ? WHERE mpan_prefix = ?');
+
+       var returnedUuid = null; // Initialize with null
+
+       for (var i = 1; i < data.length; i++) {
+           var rowData = rowDataToObject(sheet, i + 1, 1, sheet.getLastColumn());
+           checkDnoStmt.setString(1, rowData.MPAN_Prefix);
+           var rs = checkDnoStmt.executeQuery();
+
+           if (rs.next()) {
+               var existingUuid = rs.getString('dno_details_id');
+               returnedUuid = existingUuid;
+
+               // Update existing record if any field is blank
+               updateDnoStmt.setString(1, rowData.DNO_NAME || rs.getString('dno_name'));
+               updateDnoStmt.setString(2, rowData.ADDRESS || rs.getString('address'));
+               updateDnoStmt.setString(3, rowData.EMAIL_ADDRESS || rs.getString('email_address'));
+               updateDnoStmt.setString(4, rowData.CONTACT_NO || rs.getString('contact_no'));
+               updateDnoStmt.setString(5, rowData.INTERNAL_TEL || rs.getString('internal_tel'));
+               updateDnoStmt.setString(6, rowData.TYPE || rs.getString('type'));
+               updateDnoStmt.setString(7, rowData.MPAN_Prefix);
+               updateDnoStmt.execute();
+           } else {
+               var newUuid = Utilities.getUuid();
+               returnedUuid = newUuid;
+
+               // Insert new record
+               insertDnoStmt.setString(1, newUuid);
+               insertDnoStmt.setString(2, rowData.MPAN_Prefix);
+               insertDnoStmt.setString(3, rowData.DNO_NAME);
+               insertDnoStmt.setString(4, rowData.ADDRESS);
+               insertDnoStmt.setString(5, rowData.EMAIL_ADDRESS);
+               insertDnoStmt.setString(6, rowData.CONTACT_NO);
+               insertDnoStmt.setString(7, rowData.INTERNAL_TEL);
+               insertDnoStmt.setString(8, rowData.TYPE);
+               insertDnoStmt.setString(9, importId);
+               insertDnoStmt.execute();
+           }
+       }
+
+       conn.close();
+       Logger.log('DNO details import/update complete.');
+       return returnedUuid; // Return the UUID of the new or existing record
+   }
+
+
+/**
+ * Looks up Distribution Network Operator (DNO) details by MPAN ID in the sn_dno_details table in the database.
+ *
+ * @param {string} mpanId - The MPAN ID to look up.
+ * @returns {Object|null} - The DNO details if found, or null if not found.
+ */
+function lookupDnoDetailsByMpan(mpanId) {
     var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
 
-    // Insert into sn_import_events using insertImportEvent function
-    var importId = insertImportEvent(conn, '', 'DNO Tracker', 'Importing DNO details', '4df57691-4d43-4cfb-9338-00e4cfafa63d'); // Replace 'user_id_here' with actual user ID
+    try {
+        var checkDnoStmt = conn.prepareStatement('SELECT * FROM sn_dno_details WHERE mpan_prefix = ?');
+        checkDnoStmt.setString(1, mpanId);
 
-    var checkDnoStmt = conn.prepareStatement('SELECT * FROM sn_dno_details WHERE mpan_prefix = ?');
-    var insertDnoStmt = conn.prepareStatement('INSERT INTO sn_dno_details (dno_details_id, mpan_prefix, dno_name, address, email_address, contact_no, internal_tel, type, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
-    var updateDnoStmt = conn.prepareStatement('UPDATE sn_dno_details SET dno_name = ?, address = ?, email_address = ?, contact_no = ?, internal_tel = ?, type = ? WHERE mpan_prefix = ?');
-
-    for (var i = 1; i < data.length; i++) { // Skipping header row
-        var rowData = rowDataToObject(sheet, i + 1, 1, sheet.getLastColumn()); // Convert row data to object
-        // Check if DNO with given MPAN prefix exists
-        checkDnoStmt.setString(1, rowData.MPAN_Prefix);
         var rs = checkDnoStmt.executeQuery();
 
         if (rs.next()) {
-            // Update existing record if any field is blank
-            updateDnoStmt.setString(1, rowData.DNO_NAME || rs.getString('dno_name'));
-            updateDnoStmt.setString(2, rowData.ADDRESS || rs.getString('address'));
-            updateDnoStmt.setString(3, rowData.EMAIL_ADDRESS || rs.getString('email_address'));
-            updateDnoStmt.setString(4, rowData.CONTACT_NO || rs.getString('contact_no'));
-            updateDnoStmt.setString(5, rowData.INTERNAL_TEL || rs.getString('internal_tel'));
-            updateDnoStmt.setString(6, rowData.TYPE || rs.getString('type'));
-            updateDnoStmt.setString(7, rowData.MPAN_Prefix);
-            updateDnoStmt.execute();
-        } else {
-            // Insert new record
-            console.log(rowData.MPAN_Prefix)
-            insertDnoStmt.setString(1, Utilities.getUuid());
-            insertDnoStmt.setString(2, rowData.MPAN_Prefix);
-            insertDnoStmt.setString(3, rowData.DNO_NAME);
-            insertDnoStmt.setString(4, rowData.ADDRESS);
-            insertDnoStmt.setString(5, rowData.EMAIL_ADDRESS);
-            insertDnoStmt.setString(6, rowData.CONTACT_NO);
-            insertDnoStmt.setString(7, rowData.INTERNAL_TEL);
-            insertDnoStmt.setString(8, rowData.TYPE);
-            insertDnoStmt.setString(9, importId);
-            insertDnoStmt.execute();
-        }
-    }
+            var dnoDetails = {
+                'dno_details_id': rs.getString('dno_details_id'),
+                'mpan_prefix': rs.getString('mpan_prefix'),
+                'dno_name': rs.getString('dno_name'),
+                'address': rs.getString('address'),
+                'email_address': rs.getString('email_address'),
+                'contact_no': rs.getString('contact_no'),
+                'internal_tel': rs.getString('internal_tel'),
+                'type': rs.getString('type'),
+            };
 
-    conn.close();
-    Logger.log('DNO details import/update complete.');
+            return dnoDetails;
+        } else {
+            return null; // DNO not found for the given MPAN ID
+        }
+    } catch (e) {
+        Logger.log('Error in lookupDnoDetailsByMpan: ' + e);
+        return null; // Handle any database errors gracefully
+    } finally {
+        conn.close();
+    }
 }

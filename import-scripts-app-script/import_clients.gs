@@ -1,84 +1,78 @@
-// https://docs.google.com/spreadsheets/d//edit#gid=1873048951
-
+/**
+ * Imports client and contact details from a Google Sheets spreadsheet named "Site Log" into a MySQL database.
+ * The function reads each row from the sheet, converts it into an object using rowDataToObject, checks for existing
+ * client, user, and address records in the database to avoid duplicates, and logs an import event. It inserts or updates data
+ * into the 'sn_clients', 'sn_users', and 'sn_addresses' tables.
+ *
+ * Prerequisites:
+ * - Google Sheets document with a sheet named "Site Log" containing client and contact details.
+ * - MySQL database with 'sn_import_events', 'sn_clients', 'sn_users', and 'sn_addresses' tables set up.
+ * - Correct database connection details configured in the script.
+ *
+ * Usage:
+ * - Run this function to import data from the "Site Log" sheet into the database.
+ *
+ * Notes:
+ * - Skips the header row and starts processing data from the second row.
+ * - Uses rowDataToObject utility function for row data conversion.
+ * - Uses prepared statements for database operations.
+ * - Exception handling should be implemented as needed.
+ *
+ * @returns {void}
+ */
 function importClientDetails() {
-
-
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Site Log");
-  var data = sheet.getDataRange().getValues(); // Adjust range as needed
+  var data = sheet.getDataRange().getValues();
 
-  // Database connection details
-  var dbUrl = 'jdbc:mysql://your_mysql_host:port/your_database';
-  var dbUser = 'your_username';
-  var dbPassword = 'your_password';
+  var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
+  var importId = insertImportEvent(conn, '', 'Site Log Import', 'Importing client and contact details', '4df57691-4d43-4cfb-9338-00e4cfafa63d');
 
-  var conn = Jdbc.getConnection(dbUrl, dbUser, dbPassword);
+  var checkClientStmt = conn.prepareStatement('SELECT * FROM sn_clients WHERE client_name = ?');
+  var insertClientStmt = conn.prepareStatement('INSERT INTO sn_clients (client_id, client_name, address_id, contact_id, import_id) VALUES (?, ?, ?, ?, ?)');
+  var updateClientStmt = conn.prepareStatement('UPDATE sn_clients SET address_id = ?, contact_id = ? WHERE client_name = ?');
 
-  // Insert into sn_import_events and capture the import_id
-  var importId = Utilities.getUuid();
-  var currentDate = new Date();
-  var formattedDate = Utilities.formatDate(currentDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
+  for (var i = 1; i < data.length; i++) {
+    var rowData = rowDataToObject(sheet, i + 1, 1, sheet.getLastColumn());
 
-  var importStmt = conn.prepareStatement('INSERT INTO sn_import_events (import_id, import_date, user_id, import_ref, import_source, import_notes) VALUES (?, ?, ?, ?, ?, ?)');
-  importStmt.setString(1, importId);
-  importStmt.setString(2, formattedDate); // Set the current date in the right format
-  importStmt.setString(3, '1'); // Assuming '1' is the user_id
-  importStmt.setString(4, ''); // import_ref can be left empty or filled as needed
-  importStmt.setString(5, 'Site Log Import');
-  importStmt.setString(6, 'Importing client details');
-  importStmt.execute();
+    var userData = {
+      name: rowData['Contact_name'],
+      email: rowData['Contact_Email'],
+      employer: rowData.client,
+      snowy_role: "Client",
+      category: "Human"
+    };
 
-  var checkClientStmt = conn.prepareStatement('SELECT COUNT(*) FROM sn_clients WHERE client_name = ?');
-  var checkUserStmt = conn.prepareStatement('SELECT COUNT(*) FROM sn_users WHERE email = ?');
+    var addressData = {
+      address_line_1: rowData['Client_address_1'],
+      address_line_2: rowData['client_address_2'],
+      address_line_3: rowData['client_address_3'],
+      address_town: rowData['Town'],
+      address_county: rowData['County'],
+      address_postcode: rowData['Post_Code']
+    };
 
-  var clientStmt = conn.prepareStatement('INSERT INTO sn_clients (client_id, client_name, client_address_1, client_address_2, client_address_3, client_town, client_county, client_postcode, contact_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-  var userStmt = conn.prepareStatement('INSERT INTO sn_users (user_id, name, email, employer, snowy_role, import_id) VALUES (?, ?, ?, ?, ?, ?)');
+    var userId = importUserData(userData, importId, conn);
+    var addressId = importAddressData(addressData, importId, conn);
 
-  for (var i = 1; i < data.length; i++) { // Skipping header row
-    var clientName = data[i][2]; // Client name
-    var contactEmail = data[i][23]; // Contact email
-
-    // Check if client already exists
-    checkClientStmt.setString(1, clientName);
+    // Check and insert/update client data
+    checkClientStmt.setString(1, rowData.client);
     var clientResult = checkClientStmt.executeQuery();
-    clientResult.next();
-    if (clientResult.getInt(1) > 0) continue; // Skip if client exists
-
-    // Check if user already exists
-    checkUserStmt.setString(1, contactEmail);
-    var userResult = checkUserStmt.executeQuery();
-    userResult.next();
-    if (userResult.getInt(1) > 0) continue; // Skip if user exists
-
-    var clientUuid = Utilities.getUuid();
-    var contactUuid = Utilities.getUuid();
-
-    // Insert into sn_users
-    userStmt.setString(1, contactUuid);
-    userStmt.setString(2, data[i][22]); // Contact name
-    userStmt.setString(3, contactEmail);
-    userStmt.setString(4, clientName);
-    userStmt.setString(5, 'Contact');
-    userStmt.setString(6, importId);
-    userStmt.addBatch();
-
-    // Insert into sn_clients
-    clientStmt.setString(1, clientUuid);
-    clientStmt.setString(2, clientName);
-    clientStmt.setString(3, data[i][15]); // Client address 1
-    clientStmt.setString(4, data[i][16]); // Client address 2
-    clientStmt.setString(5, data[i][17]); // Client address 3
-    clientStmt.setString(6, data[i][18]); // Town
-    clientStmt.setString(7, data[i][19]); // County
-    clientStmt.setString(8, data[i][20]); // Postcode
-    clientStmt.setString(9, contactUuid); // Contact ID
-    clientStmt.setString(10, importId);
-    clientStmt.addBatch();
+    if (clientResult.next()) {
+      updateClientStmt.setString(1, addressId);
+      updateClientStmt.setString(2, userId);
+      updateClientStmt.setString(3, rowData.client);
+      updateClientStmt.execute();
+    } else {
+      var clientUuid = Utilities.getUuid();
+      insertClientStmt.setString(1, clientUuid);
+      insertClientStmt.setString(2, rowData.client);
+      insertClientStmt.setString(3, addressId);
+      insertClientStmt.setString(4, userId);
+      insertClientStmt.setString(5, importId);
+      insertClientStmt.execute();
+    }
   }
 
-  // Execute batches
-  userStmt.executeBatch();
-  clientStmt.executeBatch();
   conn.close();
-
-  Logger.log('Inserted client and contact details.');
+  Logger.log('Client and contact details import/update complete.');
 }

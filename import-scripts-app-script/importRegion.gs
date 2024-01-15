@@ -1,63 +1,68 @@
+/**
+ * Retrieves the region number corresponding to a given PV number from a Google Sheets spreadsheet.
+ *
+ * @param {string} pvNumber - The PV number to search for in the spreadsheet.
+ * @returns {string} The region number corresponding to the given PV number. Returns an empty string if not found.
+ */
+function getRegionByPVNumber(sheet,pvNumber) {
+  // If pvNumber is blank or not provided, immediately return an empty string
+  if (!pvNumber || pvNumber.trim() === "") {
+    return "";
+  }
+    var spreadsheet = sheet.getParent();
+    var spreadsheetId = spreadsheet.getId();
 
-function importRegionDetails() {
-  var sheetName = "Tracker";
-  var spreadSheetID = '1LxOveglR_AYMz7PnFyZrO3331vJHUoxp2AAdGcTs4LM'; // Replace with your Spreadsheet ID
-  var regionColumnHeader = "Region";
+  var sheetName = 'Tracker'; // Name of the sheet where the data is located
+  var searchColumnName = 'PV NO'; // The column name where the PV number is located
+  var returnColumnName = 'REGION'; // The column name for the region number
 
-  // Get region numbers from the 'Region' column
-  var regionNumbers = getColumnData(regionColumnHeader, sheetName, spreadSheetID);
+  try {
+    // Call the function to search for the PV number and return the corresponding region number
+    var regionNumber = findValueInSheet(spreadsheetId, sheetName, searchColumnName, returnColumnName, pvNumber);
 
-  // Database connection details
-  var dbUrl = 'jdbc:mysql://your_mysql_host:port/your_database';
-  var dbUser = 'your_username';
-  var dbPassword = 'your_password';
-
-  var conn = Jdbc.getConnection(dbUrl, dbUser, dbPassword);
-
-  // Insert into sn_import_events using insertImportEvent function
-  var importId = insertImportEvent(conn, '', 'Region Tracker', 'Importing Region details', '1'); // Assuming '1' is the user_id
-
-  // Prepare statement for checking existing region numbers
-  var checkStmt = conn.prepareStatement('SELECT COUNT(*) FROM sn_region WHERE region_number = ?');
-
-  // Prepare statement for inserting new regions
-  var insertStmt = conn.prepareStatement('INSERT INTO sn_region '
-      + '(region_id, region_number, region_name, import_id) '
-      + 'VALUES (?, ?, ?, ?)');
-
-  var insertedCount = 0;
-
-  // Mapping of region numbers to names
-  var regionNames = {
-    '1': 'Scotland',
-    '2': 'England',
-    '3': 'Wales',
-    '4': 'Northern Ireland'
-  };
-
-  for (var i = 0; i < regionNumbers.length; i++) {
-    var regionNumber = regionNumbers[i];
-
-    // Check if the region number already exists
-    checkStmt.setString(1, regionNumber);
-    var rs = checkStmt.executeQuery();
-    if (rs.next() && rs.getInt(1) == 0) { // If region number does not exist
-      insertStmt.setString(1, Utilities.getUuid()); // region_id
-      insertStmt.setString(2, regionNumber);        // region_number
-      insertStmt.setString(3, regionNames[regionNumber]); // region_name
-      insertStmt.setString(4, importId);            // use the generated import_id
-
-      insertStmt.addBatch();
-      insertedCount++;
-    }
+    // Check if a region number is found, otherwise return an empty string
+    return regionNumber ? regionNumber : "";
+  } catch (error) {
+    console.error("Error in getRegionByPVNumber: " + error.message);
+    return "";
+  }
+}
+/**
+ * Fetches the region_id corresponding to a given region number from the sn_region table in a MySQL database.
+ * Returns an empty string immediately if no result is found or if the region number is not provided.
+ *
+ * Prerequisites:
+ * - A MySQL database with the 'sn_region' table set up and containing records.
+ * - Correct database connection details configured in the script.
+ *
+ * Usage:
+ * - Call this function with a region number to fetch the corresponding region_id from the database.
+ *
+ * @param {number} regionNumber - The region number to look up in the database.
+ * @returns {string} The region_id corresponding to the provided region number or an empty string if not found.
+ */
+function getRegionIdFromRegionNumber(regionNumber) {
+  // Immediately return an empty string if regionNumber is not provided or is blank
+  if (!regionNumber || regionNumber.toString().trim() === "") {
+    return "";
   }
 
-  if (insertedCount > 0) {
-    var batch = insertStmt.executeBatch();
-    Logger.log('Inserted ' + batch.length + ' rows.');
+  var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
+
+  var stmt = conn.prepareStatement('SELECT region_id FROM sn_region WHERE region_number = ?');
+  stmt.setString(1, regionNumber.toString());
+  var rs = stmt.executeQuery();
+
+  var regionId = '';
+  if (rs.next()) {
+    regionId = rs.getString('region_id');
   } else {
-    Logger.log('No new regions to insert.');
+    regionId = ""; // Return an empty string if no matching region_id is found
   }
 
+  rs.close();
+  stmt.close();
   conn.close();
+
+  return regionId;
 }

@@ -36,6 +36,114 @@ function insertImportEvent(conn, importRef, source, notes, userId) {
     return importId;
 }
 
+/**
+ * Inserts or updates an import event in the sn_import_events table. This function handles both new event insertion
+ * and updating existing events based on the provided event details. If an import_id is provided and valid, the function
+ * updates the existing event; otherwise, it creates a new event.
+ *
+ * @param {JdbcConnection} conn - The JDBC connection to the database.
+ * @param {Object} eventData - An object containing the details of the event. Expected properties:
+ *   - {string} [importId] - (Optional) The import ID of an existing event to update.
+ *   - {string} importRef - Reference identifier for the event.
+ *   - {string} source - Source of the imported data.
+ *   - {string} notes - Additional notes or comments about the event.
+ *   - {string} userId - User ID of the user performing the operation.
+ * @returns {string} The import_id of the inserted or updated event.
+ */
+function insertOrUpdateImportEvent(conn, eventData) {
+    var currentDate = new Date();
+    var formattedDate = Utilities.formatDate(currentDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
+
+    if (eventData.importId) {
+        // Update existing event
+        var updateStmt = conn.prepareStatement('UPDATE sn_import_events SET modified_date = ?, modified_by = ?, import_notes = ?, import_source = ? WHERE import_id = ?');
+        updateStmt.setString(1, formattedDate);
+        updateStmt.setString(2, eventData.userId);
+        updateStmt.setString(3, eventData.notes);
+        updateStmt.setString(4, eventData.source);
+        updateStmt.setString(5, eventData.importId);
+        updateStmt.execute();
+
+        return eventData.importId;
+    } else {
+        // Insert new event
+        var newImportId = Utilities.getUuid();
+        var insertStmt = conn.prepareStatement('INSERT INTO sn_import_events '
+            + '(import_id, import_date, imported_by, modified_date, modified_by, modification_ref, import_ref, import_source, import_notes) '
+            + 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+
+        insertStmt.setString(1, newImportId);
+        insertStmt.setString(2, formattedDate);
+        insertStmt.setString(3, eventData.userId);
+        insertStmt.setString(4, formattedDate);
+        insertStmt.setString(5, eventData.userId);
+        insertStmt.setString(6, ''); // Assuming no modification_ref for new event
+        insertStmt.setString(7, eventData.importRef);
+        insertStmt.setString(8, eventData.source);
+        insertStmt.setString(9, eventData.notes);
+        insertStmt.execute();
+
+        return newImportId;
+    }
+}
+
+
+
+/**
+ * Inserts or updates an event in the sn_import_events table. If an event with the given importRef already exists,
+ * it updates the modification details; otherwise, it inserts a new event and returns the import_id.
+ *
+ * @param {JdbcConnection} conn - The JDBC connection to the database.
+ * @param {string} importRef - Reference identifier for the event.
+ * @param {string} source - Source of the imported data.
+ * @param {string} notes - Additional notes or comments about the event.
+ * @param {string} userId - User ID of the user performing the operation.
+ * @returns {string} The import_id of the existing or new event.
+ */
+function insertUpdateEvent(conn, importRef, source, notes, userId) {
+    var currentDate = new Date();
+    var formattedDate = Utilities.formatDate(currentDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
+
+    // Check if the event with the given importRef exists
+    var checkEventStmt = conn.prepareStatement('SELECT * FROM sn_import_events WHERE import_ref = ?');
+    checkEventStmt.setString(1, importRef);
+    var rs = checkEventStmt.executeQuery();
+
+    if (rs.next()) {
+        // Event exists, update the modification details
+        var existingImportId = rs.getString('import_id');
+        var updateStmt = conn.prepareStatement('UPDATE sn_import_events SET modified_date = ?, modified_by = ?, import_notes = ?, import_source = ? WHERE import_id = ?');
+
+        updateStmt.setString(1, formattedDate);
+        updateStmt.setString(2, userId);
+        updateStmt.setString(3, notes);
+        updateStmt.setString(4, source);
+        updateStmt.setString(5, existingImportId);
+
+        updateStmt.execute();
+        return existingImportId;
+    } else {
+        // Insert a new event
+        var newImportId = Utilities.getUuid();
+        var insertStmt = conn.prepareStatement('INSERT INTO sn_import_events '
+            + '(import_id, import_date, imported_by, modified_date, modified_by, modification_ref, import_ref, import_source, import_notes) '
+            + 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+
+        insertStmt.setString(1, newImportId);
+        insertStmt.setString(2, formattedDate);
+        insertStmt.setString(3, userId);
+        insertStmt.setString(4, formattedDate);
+        insertStmt.setString(5, userId);
+        insertStmt.setString(6, ''); // Assuming no modification_ref for new event
+        insertStmt.setString(7, importRef);
+        insertStmt.setString(8, source);
+        insertStmt.setString(9, notes);
+
+        insertStmt.execute();
+        return newImportId;
+    }
+}
+
 
 
 /**
@@ -81,7 +189,7 @@ function getColumnData(columnHeader, sheetName = null, spreadSheetID = null) {
 
 /**
  * Converts selected row data into an object based on column headers. Columns with special chars are replaced with underscores.
- * 
+ *
  * @param {Sheet} sheet - The active sheet from which to fetch data.
  * @param {number} selectedRow - The index of the selected row.
  * @param {number} startColumn - The starting column index for data extraction.
@@ -221,47 +329,6 @@ function findValueInSheetWithThreeCriteria(spreadsheetId, sheetName, plotSearchC
   return null; // Return null if no match is found
 }
 
-
-function getRegionIdFromPostcode(postcode) {
-  // Replace with your database connection details
-  var dbUrl = 'jdbc:mysql://your_mysql_host:port/your_database';
-  var dbUser = 'your_username';
-  var dbPassword = 'your_password';
-
-  // API URL for fetching country from postcode
-  var apiUrl = 'https://api.postcodes.io/postcodes/' + encodeURIComponent(postcode);
-
-  // Fetching the response from the API
-  var response = UrlFetchApp.fetch(apiUrl);
-  var json = JSON.parse(response.getContentText());
-
-  // Extract the country from the API response
-  var country = json.result.country;
-
-  // Connect to the database
-  var conn = Jdbc.getConnection(dbUrl, dbUser, dbPassword);
-
-  // Prepare the SQL statement to fetch region_id
-  var stmt = conn.prepareStatement('SELECT region_id FROM sn_region WHERE region_name = ?');
-  stmt.setString(1, country);
-
-  // Execute the query
-  var rs = stmt.executeQuery();
-  var regionId = null;
-
-  // If a region is found, set the regionId
-  if (rs.next()) {
-    regionId = rs.getString('region_id');
-  }
-
-  // Close the connection
-  rs.close();
-  stmt.close();
-  conn.close();
-
-  // Return the region_id or null if not found
-  return regionId;
-}
 
 
 

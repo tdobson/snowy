@@ -1,42 +1,48 @@
-
-/*
-var testData12399 = {
-    sso_id: "123456789",             // Single Sign-On identifier, if applicable
-    name: "John Doe",                // Full name of the user
-    email: "johndoe@example.com",    // Email address of the user
-    phone: "123-456-7890",           // Phone number of the user
-    employer: "Example Corp",        // Name of the user's employer
-    team: "team_uuid_here",          // Team identifier, linking to the 'sn_teams' table
-    dispatch_id: "dispatch123",      // Dispatch identifier, if applicable
-    snowy_role: "Administrator",     // Role within the Snowy application
-    company_role: "Manager",         // Role within their company
-    category: "Human"                // Category (e.g., Human, Company, etc.)
-};
-*/
-
 /**
- * Imports user data into the database.
+ * Imports user data into a MySQL database. It updates existing user records based on email
+ * or inserts new ones. The function returns the user ID (either existing or new) after the operation.
  *
- * @param {Object} userData - The user data object to be imported.
- * @param {JdbcConnection} conn - The JDBC connection to the database.
- * @param {String} importId - The import ID from the original import.
+ * Prerequisites:
+ * - A MySQL database with the 'sn_users' table set up.
+ * - Correct database connection details configured in the script.
+ *
+ * Usage:
+ * - Call this function with an object containing user details, a unique import ID, and a database connection.
+ * - The function checks if a user with the given email already exists in the database.
+ * - If the user exists, it updates the record; otherwise, it inserts a new user.
+ *
+ * @param {Object} userData - An object containing the user's details. Expected keys:
+ *   - sso_id: String - Single Sign-On identifier, if applicable.
+ *   - name: String - Full name of the user.
+ *   - email: String - Email address of the user.
+ *   - phone: String - Phone number of the user.
+ *   - employer: String - Name of the user's employer.
+ *   - team: String - Team identifier, linking to the 'sn_teams' table.
+ *   - dispatch_id: String - Dispatch identifier, if applicable.
+ *   - snowy_role: String - Role within the Snowy application.
+ *   - company_role: String - Role within their company.
+ *   - category: String - Category (e.g., Human, Company, etc.).
+ * @param {String} importId - A unique identifier for the import session.
+ * @param {JdbcConnection} conn - An active JDBC connection to the database.
+ *
+ * @returns {String} The UUID of the existing or new user.
  */
 function importUserData(userData, importId, conn) {
-  // 1) Check if email is present
   if (!userData.email) {
     console.log("Email is required.");
-    return;
+    return null; // Return null if the email is not provided
   }
 
-  // 2) Check if the email is already present in the database
   var checkEmailStmt = conn.prepareStatement('SELECT * FROM sn_users WHERE email = ?');
   checkEmailStmt.setString(1, userData.email);
   var rs = checkEmailStmt.executeQuery();
+  var userId; // Variable to store the UUID of the user
 
   if (rs.next()) {
-    // Email exists, update blank fields
+    userId = rs.getString('user_id'); // Capture existing user ID
     var updateStmt = conn.prepareStatement('UPDATE sn_users SET sso_id = ?, name = ?, phone = ?, employer = ?, team = ?, dispatch_id = ?, snowy_role = ?, company_role = ?, category = ?, import_id = ? WHERE email = ?');
 
+    // Update the user details
     updateStmt.setString(1, userData.sso_id || rs.getString('sso_id'));
     updateStmt.setString(2, userData.name || rs.getString('name'));
     updateStmt.setString(3, userData.phone || rs.getString('phone'));
@@ -52,11 +58,11 @@ function importUserData(userData, importId, conn) {
     updateStmt.execute();
     console.log("User data updated for email: " + userData.email);
   } else {
-    // 3) Email isn't present, insert new data
-    var insertStmt = conn.prepareStatement('INSERT INTO sn_users (user_id, sso_id, name, email, phone, employer, team, dispatch_id, snowy_role, company_role, import_id, category) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    userId = Utilities.getUuid(); // Generate a UUID for the new user
+    var insertStmt = conn.prepareStatement('INSERT INTO sn_users (user_id, sso_id, name, email, phone, employer, team, dispatch_id, snowy_role, company_role, category, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-    var uuid = Utilities.getUuid(); // Generate a UUID for the new user
-    insertStmt.setString(1, uuid);
+    // Insert a new user
+    insertStmt.setString(1, userId);
     insertStmt.setString(2, userData.sso_id);
     insertStmt.setString(3, userData.name);
     insertStmt.setString(4, userData.email);
@@ -66,8 +72,8 @@ function importUserData(userData, importId, conn) {
     insertStmt.setString(8, userData.dispatch_id);
     insertStmt.setString(9, userData.snowy_role);
     insertStmt.setString(10, userData.company_role);
-    insertStmt.setString(11, importId);
-    insertStmt.setString(12, userData.category);
+    insertStmt.setString(11, userData.category);
+    insertStmt.setString(12, importId);
 
     insertStmt.execute();
     console.log("New user inserted with email: " + userData.email);
@@ -76,4 +82,6 @@ function importUserData(userData, importId, conn) {
   // Close resources
   rs.close();
   checkEmailStmt.close();
+
+  return userId; // Return the UUID of the existing or new user
 }
