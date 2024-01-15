@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS sn_projects (
     job_code VARCHAR(255),            -- Client's internal reference code for the project.
     comments TEXT,                    -- Additional comments or notes about the project.
     import_id CHAR(36),               -- Links to an import event in the sn_import_events table.
+    project_process_id(36)              -- links to sn_project_process tables
     dno_zone VARCHAR(255),             -- Zone identifier for the DNO.
     PRIMARY KEY (project_id)
     -- FOREIGN KEY constraints omitted
@@ -67,8 +68,7 @@ CREATE TABLE IF NOT EXISTS sn_projects (
 -- Table: sn_project_process
 -- Each approval process is uniquely identified and linked to a project.
 CREATE TABLE IF NOT EXISTS sn_project_process (
-    approval_id CHAR(36) NOT NULL,    -- Primary Key: Unique identifier for each approval process.
-    project_id CHAR(36) UNIQUE,       -- Links to the corresponding project in sn_projects.
+    project_process_id CHAR(36) NOT NULL,    -- Primary Key: Unique identifier for each approval process.
     approval_status CHAR(36),         -- Links to the current status of the approval in sn_status.
     deadline_to_connect DATE,         -- Deadline for the project to establish a connection.
     auth_letter_sent BOOLEAN,         -- Indicates whether the letter of authority has been sent.
@@ -95,6 +95,8 @@ CREATE TABLE IF NOT EXISTS sn_project_process (
 CREATE TABLE IF NOT EXISTS sn_plots (
     plot_id CHAR(36) NOT NULL,                  -- Unique identifier for each plot.
     project_id CHAR(36) NOT NULL,               -- Identifies the project the plot belongs to.
+    plot_spec_id CHAR(36) NOT NULL,               -- Identifies the plot spec
+    plot_install_id CHAR(36) NOT NULL,               -- Identifies the plot install
     plot_number VARCHAR(255) NOT NULL,          -- Alphanumeric identifier for the plot.
     plot_status CHAR(36),                       -- Indicates the current status of the plot.
     site CHAR(36),                              -- Identifies the site where the plot is located.
@@ -145,7 +147,7 @@ CREATE TABLE IF NOT EXISTS sn_clients (
     client_id CHAR(36) NOT NULL,                -- Unique identifier for each client.
     client_legacy_number VARCHAR(255),          -- Old unique client identifier.
     client_name VARCHAR(255) NOT NULL UNIQUE,   -- Name of the client.
-    user_address_id CHAR(36),                   -- Address details.
+    client_address_id CHAR(36),                   -- Address details.
     client_plot_card_required VARCHAR(255),     -- Type of plot card required by the client (null if not required).
     contact_id VARCHAR(255),                    -- Name of the primary contact for the client.
     import_id CHAR(36),                         -- Identifier for the import event.
@@ -262,8 +264,9 @@ CREATE TABLE IF NOT EXISTS sn_status (
     status_id CHAR(36) NOT NULL,               -- Unique identifier for each job status.
     status_state VARCHAR(255) NOT NULL,        -- Status of the job status (e.g., approved).
     status_name VARCHAR(255) NOT NULL,         -- Name of the status (e.g., Plots dispatch).
+    status_group VARCHAR(255) NOT NULL,         -- Name of the Group of statuses (e.g., "Plots dispatch statuses").
     status_code VARCHAR(255),                  -- Code associated with the job status (e.g., APR).
-    status_description VARCHAR(255),           -- Short description of what this status means.
+    status_description VARCHAR(510),           -- Short description of what this status means.
     import_id CHAR(36),                        -- Import event ID.
     PRIMARY KEY (status_id)
     -- FOREIGN KEY constraint omitted
@@ -292,6 +295,7 @@ CREATE TABLE IF NOT EXISTS sn_addresses (
     address_town VARCHAR(255),           -- Town of the address.
     address_county VARCHAR(255),         -- County of the address.
     address_postcode VARCHAR(255),       -- Postcode of the address.
+    address_postcode VARCHAR(255),       -- Postcode of the address.
     address_country VARCHAR(255),        -- Country of the address.
     address_region_id CHAR(36),          -- Region ID.
     import_id CHAR(36),                  -- Import event ID.
@@ -303,7 +307,6 @@ CREATE TABLE IF NOT EXISTS sn_addresses (
 -- Details the sites where projects are located.
 CREATE TABLE IF NOT EXISTS sn_sites (
     site_id CHAR(36) NOT NULL,           -- Unique identifier for the site.
-    project_id CHAR(36),                 -- Project ID.
     dno_details_id CHAR(36),             -- DNO details ID.
     site_address_id CHAR(36),            -- Address details.
     site_manager_id CHAR(36),            -- User ID of the site manager.
@@ -395,3 +398,18 @@ CREATE TABLE IF NOT EXISTS sn_mcs_ref_counties (
     PRIMARY KEY (mcs_county_id)
     -- FOREIGN KEY constraint omitted
 );
+
+
+INSERT INTO sn_import_events
+(import_id, import_date, imported_by, modified_date, modified_by, modification_ref, import_ref, import_source, import_notes)
+VALUES
+(UUID(), CURRENT_DATE, '4df57691-4d43-4cfb-9338-00e4cfafa63d', CURRENT_DATE, '4df57691-4d43-4cfb-9338-00e4cfafa63d', '', '', 'Manual Region Import', 'Manually importing region data');
+
+
+INSERT INTO sn_region (region_id, region_number, region_name, import_id)
+VALUES
+(UUID(), '1', 'Scotland', (SELECT import_id FROM sn_import_events ORDER BY import_date DESC LIMIT 1)),
+(UUID(), '2', 'Northern England', (SELECT import_id FROM sn_import_events ORDER BY import_date DESC LIMIT 1)),
+(UUID(), '3', 'Southern England', (SELECT import_id FROM sn_import_events ORDER BY import_date DESC LIMIT 1)),
+(UUID(), '4', 'Midlands', (SELECT import_id FROM sn_import_events ORDER BY import_date DESC LIMIT 1)),
+(UUID(), '5', 'Wales', (SELECT import_id FROM sn_import_events ORDER BY import_date DESC LIMIT 1));
