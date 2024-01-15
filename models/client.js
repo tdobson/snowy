@@ -15,7 +15,7 @@ Client.init({
         allowNull: false,
         unique: true
     },
-    userAddressId: {
+    clientAddressId: {
         type: DataTypes.CHAR(36),
         references: {
             model: 'sn_addresses', // Ensure this matches the table name in your database

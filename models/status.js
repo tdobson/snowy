@@ -11,15 +11,19 @@ Status.init({
         defaultValue: DataTypes.UUIDV4
     },
     statusState: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(255),
         allowNull: false
     },
     statusName: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(255),
+        allowNull: true
+    },
+    statusGroup: {
+        type: DataTypes.STRING(255),
         allowNull: false
     },
-    statusCode: DataTypes.STRING,
-    statusDescription: DataTypes.STRING,
+    statusCode: DataTypes.STRING(255),
+    statusDescription: DataTypes.STRING(510),
     importId: {
         type: DataTypes.CHAR(36),
         references: {

@@ -5,19 +5,12 @@ const sequelize = require('../config/sequelize');
 class ProjectProcess extends Model {}
 
 ProjectProcess.init({
-    approvalId: {
+    projectProcessId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4
     },
-    projectId: {
-        type: DataTypes.CHAR(36),
-        unique: true,
-        references: {
-            model: 'sn_projects', // Ensure this matches your projects table name
-            key: 'project_id',
-        }
-    },
+
     approvalStatus: {
         type: DataTypes.CHAR(36),
         references: {

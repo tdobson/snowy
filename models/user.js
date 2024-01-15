@@ -32,6 +32,14 @@ User.init({
             key: 'team_id',
         }
     },
+    resetToken: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    resetTokenExpires: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
     dispatchId: DataTypes.STRING(255),
     snowyRole: {
         type: DataTypes.STRING(255),

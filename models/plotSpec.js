@@ -9,13 +9,7 @@ PlotSpec.init({
         type: DataTypes.CHAR(36),
         primaryKey: true,
     },
-    plotId: {
-        type: DataTypes.CHAR(36),
-        references: {
-            model: 'sn_plots', // Ensure this matches your plots table name
-            key: 'plot_id',
-        }
-    },
+
     dateSpecified: DataTypes.DATE,
     specifiedBy: {
         type: DataTypes.CHAR(36),

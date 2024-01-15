@@ -16,6 +16,20 @@ Plot.init({
             key: 'project_id',
         }
     },
+    plotInstallId: {
+        type: DataTypes.CHAR(36),
+        references: {
+            model: 'sn_plot_install',
+            key: 'plot_install_id',
+        }
+    },
+    plotSpecId: {
+        type: DataTypes.CHAR(36),
+        references: {
+            model: 'sn_plot_spec',
+            key: 'plot_spec_id',
+        }
+    },
     plotNumber: {
         type: DataTypes.STRING,
         allowNull: false

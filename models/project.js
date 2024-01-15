@@ -56,6 +56,13 @@ Project.init({
             key: 'import_id',
         }
     },
+    projectProcessId: {
+        type: DataTypes.CHAR(36),
+        references: {
+            model: 'sn_project_process',
+            key: 'project_process_id',
+        }
+    },
     dnoZone: DataTypes.STRING(255),
     // Additional fields can be added here as necessary
 }, {
