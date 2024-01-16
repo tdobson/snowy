@@ -186,11 +186,11 @@ CREATE TABLE IF NOT EXISTS sn_plot_install (
     -- FOREIGN KEY constraints omitted
 );
 
--- Table: sn_elevations
+-- Table: sn_elevations_spec
 -- Details the elevations of each plot, crucial in solar installations.
-CREATE TABLE IF NOT EXISTS sn_elevations (
-    elevation_id CHAR(36) NOT NULL,    -- Unique identifier for each elevation record.
-    plot_ref_id CHAR(36) NOT NULL,     -- Reference to the plot, either as specified or as installed.
+CREATE TABLE IF NOT EXISTS sn_elevations_spec (
+    elevation_spec_id CHAR(36) NOT NULL,    -- Unique identifier for each elevation record.
+    plot_spec_id CHAR(36) NOT NULL,     -- Reference to the plot, either as specified or as installed.
     plot_id CHAR(36) NOT NULL,         -- Plot identifier.
     type_test_ref VARCHAR(255),        -- Reference to a type test or other technical specification.
     pitch FLOAT,                       -- Pitch of the installation surface.
@@ -211,6 +211,33 @@ CREATE TABLE IF NOT EXISTS sn_elevations (
     PRIMARY KEY (elevation_id)
     -- FOREIGN KEY constraints omitted
 );
+
+-- Table: sn_elevations
+-- Details the elevations of each plot, crucial in solar installations.
+CREATE TABLE IF NOT EXISTS sn_elevations_install (
+    elevation_install_id CHAR(36) NOT NULL,    -- Unique identifier for each elevation record.
+    plot_install_id CHAR(36) NOT NULL,     -- Reference to the plot, either as specified or as installed.
+    plot_id CHAR(36) NOT NULL,         -- Plot identifier.
+    type_test_ref VARCHAR(255),        -- Reference to a type test or other technical specification.
+    pitch FLOAT,                       -- Pitch of the installation surface.
+    orientation VARCHAR(255),          -- Orientation of the solar panels.
+    kk_figure FLOAT,                   -- Figure used in calculations.
+    kwp FLOAT,                         -- Kilowatt-peak at this elevation.
+    strings INT,                       -- Number of strings in the solar setup.
+    module_qty INT,                    -- Quantity of modules in the setup.
+    inverter VARCHAR(255),             -- Identifier for the inverter used.
+    inverter_cost FLOAT,               -- Cost of the inverter.
+    panel VARCHAR(255),                -- Identifier for the solar panel type.
+    panel_cost FLOAT,                  -- Cost of the solar panels.
+    panels_total_cost FLOAT,           -- Total cost of all panels used.
+    roof_kit VARCHAR(255),             -- Identifier for the roof mounting kit.
+    roof_kit_cost FLOAT,               -- Cost of the roof mounting kit.
+    annual_yield FLOAT,                -- Expected annual energy yield.
+    import_id CHAR(36),                -- Import event ID.
+    PRIMARY KEY (elevation_id)
+    -- FOREIGN KEY constraints omitted
+);
+
 
 -- Table: sn_form_submissions
 -- Tracks form submissions related to plots, sites, and products.
