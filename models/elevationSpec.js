@@ -1,19 +1,19 @@
-// ./models/elevation.js
+// ./models/elevationSpec.js
 const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/sequelize');
 
-class Elevation extends Model {}
+class ElevationSpec extends Model {}
 
-Elevation.init({
-    elevationId: {
+ElevationSpec.init({
+    elevationSpecId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
     },
-    plotRefId: {
+    plotSpecId: {
         type: DataTypes.CHAR(36),
         references: {
-            model: 'sn_plots', // Ensure this matches your plots table name
-            key: 'plot_id',
+            model: 'sn_plot_install', // Ensure this matches your plots table name
+            key: 'plot_spec_id',
         }
     },
     plotId: {
@@ -63,12 +63,12 @@ Elevation.init({
     // Additional fields can be added here as necessary
 }, {
     sequelize,
-    modelName: 'Elevation',
-    tableName: 'sn_elevations'
+    modelName: 'ElevationSpec',
+    tableName: 'sn_elevations_spec'
 });
 
 // In the Elevation model, you can add a method to get the associated record
-Elevation.prototype.getAssociatedRecord = async function () {
+ElevationSpec.prototype.getAssociatedRecord = async function () {
     if (this.plotInstall) {
         return this.plotInstall;
     } else if (this.plotSpec) {
@@ -78,4 +78,4 @@ Elevation.prototype.getAssociatedRecord = async function () {
     }
 };
 
-module.exports = Elevation;
+module.exports = ElevationSpec;
