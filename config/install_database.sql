@@ -94,16 +94,16 @@ CREATE TABLE IF NOT EXISTS sn_project_process (
 -- This table stores information about individual plots in projects.
 CREATE TABLE IF NOT EXISTS sn_plots (
     plot_id CHAR(36) NOT NULL,                  -- Unique identifier for each plot.
-    project_id CHAR(36) NOT NULL,               -- Identifies the project the plot belongs to.
-    plot_spec_id CHAR(36) NOT NULL,               -- Identifies the plot spec
-    plot_install_id CHAR(36) NOT NULL,               -- Identifies the plot install
+    project_id CHAR(36) NOT NULL,               -- Identifies the project the plot belongs to. // from importProjectDetails
+    plot_spec_id CHAR(36) NOT NULL,               -- Identifies the plot spec // from importPlotSpecData
+    plot_install_id CHAR(36) NOT NULL,               -- Identifies the plot install from importPlotInstallData
     plot_number VARCHAR(255) NOT NULL,          -- Alphanumeric identifier for the plot.
-    plot_status CHAR(36),                       -- Indicates the current status of the plot.
-    site CHAR(36),                              -- Identifies the site where the plot is located.
+    plot_status CHAR(36),                       -- Indicates the current status of the plot. // from importStatus
+    site CHAR(36),                              -- Identifies the site where the plot is located. // from importSiteData
     housetype VARCHAR(255),                     -- Description of the type of house on the plot.
     g99 BOOLEAN,                                -- Indicates whether G99 standards apply.
     mpan VARCHAR(255),                          -- MPAN for the plot.
-    plot_address_id CHAR(36),                   -- Plot Address ID.
+    plot_address_id CHAR(36),                   -- Plot Address ID. // from importAddressData
     plot_approved BOOLEAN,                      -- Indicates whether the plot has been approved.
     commissioning_form_submitted BOOLEAN,       -- Indicates whether the commissioning form has been submitted.
     import_id CHAR(36),                         -- Identifier for data import.
