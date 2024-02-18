@@ -30,13 +30,14 @@
  * var importId = "import_001";
  * var plotId = importPlotData(conn, plotData, importId);
  */
-function importPlotData(conn, plotData, importId) {
-    var projectId = importProjectDetails(conn, plotData.projectData);
-    var checkPlotStmt = conn.prepareStatement('SELECT * FROM sn_plots WHERE (plot_id = ? OR plot_number = ? AND project_id = ? ) ');
+function importPlotData(conn, importId,plotData,sheet) {
+   // Logger.log(JSON.stringify(plotData))
+
+
+    var checkPlotStmt = conn.prepareStatement('SELECT * FROM sn_plots WHERE (plot_id = ? OR plot_number = ? AND tracker_ref = ? ) ');
     checkPlotStmt.setString(1, plotData.plotId);
         checkPlotStmt.setString(2, plotData.plotNumber);
-        checkPlotStmt.setString(3, projectId);
-
+        checkPlotStmt.setString(3, plotData.trackerRef);
 
     var rs = checkPlotStmt.executeQuery();
 
@@ -63,15 +64,16 @@ function importPlotData(conn, plotData, importId) {
     } else {
        const uuid = Utilities.getUuid();
         plotData.plotId = uuid;
-        plotSpecData.plotId = uuid;
-        plotInstallData.plotId = uuid;
+        plotData.plotSpecData.plotId = uuid;
+        plotData.plotInstallData.plotId = uuid;
 
-    plotData.projectData.dnoDetailsId = lookupDnoDetailsByMpan(projectData.dnoDetails.refNumber);
-    plotData.projectData.regionId = getRegionIdFromRegionNumber(projectData.regionData.regionNumber);
+    plotData.projectData.dnoDetailsId = lookupDnoDetailsByMpan(conn,importId, plotData.projectData.dnoDetails.refNumber);
+    plotData.projectData.regionId = getRegionIdFromRegionNumber(plotData.siteData.addressData.address_region_number);
     plotData.projectData.siteId = importSiteData(conn,importId, plotData.siteData);
-    plotData.projectData.clientId = importClient(conn,importId,projectData.clientData);
-    plotData.projectData.projectProcessId = importProjectProcess(conn, importId, projectData.projectProcessData);
-    plotData.projectId = importProjectDetails(conn, importId, plotData.projectData);
+    plotData.projectData.clientId = importClient(conn,importId,plotData.projectData.clientData, sheet);
+    plotData.projectData.projectProcessId = importProjectProcess(conn, importId, plotData.projectData.projectProcessData);
+    plotData.projectId = importProject(conn, importId, plotData.projectData);
+
 
 
     plotData.plotAddressId = importAddressData(conn,importId, plotData.addressData);

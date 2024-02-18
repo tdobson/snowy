@@ -1016,3 +1016,27 @@ function querySheetsByIndex(config) {
 
      return clientDataArray;
  }
+
+/**
+ * Sanitizes a date field for SQL insertion. Formats a valid date string into SQL date format,
+ * or returns null for empty or invalid dates.
+ *
+ * @param {string} dateString - The date string to be sanitized.
+ * @return {string|null} The sanitized date string in 'yyyy-MM-dd' format, or null if input is invalid.
+ */
+function sanitizeDateForSql(dateString) {
+    if (dateString && dateString.trim() !== "") {
+        try {
+            // Attempt to parse the date string and format it
+            var date = new Date(dateString);
+            if (!isNaN(date.getTime())) { // Check if the date is valid
+                // Format the date to SQL date format
+                return Utilities.formatDate(date, Session.getScriptTimeZone(), "yyyy-MM-dd");
+            }
+        } catch (e) {
+            console.error("Error parsing date: " + dateString + " - " + e.message);
+        }
+    }
+    // Return null for invalid or empty date strings
+    return null;
+}

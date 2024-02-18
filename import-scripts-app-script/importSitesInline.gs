@@ -52,10 +52,10 @@
  */
 function importSiteData(conn, importId, siteData, sheet) {
   // Import Address
-  var addressId = importAddressData(conn, importId, siteData.addressData, sheet, siteData.pvNumber);
+  var addressId = importAddress(conn, importId, siteData.addressData, sheet, siteData.pvNumber);
 
   // Import User
-  var siteManagerId = importUserData(siteData.userData, importId, conn);
+  var siteManagerId = importUserData(conn, importId,siteData.userData);
 
   // Check if a record with the same address, site manager ID, and site name already exists
   var checkSiteStmt = conn.prepareStatement('SELECT site_id FROM sn_sites WHERE site_address_id = ? AND site_manager_id = ? AND site_name = ?');
@@ -65,7 +65,7 @@ function importSiteData(conn, importId, siteData, sheet) {
   var rs = checkSiteStmt.executeQuery();
 
   if (rs.next()) {
-    // Record exists, return the existing site ID
+    // Record exists, return the existing site ID //todo update existing site if more data provided
     var existingSiteId = rs.getString('site_id');
     console.log("Site already exists with ID: " + existingSiteId);
     return existingSiteId;
@@ -77,8 +77,9 @@ function importSiteData(conn, importId, siteData, sheet) {
     var siteId = Utilities.getUuid();
 
     // Lookup DNO ID
-    var dnoDetails = lookupDnoDetailsByMpan(siteData.mpanId);
+    var dnoDetails = lookupDnoDetailsByMpan(conn, importId, siteData.mpanId);
     var dnoId = dnoDetails ? dnoDetails.dno_details_id : null;
+    console.log("DNO ID: ",dnoId)
 
     insertStmt.setString(1, siteId);
     insertStmt.setString(2, dnoId);

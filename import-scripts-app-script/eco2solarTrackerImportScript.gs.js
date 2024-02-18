@@ -8,11 +8,12 @@
 * devicemagic form return details
 */
 
+var testImportSheetData2 = {"plotData":{"plotId":"","projectId":"","plotNumber":"84","plotStatus":"","siteId":"","housetype":"","g99":"","mpan":"","plotAddressId":"","plotApproved":false,"commissioningFormSubmitted":"","trackerRef":124,"legacyPlotID":4710,"plotSpecData":{"plotSpecId":"","plotId":"","dateSpecified":"","specifiedBy":"","plotSpecStatus":"Specified","phase":"Single Phase","p1":0.7,"p2":0,"p3":0,"annualYield":648.81,"kwp":0.7,"kwpWithLimitation":0.7,"limiterRequired":false,"limiterValueIfNotZero":"","labourCost":"","meter":"","meterCost":"","battery":"","batteryCost":"","overallCost":1099,"landlordSupply":false},"plotInstallData":{"plotInstallId":"","plotId":"","dateInstall":"","dateChecked":"","installBy":"","checkedBy":"","plotInstallStatus":"","phase":"Single Phase","p1":0.7,"p2":0,"p3":0,"annualYield":648.81,"kwp":0.7,"kwpWithLimitation":0.7,"limiterRequired":false,"limiterValueIfNotZero":"","labourCost":"","meter":"","meterCost":"","battery":"","batteryCost":"","overallCost":1099,"mcsSubmissionId":""},"siteData":{"siteName":"St Andrews Park,Lutterworth Road, Franklyn Fields","addressData":{"address_line_1":"Gate 4, Rugby Radio Station","address_line_2":"Houlton","address_town":"Rugby","address_county":"Warwickshire","address_postcode":"CV23 0AB","address_country":"UK","address_region_id":"","address_region_number":3},"userData":{"sso_id":"","name":"","email":"Stephen.Newell@lovell.co.uk","phone":"","employer":"Lovell Partnerships west Midlands","team":"","dispatch_id":"","snowy_role":"Site Manager","company_role":"Site Manager","category":"Humans"},"mpanId":"","pvNumber":"02501PV"},"elevationData":{"plot_install_id":"","plot_id":"","type_test_ref":"SOLIS/03638/V1","pitch":34,"orientation":75,"kk_figure":999,"kwp":0.7,"strings":1,"module_qty":3,"inverter":"Solis-mini-700-S5","inverter_cost":"","panel":"270w Viridian Poly Black","panel_cost":"","panels_total_cost":"","roof_kit":"GSE-test-item","roof_kit_cost":"","annual_yield":648.81},"elevationSpecData":{"plot_spec_id":"","plot_id":"","type_test_ref":"SOLIS/03638/V1","pitch":34,"orientation":75,"kk_figure":999,"kwp":0.7,"strings":1,"module_qty":3,"inverter":"Solis-mini-700-S5","inverter_cost":"","panel":"270w Viridian Poly Black","panel_cost":"","panels_total_cost":"","roof_kit":"GSE-test-item","roof_kit_cost":"","annual_yield":648.81},"projectData":{"pvNumber":"06798PV","clientData":{"email":"","name":"Lovell Partnerships west Midlands","addressData":{"address_line_1":"Lovell Partnerships west Midlands","address_line_2":"Building 7","address_town":"Quinton Business Park","address_county":"Birmingham","address_postcode":"B32 1AF","address_country":"UK"}},"dnoDetails":{"mpanId":"","dnoName":"GTC","refNumber":24,"dnoZone":6},"projectProcessData":{"project_process_id":"","approval_status":"6-Full Approval","deadline_to_connect":"","auth_letter_sent":true,"mpan_request_sent":true,"schematic_created":true,"application_type":"G98","formal_dno_submitted":true,"submission_date":"2022-05-10T23:00:00.000Z","dno_due_date":"2022-07-10T23:00:00.000Z","dno_status":"6-Full Approval","approved_kwp":281,"quote_received":true,"customer_invoiced_date":null,"dno_payment_made":null,"acceptance_form_returned":true,"date_approved":"2022-06-29T23:00:00.000Z"},"additionalDetails":{"refNumber":"N0016614-1","projectName":"Rugby Radio Station (Lovell)","jobCode":"06798PV","comments":"","dnoZone":6}}}}
 
-/*
-var importSheetData = {
+
+var testImportSheetData = {
     "Plots": {
-    "Plot_ID": 4709,
+        "Plot_ID": 4709,
         "Tracker_Ref": 124,
         "Project_Number": "02501PV",
         "Plot_Number": "83",
@@ -61,9 +62,9 @@ var importSheetData = {
         "KK_figure": 999,
         "": "",
         "Inverter_manufacturer": ""
-},
+    },
     "Tracker": {
-    "": 59,
+        "": 59,
         "Submission_ref": "",
         "Client": "Lovell Partnerships west Midlands",
         "PV_NO": "06798PV",
@@ -103,9 +104,9 @@ var importSheetData = {
         "Total_kWp_with_Limitation": 281,
         "Approved_kWp": "281kW",
         "kWp_from_Oscar": ""
-},
+    },
     "Site log": {
-    "Internal_Ref": 59,
+        "Internal_Ref": 59,
         "Project_Number": "06798PV",
         "client": "Lovell Partnerships west Midlands",
         "project_name": "Rugby Radio Station (Lovell)",
@@ -130,8 +131,8 @@ var importSheetData = {
         "Contact_Email": "",
         "File_name": "DNO Document Master.csv",
         "Load_Date": "2022-03-31T09:32:14.280Z"
+    }
 }
-} */
 
 function prepareImportObject(importSheetData){
 
@@ -150,6 +151,14 @@ function prepareImportObject(importSheetData){
             "commissioningFormSubmitted": "", // No direct mapping available; needs clarification
             "trackerRef": importSheetData.Plots.Tracker_Ref,
             "legacyPlotID": importSheetData.Plots.Plot_ID,
+            addressData: {
+                "address_line_1": importSheetData.Plots.Postal_Name___Number,
+                "address_line_2": importSheetData.Plots.Postal_Street,
+                "address_town": importSheetData['Site log'].Town,
+                "address_county": importSheetData['Site log'].County,
+                "address_postcode": importSheetData.Plots.POSTAL_POSTCODE,
+                "address_country": "UK", // Assuming UK; adjust if necessary
+            },
             plotSpecData: {
                 "plotSpecId": "", // Needs a UUID or a unique identifier; no direct mapping
                 "plotId": "",
@@ -199,7 +208,7 @@ function prepareImportObject(importSheetData){
                 "mcsSubmissionId": "" // No direct mapping available; might use "MCS_Completed" or another field
             },
             siteData: {
-                "siteName": importSheetData.Plots.Site,
+                "siteName": importSheetData['Site log'].project_name,
                 "addressData": {
                     "address_line_1": importSheetData['Site log'].SITE_ADDRESS_LINE_one,
                     "address_line_2": importSheetData['Site log'].SITE_ADDRESS_LINE_two,
@@ -275,7 +284,19 @@ function prepareImportObject(importSheetData){
                         "address_county": importSheetData['Site log'].County,
                         "address_postcode": importSheetData['Site log'].Post_Code,
                         "address_country": "UK", // Assuming UK; adjust if necessary
-                    }
+                    },
+                    userData: {
+                        "sso_id": "", // not defined
+                        "name": "",
+                        "email": "",
+                        "phone": "",
+                        "employer": importSheetData.Tracker.Client,
+                        "team": "", // No direct mapping available; needs clarification
+                        "dispatch_id": "", // unlikely to be used
+                        "snowy_role": "Client Contact", // they're a site manager
+                        "company_role": "Client Contact",
+                        "category": "Humans"
+                    },
                 },
                 dnoDetails: {
                     "mpanId": "",
@@ -343,12 +364,12 @@ function main() {
     var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
     var importId = insertImportEvent(conn, '', 'Site Log Import', 'Test Import', '4df57691-4d43-4cfb-9338-00e4cfafa63d');
 
-    let rowObject = querySheetsByIndex(queryConfigByIndex) //15-20seconds
+//let rowObject = querySheetsByIndex(queryConfigByIndex) //15-20seconds
 
-    let importObject = prepareImportObject(rowObject)
+    let importObject = prepareImportObject(testImportSheetData)
 
-    Logger.log(JSON.stringify(importObject))
-    let result = importPlotData(conn, importId, importObject)
+    // Logger.log(JSON.stringify(importObject))
+    let result = importPlotData(conn, importId, importObject.plotData)
     console.log(result)
 }
 

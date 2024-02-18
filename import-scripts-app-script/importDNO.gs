@@ -86,7 +86,7 @@
  * @param {string} mpanId - The MPAN ID to look up.
  * @returns {Object|null} - The DNO details if found, or null if not found.
  */
-function lookupDnoDetailsByMpan(conn, mpanId) {
+function lookupDnoDetailsByMpan(conn, importId, mpanId) {
 
     try {
         var checkDnoStmt = conn.prepareStatement('SELECT * FROM sn_dno_details WHERE mpan_prefix = ?');

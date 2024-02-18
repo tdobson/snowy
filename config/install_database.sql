@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS sn_project_process (
     acceptance_form_returned BOOLEAN, -- Indicates if the acceptance form has been returned.
     date_approved DATE,               -- Date on which the project received approval.
     import_id CHAR(36),               -- Links to an import event in the sn_import_events table.
-    PRIMARY KEY (approval_id)
+    PRIMARY KEY (project_process_id)
     -- FOREIGN KEY constraints omitted
 );
 
