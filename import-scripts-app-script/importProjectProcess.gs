@@ -31,8 +31,7 @@
  *   - {Date} date_approved - Date of project approval.
  * @returns {String} The project_process_id of the inserted, updated, or existing project process record.
  */
-function importProjectProcess(conn, projectProcessData) {
-    var importId = insertImportEvent(conn, '', 'Project Process Import', 'Importing project process details', '4df57691-4d43-4cfb-9338-00e4cfafa63d');
+function importProjectProcess(conn, importId, projectProcessData) {
     var checkProcessStmt = conn.prepareStatement('SELECT * FROM sn_project_process WHERE project_process_id = ?');
     var insertProcessStmt = conn.prepareStatement('INSERT INTO sn_project_process (project_process_id, approval_status, deadline_to_connect, auth_letter_sent, mpan_request_sent, schematic_created, application_type, formal_dno_submitted, submission_date, dno_due_date, dno_status, approved_kwp, quote_received, customer_invoiced_date, dno_payment_made, acceptance_form_returned, date_approved, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
     var updateProcessStmt = conn.prepareStatement('UPDATE sn_project_process SET approval_status = ?, deadline_to_connect = ?, auth_letter_sent = ?, mpan_request_sent = ?, schematic_created = ?, application_type = ?, formal_dno_submitted = ?, submission_date = ?, dno_due_date = ?, dno_status = ?, approved_kwp = ?, quote_received = ?, customer_invoiced_date = ?, dno_payment_made = ?, acceptance_form_returned = ?, date_approved = ? WHERE project_process_id = ?');

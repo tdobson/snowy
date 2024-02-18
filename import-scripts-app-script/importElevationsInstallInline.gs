@@ -39,7 +39,7 @@
  * - It's important to ensure proper error handling around database operations.
  * - This function relies on 'importProductData' to manage the insertion or updating of product-related information in the 'sn_products' table.
  */
- function importElevationInstallData(elevationData, importId, conn) {
+ function importElevationInstallData(conn, importId, elevationData) {
      if (!elevationData.plot_install_id || !elevationData.plot_id) {
          console.log("Plot install ID and plot ID are required.");
          return;
@@ -47,11 +47,11 @@
 
      // Insert or update inverter and panel details in product table
      if (elevationData.inverter) {
-         importProductData({ productName: elevationData.inverter, productType: 'Inverter', costToday: elevationData.inverter_cost }, importId, conn);
+         importProductData(conn, importId, { productName: elevationData.inverter, productType: 'Inverter', costToday: elevationData.inverter_cost });
      }
 
      if (elevationData.panel) {
-         importProductData({ productName: elevationData.panel, productType: 'Panel', costToday: elevationData.panel_cost }, importId, conn);
+         importProductData(conn, importId,{ productName: elevationData.panel, productType: 'Panel', costToday: elevationData.panel_cost });
      }
 
      // Check if elevation data already exists

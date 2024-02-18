@@ -45,7 +45,7 @@
  * var importId = '67890';
  * var plotInstallId = importPlotInstallData(conn, plotInstallData, importId);
  */
- function importPlotInstallData(conn, plotInstallData, importId) {
+ function importPlotInstallData(conn,importId, plotInstallData) {
 
      var checkPlotInstallStmt = conn.prepareStatement('SELECT * FROM sn_plot_install WHERE plot_install_id = ? OR plot_id = ?');
      checkPlotInstallStmt.setString(1, plotInstallData.plotInstallId);
@@ -53,9 +53,17 @@
 
      var rs = checkPlotInstallStmt.executeQuery();
 
-     var plotInstallStatusId = importStatus({ status_state: plotInstallData.plotInstallStatus, status_group: "Install Status Group" }, conn);
-     var meterProductId = importProductData({ productName: plotInstallData.meter, productType: 'Meter' }, importId, conn);
-     var batteryProductId = importProductData({ productName: plotInstallData.battery, productType: 'Battery' }, importId, conn);
+
+if (plotInstallData.plotInstallStatus) {
+     var plotInstallStatusId = importStatus(conn,importId,{ status_state: plotInstallData.plotInstallStatus, status_group: "Install Status Group" });
+     }
+
+          if (plotInstallData.meter) {
+     var meterProductId = importProductData(conn,importId,{ productName: plotInstallData.meter, productType: 'Meter', costToday: plotInstallData.meterCost });
+     }
+               if (plotInstallData.battery) {
+     var batteryProductId = importProductData(conn,importId,{ productName: plotInstallData.battery, productType: 'Battery', costToday: plotInstallData.batteryCost });
+     }
 
      if (rs.next()) {
          // Update existing record
@@ -91,7 +99,7 @@
      } else {
          // Insert new record
          var insertStmt = conn.prepareStatement('INSERT INTO sn_plot_install (plot_install_id, plot_id, date_install, date_checked, install_by, checked_by, plot_install_status, phase, p1, p2, p3, annual_yield, kwp, kwp_with_limitation, limiter_required, limiter_value_if_not_zero, labour_cost, meter, meter_cost, battery, battery_cost, overall_cost, mcs_submission_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-
+        plotInstallData.plotInstallId = Utilities.getUuid();
          insertStmt.setString(1, plotInstallData.plotInstallId);
          insertStmt.setString(2, plotInstallData.plotId);
          insertStmt.setDate(3, plotInstallData.dateInstall);

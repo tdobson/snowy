@@ -602,3 +602,417 @@ function convertNumbersAndBooleansToStrings(obj) {
     }
   }
 }
+
+
+
+
+/**
+ * Writes values to specified columns in multiple Google Sheets based on the provided data map.
+ *
+ * @param {string} sheetId - The ID of the spreadsheet.
+ * @param {Object} dataObject - An object containing the data to write. The keys should match the keys in the data map.
+ * @param {Object} dataMap - An object defining the mapping between the dataObject keys and the columns in each sheet.
+ * @param {string[]} sheetsToUpdate - An array of sheet names to update.
+ */
+function writeSheets(sheetId, dataObject, dataMap, sheetsToUpdate) {
+    var spreadsheet = SpreadsheetApp.openById(sheetId);
+
+    sheetsToUpdate.forEach(sheetName => {
+        var sheet = spreadsheet.getSheetByName(sheetName);
+        var headers = sheet.getDataRange().getValues()[0];
+        var writeRow = findRowToWrite(sheet, dataObject, headers, dataMap[sheetName]);
+
+        if (writeRow !== -1) {
+            Object.keys(dataMap[sheetName]).forEach(key => {
+                var columnIndex = headers.indexOf(dataMap[sheetName][key]);
+                if (columnIndex !== -1) {
+                    sheet.getRange(writeRow, columnIndex + 1).setValue(dataObject[key]);
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Finds the row to write the data to, based on a unique identifier in the dataObject.
+ * This function assumes that the unique identifier is the first key-value pair in the dataObject.
+ *
+ * @param {Sheet} sheet - The Google Sheet object.
+ * @param {Object} dataObject - The data object containing the values to write.
+ * @param {string[]} headers - The headers of the sheet.
+ * @param {Object} dataMapForSheet - The data map for the current sheet.
+ * @returns {number} The row number to write the data to.
+ */
+function findRowToWrite(sheet, dataObject, headers, dataMapForSheet) {
+    var uniqueIdKey = Object.keys(dataObject)[0];
+    var uniqueIdColumn = dataMapForSheet[uniqueIdKey];
+    var uniqueIdColumnIndex = headers.indexOf(uniqueIdColumn);
+
+    if (uniqueIdColumnIndex === -1) {
+        throw new Error("Unique identifier column not found in the sheet.");
+    }
+
+    var dataRange = sheet.getDataRange().getValues();
+    for (var i = 1; i < dataRange.length; i++) {
+        if (dataRange[i][uniqueIdColumnIndex].toString() === dataObject[uniqueIdKey].toString()) {
+            return i + 1; // Sheet row numbers are 1-indexed
+        }
+    }
+
+    // Return -1 if the unique identifier is not found
+    return -1;
+}
+
+/**
+ * Searches for a value in a specified column and returns corresponding values from multiple columns.
+ *
+ * @param {string} spreadsheetId - The ID of the spreadsheet.
+ * @param {string} sheetName - The name of the sheet.
+ * @param {string} searchColumnName - The name of the column to search in.
+ * @param {string[]} returnColumnNames - Array of names of the columns from which to return the values.
+ * @param {string} searchValue - The value to search for.
+ * @returns {Array} An array of objects with key-value pairs corresponding to the return columns.
+ */
+function getColumns(spreadsheetId, sheetName, searchColumnName, returnColumnNames, searchValue) {
+  var spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  var sheet = spreadsheet.getSheetByName(sheetName);
+  var data = sheet.getDataRange().getValues();
+
+  var searchColIndex = data[0].indexOf(searchColumnName);
+  if (searchColIndex === -1) {
+    throw new Error('Search column not found');
+  }
+
+  var returnColIndices = returnColumnNames.map(name => data[0].indexOf(name));
+  if (returnColIndices.includes(-1)) {
+    throw new Error('One or more return columns not found');
+  }
+
+  var matchingRows = [];
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][searchColIndex].toString() === searchValue) {
+      var rowObject = {};
+      returnColIndices.forEach((colIndex, idx) => {
+        rowObject[returnColumnNames[idx]] = data[i][colIndex];
+      });
+      matchingRows.push(rowObject);
+    }
+  }
+
+  return matchingRows;
+}
+
+
+/**
+ * Retrieves and joins data from multiple sheets in a Google Sheets spreadsheet based on specified criteria,
+ * returning a structured output with data grouped by sheet names. This function allows for flexible querying,
+ * including selecting specific columns, joining on common columns, and applying multiple search criteria on one sheet.
+ *
+ * @param {Object} config - Configuration object for specifying query details.
+ * @param {string} config.sheetId - The ID of the Google Sheets spreadsheet.
+ * @param {Object} config.sheets - An object where each key is a sheet name and each value is an object containing:
+ *   @param {Array<string>} [config.sheets.SheetName.returnColumns] - Optional. Array of column names to be returned from the sheet. If omitted, all columns are returned.
+ *   @param {string} config.sheets.SheetName.joinOn - The column name used to join this sheet with others.
+ *   @param {Object} [config.sheets.SheetName.where] - Optional. An object specifying search criteria with up to two conditions:
+ *     @param {string} config.sheets.SheetName.where.searchColumn1 - The column name for the first search criterion.
+ *     @param {string|number} config.sheets.SheetName.where.searchValue1 - The value to match for the first search criterion.
+ *     @param {string} [config.sheets.SheetName.where.searchColumn2] - Optional. The column name for the second search criterion.
+ *     @param {string|number} [config.sheets.SheetName.where.searchValue2] - Optional. The value to match for the second search criterion.
+ *
+ * @returns {Array<Object>} An array of objects, where each object represents joined rows from the specified sheets,
+ * with each sheet's data as a subobject. The keys of these subobjects are the sheet names, and their values are objects
+ * with keys as the selected (or all) column names (formatted to remove spaces and special characters) and their corresponding values.
+ *
+ * @example
+ * // Example input:
+ * const queryConfig = {
+ *   sheetId: "1A2B3C4D5E6F7G8H9I0J",
+ *   sheets: {
+ *     Sheet1: {
+ *       returnColumns: ["site id", "Job Code", "Town", "Postcode"],
+ *       joinOn: "Job Code"
+ *     },
+ *     Sheet2: {
+ *       returnColumns: ["Client", "Job Code", "Site name", "Current Project Plots"],
+ *       joinOn: "Job Code"
+ *     },
+ *     Sheet3: {
+ *       joinOn: "Job Code",
+ *       where: {
+ *         searchColumn1: "site id",
+ *         searchValue1: "1234",
+ *         searchColumn2: "Plot Number",
+ *         searchValue2: "5678"
+ *       }
+ *     }
+ *   }
+ * };
+ *
+ * // Example output:
+ * [
+ *   {
+ *     "Sheet1": {
+ *       "siteId": "1234",
+ *       "JobCode": "J123",
+ *       "Town": "Sampletown",
+ *       "Postcode": "ST123"
+ *     },
+ *     "Sheet2": {
+ *       "Client": "SampleClient",
+ *       "JobCode": "J123",
+ *       "SiteName": "Sample Site",
+ *       "CurrentProjectPlots": "5"
+ *     },
+ *     "Sheet3": {
+ *       "siteId": "1234",
+ *       "JobCode": "J123",
+ *       "PlotNumber": "5678"
+ *     }
+ *   }
+ *   // Additional objects for each matching and joined row
+ * ]
+ *
+ * @description
+ * The function operates in several steps:
+ * 1. Load and preprocess data from each specified sheet, selecting the required columns or all if unspecified.
+ * 2. Apply the specified search criteria to filter the data in the sheet with the 'where' condition.
+ * 3. Perform a join operation across the sheets based on the 'joinOn' column, only including rows that match the join condition and the search criteria.
+ * 4. Structure the joined data into a cohesive output format, grouping each row's data by the originating sheet and formatting column names.
+ */function querySheetsWithStructuredData(config) {
+     const spreadsheet = SpreadsheetApp.openById(config.sheetId);
+     const sheetData = {};
+
+     // Load and structure data from each sheet based on the new config structure
+     Object.keys(config.sheets).forEach(sheetName => {
+       const sheet = spreadsheet.getSheetByName(sheetName);
+       const data = sheet.getDataRange().getValues();
+       const headers = data[0];
+       const selectColumns = config.sheets[sheetName].returnColumns || headers; // Select specified columns or all if undefined
+       const selectIndices = selectColumns.map(col => headers.indexOf(col));
+
+       sheetData[sheetName] = data.slice(1).map(row => {
+         const rowData = {};
+         selectIndices.forEach((index, i) => {
+           const cellValue = row[index];
+           // Check if the cell value is not blank before adding to rowData
+           if (index !== -1 && cellValue !== "" && cellValue !== null && cellValue !== undefined) {
+             rowData[formatColumnName(selectColumns[i])] = cellValue;
+           }
+         });
+         return rowData;
+       });
+     });
+
+     // Apply search criteria
+     const whereSheetName = Object.keys(config.sheets).find(sheetName => config.sheets[sheetName].where);
+     const whereConfig = config.sheets[whereSheetName].where;
+     const filteredData = sheetData[whereSheetName].filter(row =>
+       row[formatColumnName(whereConfig.searchColumn1)] === whereConfig.searchValue1 &&
+       (whereConfig.searchColumn2 ? row[formatColumnName(whereConfig.searchColumn2)] === whereConfig.searchValue2 : true));
+
+     // Join data based on 'joinOn' key and filtered data from the 'where' sheet
+     const joinedData = [];
+     filteredData.forEach(row => {
+       const joinValue = row[formatColumnName(config.sheets[whereSheetName].joinOn)];
+       const joinedRow = {};
+
+       Object.keys(sheetData).forEach(sheetName => {
+         const joinColumn = formatColumnName(config.sheets[sheetName].joinOn);
+         const matchingRow = sheetData[sheetName].find(r => r[joinColumn] === joinValue);
+
+         if (matchingRow) {
+           // Filter out blank values from matchingRow before adding to joinedRow
+           const nonBlankRow = Object.entries(matchingRow).reduce((acc, [key, value]) => {
+             if (value !== "" && value !== null && value !== undefined) {
+               acc[key] = value;
+             }
+             return acc;
+           }, {});
+
+           if (Object.keys(nonBlankRow).length > 0) { // Only add if there are non-blank columns
+             joinedRow[sheetName] = nonBlankRow;
+           }
+         }
+       });
+
+       if (Object.keys(joinedRow).length === Object.keys(config.sheets).length) { // Ensure data from all sheets are present
+         joinedData.push(joinedRow);
+       }
+     });
+
+     return joinedData;
+   }
+
+
+/**
+ * Joins data from multiple sheets in a Google Sheets spreadsheet based on a specified row index from one sheet and corresponding matching data in other sheets. This function is designed to use a particular row's data in one sheet as the base for joining data from other sheets on a common join column.
+ *
+ * @param {Object} config - Configuration object containing all necessary parameters for the query.
+ * @param {string} config.sheetId - The unique identifier for the Google Sheets spreadsheet containing the data.
+ * @param {Object} config.sheets - An object where each key corresponds to a sheet name within the spreadsheet, and each value is an object with specific configuration for that sheet.
+ *   @param {Array<string>} [config.sheets[SheetName].returnColumns] - An optional array specifying the names of the columns to return from the sheet. If omitted, all columns are included.
+ *   @param {string} config.sheets[SheetName].joinOn - Specifies the column name used to join data from this sheet with the other sheets.
+ *   @param {number} [config.sheets[SheetName].searchIndex] - An optional index specifying the row in the sheet (starting from 0 for the first data row, excluding the header) to use as the base for joining. This parameter should only be present in one sheet's configuration.
+ *
+ * @returns {Array<Object>} An array containing a single object, where each key is a sheet name and its value is an object representing the joined data from that sheet. The object includes key-value pairs where keys are the column names (with spaces and special characters removed) and values are the corresponding cell values.
+ *
+ * @example
+ * // Example input configuration
+ * const queryConfigByIndex = {
+ *   sheetId: "1A2B3C4D5E6F7G8H9I0J",
+ *   sheets: {
+ *     Sheet1: {
+ *       returnColumns: ["site id", "Job Code", "Town", "Postcode"],
+ *       joinOn: "Job Code",
+ *       searchIndex: 2 // Use data from the third row as the base for joining
+ *     },
+ *     Sheet2: {
+ *       returnColumns: ["Client", "Job Code", "Site name", "Current Project Plots"],
+ *       joinOn: "Job Code"
+ *     },
+ *     Sheet3: {
+ *       joinOn: "Job Code"
+ *     }
+ *   }
+ * };
+ *
+ * // Example output
+ * [
+ *   {
+ *     "Sheet1": {
+ *       "siteId": "1234",
+ *       "JobCode": "J123",
+ *       "Town": "Sampletown",
+ *       "Postcode": "ST123"
+ *     },
+ *     "Sheet2": {
+ *       "Client": "SampleClient",
+ *       "JobCode": "J123",
+ *       "SiteName": "Sample Site",
+ *       "CurrentProjectPlots": "5"
+ *     },
+ *     "Sheet3": {
+ *       // Data from Sheet3 that matches the JobCode "J123"
+ *     }
+ *   }
+ * ]
+ *
+ * @description
+ * The function operates as follows:
+ * 1. Loads all data from each specified sheet, excluding the header row.
+ * 2. For the sheet with a defined `searchIndex`, selects the specified row and uses its data as the base for joining.
+ * 3. For each of the other sheets, searches for rows where the value in the `joinOn` column matches the corresponding value in the base row.
+ * 4. Constructs a result object for each sheet where the join is successful, including only the specified `returnColumns` if provided, or all columns if not.
+ * 5. Returns an array containing a single object that aggregates the joined data from all sheets, structured by sheet name.
+ */
+function querySheetsByIndex(config) {
+  const spreadsheet = SpreadsheetApp.openById(config.sheetId);
+  const sheetData = {};
+
+  // Load and structure data from each sheet based on the new config structure
+  Object.keys(config.sheets).forEach(sheetName => {
+    const sheet = spreadsheet.getSheetByName(sheetName);
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const selectColumns = config.sheets[sheetName].returnColumns || headers; // Select specified columns or all if undefined
+    const selectIndices = selectColumns.map(col => headers.indexOf(col));
+
+    sheetData[sheetName] = data.slice(1).map(row => {
+      const rowData = {};
+      selectIndices.forEach((index, i) => {
+        const cellValue = row[index];
+        // Include the cell value if the column index is valid
+        if (index !== -1) {
+          rowData[formatColumnName(selectColumns[i])] = cellValue;
+        }
+      });
+      return rowData;
+    });
+  });
+
+  // Identify the sheet and row index for the base data
+  const baseSheetName = Object.keys(config.sheets).find(sheetName => typeof config.sheets[sheetName].searchIndex !== 'undefined');
+  const baseRowIndex = config.sheets[baseSheetName].searchIndex;
+  const baseRowData = sheetData[baseSheetName][baseRowIndex];
+
+  // Join data based on 'joinOn' key and base row data
+  const joinedData = [];
+  const joinValue = baseRowData[formatColumnName(config.sheets[baseSheetName].joinOn)];
+
+  const joinedRow = { [baseSheetName]: baseRowData };
+
+  Object.keys(sheetData).forEach(sheetName => {
+    if (sheetName !== baseSheetName) { // Skip the base sheet
+      const joinColumn = formatColumnName(config.sheets[sheetName].joinOn);
+      const matchingRow = sheetData[sheetName].find(r => r[joinColumn] === joinValue);
+
+      if (matchingRow) {
+        joinedRow[sheetName] = matchingRow;
+      }
+    }
+  });
+
+  if (Object.keys(joinedRow).length === Object.keys(config.sheets).length) { // Ensure data from all sheets are present
+    joinedData.push(joinedRow);
+  }
+
+  return joinedData[0];
+}
+
+
+
+/**
+ * Extracts client and contact details from a Google Sheets spreadsheet named "Site Log".
+ * Each row from the sheet is read and converted into an object, encapsulating the client and contact details.
+ * The function assumes a specific structure of the sheet where headers define the keys for the data object.
+ *
+ * Prerequisites:
+ * - Google Sheets document with a sheet named "Site Log" containing client and contact details.
+ *
+ * Usage:
+ * - Call this function to retrieve an array of client data objects from the "Site Log" sheet.
+ *
+ * @returns {Object[]} An array of objects, each representing client and contact details extracted from the sheet.
+ *   Each object contains:
+ *     - name: String - Contact's name.
+ *     - email: String - Contact's email address.
+ *     - employer: String - Client's employer name.
+ *     - snowy_role: String - Role within the Snowy application.
+ *     - category: String - Category of the user (e.g., Human, Company, etc.).
+ *     - address: Object - Address details, including:
+ *       - address_line_1: String - The first line of the address.
+ *       - address_line_2: String - The second line of the address.
+ *       - address_line_3: String - The third line of the address.
+ *       - address_town: String - The town of the address.
+ *       - address_county: String - The county of the address.
+ *       - address_postcode: String - The postcode of the address.
+ */
+ function extractClientDataFromSheet() {
+     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Site Log");
+     var data = sheet.getDataRange().getValues();
+     var clientDataArray = [];
+
+     for (var i = 1; i < data.length; i++) {
+         var rowData = rowDataToObject(sheet, i + 1, 1, sheet.getLastColumn());
+
+         var clientData = {
+             name: rowData['Contact_name'],
+             email: rowData['Contact_Email'],
+             employer: rowData['client'],
+             snowy_role: "Client",
+             category: "Human",
+             address: {
+                 address_line_1: rowData['Client_address_1'],
+                 address_line_2: rowData['client_address_2'],
+                 address_line_3: rowData['client_address_3'],
+                 address_town: rowData['Town'],
+                 address_county: rowData['County'],
+                 address_postcode: rowData['Post_Code']
+             }
+         };
+
+         clientDataArray.push(clientData);
+     }
+
+     return clientDataArray;
+ }

@@ -27,7 +27,7 @@
  *
  * @returns {String} The UUID of the existing or new user.
  */
-function importUserData(userData, importId, conn) {
+function importUserData(conn, importId, userData) {
   if (!userData.email) {
     console.log("Email is required.");
     return null; // Return null if the email is not provided

@@ -28,12 +28,9 @@
  * @param {Object} rowData - Row data object containing DNO details.
  * @returns {void}
  */
- function importDnoDetails() {
+ function importDnoDetails(conn, importId,sheet) {
        var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("DNO-List");
        var data = sheet.getDataRange().getValues();
-
-       var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
-       var importId = insertImportEvent(conn, '', 'DNO Tracker', 'Importing DNO details', '4df57691-4d43-4cfb-9338-00e4cfafa63d');
 
        var checkDnoStmt = conn.prepareStatement('SELECT * FROM sn_dno_details WHERE mpan_prefix = ?');
        var insertDnoStmt = conn.prepareStatement('INSERT INTO sn_dno_details (dno_details_id, mpan_prefix, dno_name, address, email_address, contact_no, internal_tel, type, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
@@ -89,8 +86,7 @@
  * @param {string} mpanId - The MPAN ID to look up.
  * @returns {Object|null} - The DNO details if found, or null if not found.
  */
-function lookupDnoDetailsByMpan(mpanId) {
-    var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
+function lookupDnoDetailsByMpan(conn, mpanId) {
 
     try {
         var checkDnoStmt = conn.prepareStatement('SELECT * FROM sn_dno_details WHERE mpan_prefix = ?');
@@ -110,7 +106,7 @@ function lookupDnoDetailsByMpan(mpanId) {
                 'type': rs.getString('type'),
             };
 
-            return dnoDetails;
+            return dnoDetails.dno_details_id;
         } else {
             return null; // DNO not found for the given MPAN ID
         }
@@ -118,6 +114,6 @@ function lookupDnoDetailsByMpan(mpanId) {
         Logger.log('Error in lookupDnoDetailsByMpan: ' + e);
         return null; // Handle any database errors gracefully
     } finally {
-        conn.close();
+       // conn.close();
     }
 }

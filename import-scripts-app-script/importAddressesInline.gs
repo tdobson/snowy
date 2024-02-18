@@ -23,6 +23,7 @@
  *   - address_postcode: String - Mandatory. The postcode of the address.
  *   - address_country: String - Optional. The country of the address.
  *   - address_region_id: String - Optional. Region identifier (updated based on PV number if provided).
+ *   - address_region_number: String - Optional. Looks up region_id based on this if it exists.
  * @param {String} importId - A unique identifier for the import session.
  * @param {JdbcConnection} conn - An active JDBC connection to the database.
  * @param {Sheet} sheet - The Google Sheets Sheet object (used if PV number is provided).
@@ -34,21 +35,35 @@
  * - The function logs actions and errors to the console for tracking purposes.
  * - It's important to ensure proper error handling around database operations.
  */
-function importAddressData(addressData, importId, conn,sheet,pvNumber) {
+function importAddress(conn, importId, addressData, sheet, pvNumber) {
   if (!addressData.address_line_1 || !addressData.address_postcode) {
     console.log("Address line 1 and postcode are required.");
     return;
   }
 
-  if (pvNumber) {
+  // Declare regionId once at the top
+  var regionId;
+
+  // Check if address_region_number is provided and use it to get regionId
+  if (addressData.address_region_number) {
     try {
-      var regionNumber = getRegionByPVNumber(sheet,pvNumber);
-      var regionId = getRegionIdFromRegionNumber(regionNumber)
-      if (regionId && .toString().trim() === "") {
+      regionId = getRegionIdFromRegionNumber(conn, addressData.address_region_number);
+      if (regionId) {
         addressData.address_region_id = regionId;
       }
     } catch (error) {
-      console.log("Couldn't get region ID: " + error.message);
+      console.log("Couldn't get region ID from address_region_number: " + error.message);
+    }
+  } else if (pvNumber) {
+    // If pvNumber is provided, use it to get regionNumber and then regionId
+    try {
+      var regionNumber = getRegionByPVNumber(sheet, pvNumber);
+      regionId = getRegionIdFromRegionNumber(conn, regionNumber);
+      if (regionId) {
+        addressData.address_region_id = regionId;
+      }
+    } catch (error) {
+      console.log("Couldn't get region ID from PV number: " + error.message);
     }
   }
 
@@ -74,7 +89,7 @@ function importAddressData(addressData, importId, conn,sheet,pvNumber) {
 
     updateStmt.execute();
     console.log("Address data updated for UUID: " + existingUuid);
-    
+
     return existingUuid; // Returning the existing UUID
   } else {
     var insertStmt = conn.prepareStatement('INSERT INTO sn_addresses (address_id, address_line_1, address_line_2, address_town, address_county, address_postcode, address_country, address_region_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');

@@ -1,5 +1,5 @@
 /**
- * Retrieves the region number corresponding to a given PV number from a Google Sheets spreadsheet.
+ * Retrieves the region number corresponding to a given PV number from a Google Sheets spreadsheet. //todo its fugly to reopen the sheet several times
  *
  * @param {string} pvNumber - The PV number to search for in the spreadsheet.
  * @returns {string} The region number corresponding to the given PV number. Returns an empty string if not found.
@@ -41,14 +41,11 @@ function getRegionByPVNumber(sheet,pvNumber) {
  * @param {number} regionNumber - The region number to look up in the database.
  * @returns {string} The region_id corresponding to the provided region number or an empty string if not found.
  */
-function getRegionIdFromRegionNumber(regionNumber) {
+function getRegionIdFromRegionNumber(conn, regionNumber) {
   // Immediately return an empty string if regionNumber is not provided or is blank
   if (!regionNumber || regionNumber.toString().trim() === "") {
     return "";
   }
-
-  var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
-
   var stmt = conn.prepareStatement('SELECT region_id FROM sn_region WHERE region_number = ?');
   stmt.setString(1, regionNumber.toString());
   var rs = stmt.executeQuery();
@@ -62,7 +59,6 @@ function getRegionIdFromRegionNumber(regionNumber) {
 
   rs.close();
   stmt.close();
-  conn.close();
 
   return regionId;
 }

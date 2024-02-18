@@ -43,7 +43,7 @@
  * var importId = '67890';
  * var plotSpecId = importPlotSpecData(conn, plotSpecData, importId);
  */
-function importPlotSpecData(conn, plotSpecData, importId) {
+function importPlotSpecData(conn,importId, plotSpecData) {
     var checkPlotSpecStmt = conn.prepareStatement('SELECT * FROM sn_plot_spec WHERE plot_spec_id = ? OR plot_id = ?');
     checkPlotSpecStmt.setString(1, plotSpecData.plotSpecId);
         checkPlotSpecStmt.setString(2, plotSpecData.plotId);
@@ -51,9 +51,16 @@ function importPlotSpecData(conn, plotSpecData, importId) {
 
     var rs = checkPlotSpecStmt.executeQuery();
 
-    var plotSpecStatusId = importStatus({ status_state: plotSpecData.plotSpecStatus, status_group: "Spec Status Group" }, conn);
-    var meterProductId = importProductData({ productName: plotSpecData.meter, productType: 'Meter' }, importId, conn);
-    var batteryProductId = importProductData({ productName: plotSpecData.battery, productType: 'Battery' }, importId, conn);
+if (plotSpecData.plotInstallStatus) {
+     plotSpecData.plotSpecStatusId = importStatus(conn,importId,{ status_state: plotSpecData.plotInstallStatus, status_group: "Plot Status Group" });
+     }
+
+          if (plotSpecData.meter) {
+     var meterProductId = importProductData(conn,importId,{ productName: plotSpecData.meter, productType: 'Meter', costToday: plotSpecData.meterCost });
+     }
+               if (plotSpecData.battery) {
+     var batteryProductId = importProductData(conn,importId,{ productName: plotSpecData.battery, productType: 'Battery', costToday: plotSpecData.batteryCost });
+     }
 
     if (rs.next()) {
         // Update existing record
@@ -63,7 +70,7 @@ function importPlotSpecData(conn, plotSpecData, importId) {
         updateStmt.setString(1, plotSpecData.plotId);
         updateStmt.setDate(2, plotSpecData.dateSpecified);
         updateStmt.setString(3, plotSpecData.specifiedBy);
-        updateStmt.setString(4, plotSpecStatusId);
+        updateStmt.setString(4, plotSpecData.plotSpecStatusId);
         updateStmt.setInt(5, plotSpecData.phase);
         updateStmt.setFloat(6, plotSpecData.p1);
         updateStmt.setFloat(7, plotSpecData.p2);
@@ -87,12 +94,12 @@ function importPlotSpecData(conn, plotSpecData, importId) {
     } else {
         // Insert new record
         var insertStmt = conn.prepareStatement('INSERT INTO sn_plot_spec (plot_spec_id, plot_id, date_specified, specified_by, plot_spec_status, phase, p1, p2, p3, annual_yield, kwp, kwp_with_limitation, limiter_required, limiter_value_if_not_zero, labour_cost, meter, meter_cost, battery, battery_cost, overall_cost, landlord_supply, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-
+        plotSpecData.plotSpecId = Utilities.getUuid();
         insertStmt.setString(1, plotSpecData.plotSpecId);
         insertStmt.setString(2, plotSpecData.plotId);
         insertStmt.setDate(3, plotSpecData.dateSpecified);
         insertStmt.setString(4, plotSpecData.specifiedBy);
-        insertStmt.setString(5, plotSpecStatusId);
+        insertStmt.setString(5, plotSpecData.plotSpecStatusId);
         insertStmt.setInt(6, plotSpecData.phase);
         insertStmt.setFloat(7, plotSpecData.p1);
         insertStmt.setFloat(8, plotSpecData.p2);

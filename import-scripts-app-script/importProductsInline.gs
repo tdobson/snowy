@@ -34,7 +34,7 @@
  * - The function logs actions and errors to the console for tracking purposes.
  * - It's important to ensure proper error handling around database operations.
  */
-function importProductData(productData, importId, conn) {
+function importProductData(conn,importId, productData) {
   if (!productData.productName) {
     console.log("Product name is required.");
     return;

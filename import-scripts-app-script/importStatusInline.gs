@@ -20,14 +20,14 @@
  * @param {JdbcConnection} conn - An active JDBC connection to the database.
  * @returns {string|null} UUID of the existing or new status record, or null in case of an error.
  */
-function importStatus(statusData, conn) {
+function importStatus(conn, importId, statusData ) {
     if (!statusData || !statusData.status_state || !statusData.status_group) {
         console.log("Status state and group are required.");
         return null;
     }
 
     try {
-        var importId = insertImportEvent(conn, '', 'Status Import', 'Importing status details', '4df57691-4d43-4cfb-9338-00e4cfafa63d');
+     //   var importId = insertImportEvent(conn, '', 'Status Import', 'Importing status details', '4df57691-4d43-4cfb-9338-00e4cfafa63d');
         var checkStatusStmt = conn.prepareStatement('SELECT * FROM sn_status WHERE status_state = ? AND status_group = ?');
         checkStatusStmt.setString(1, statusData.status_state);
         checkStatusStmt.setString(2, statusData.status_group);
@@ -67,7 +67,7 @@ function importStatus(statusData, conn) {
         console.error('Error in importStatus: ' + error.message);
         return null;
     } finally {
-        if (conn) conn.close();
+        if (conn) rs.close();
     }
 }
 
@@ -79,7 +79,7 @@ function importStatus(statusData, conn) {
  * @param {JdbcConnection} conn - An active JDBC connection to the database.
  * @returns {Object|null} - The status details if found, or null if not found.
  */
-function lookupStatusByState(statusState, statusGroup conn) {
+function lookupStatusByState(conn,statusState, statusGroup) {
     try {
         var checkStatusStmt = conn.prepareStatement('SELECT * FROM sn_status WHERE status_state = ? AND status_group = ?');
         checkStatusStmt.setString(1, statusState);

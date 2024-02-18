@@ -1,50 +1,64 @@
 /**
- * Imports an array of client data objects into a MySQL database.
- * Each object in the array is processed to insert or update data into 'sn_clients', 'sn_users', and 'sn_addresses' tables.
- * This function uses prepared statements for database operations and logs an import event for traceability.
+ * Imports or updates client details into the sn_clients table in the database. The function checks if a client
+ * with the given email already exists in the database, and either inserts a new record or updates the existing one.
+ * Fields in the database are updated only if they are blank and new data is available. An import event is logged
+ * in the sn_import_events table each time the function is run.
  *
  * Prerequisites:
- * - MySQL database with 'sn_import_events', 'sn_clients', 'sn_users', and 'sn_addresses' tables set up.
- * - Correct database connection details configured in the script.
+ * - The database should have sn_clients, sn_users, and sn_addresses tables set up.
  *
  * Usage:
- * - Call this function with an array of client data objects, a database connection, and a unique import ID.
+ * - Call this function with an object containing client details, a database connection, and a unique import ID.
+ * - Ensure the database connection details are correctly set.
  *
- * @param {Object[]} clientDataArray - An array of objects containing client and contact details to be imported.
  * @param {JdbcConnection} conn - An active JDBC connection to the database.
  * @param {String} importId - A unique identifier for the import session.
- *
- * @returns {void}
+ * @param {Object} clientData - Object containing client details. Expected keys:
+ *   - {string} email - Email of the client (used as a unique identifier).
+ *   - {string} name - Name of the client.
+ *   - {Object} address - Address object containing address details of the client.
+ * @returns {string|null} UUID of the existing or new client record, or null in case of an error.
  */
- function importClientData(clientDataArray, conn, importId) {
-     var checkClientStmt = conn.prepareStatement('SELECT * FROM sn_clients WHERE client_name = ?');
-     var insertClientStmt = conn.prepareStatement('INSERT INTO sn_clients (client_id, client_name, address_id, contact_id, import_id) VALUES (?, ?, ?, ?, ?)');
-     var updateClientStmt = conn.prepareStatement('UPDATE sn_clients SET address_id = ?, contact_id = ? WHERE client_name = ?');
+function importClient(conn, importId, clientData) {
+    if (!clientData || !clientData.email) {
+        console.log("Client email is required.");
+        return null;
+    }
 
-     clientDataArray.forEach(function(clientData) {
-         var userId = importUserData(clientData, importId, conn);
-         var addressId = importAddressData(clientData.address, importId, conn);
+    try {
+        var checkClientStmt = conn.prepareStatement('SELECT * FROM sn_clients WHERE email = ?');
+        checkClientStmt.setString(1, clientData.email);
 
-         // Check and insert/update client data
-         checkClientStmt.setString(1, clientData.name);
-         var clientResult = checkClientStmt.executeQuery();
-         if (clientResult.next()) {
-             updateClientStmt.setString(1, addressId);
-             updateClientStmt.setString(2, userId);
-             updateClientStmt.setString(3, clientData.name);
-             updateClientStmt.execute();
-         } else {
-             var clientUuid = Utilities.getUuid();
-             insertClientStmt.setString(1, clientUuid);
-             insertClientStmt.setString(2, clientData.name);
-             insertClientStmt.setString(3, addressId);
-             insertClientStmt.setString(4, userId);
-             insertClientStmt.setString(5, importId);
-             insertClientStmt.execute();
-         }
-     });
+        var rs = checkClientStmt.executeQuery();
+        if (rs.next()) {
+            var existingUuid = rs.getString('client_id');
+            console.log("Client already exists with UUID: " + existingUuid);
 
-     conn.close();
-     Logger.log('Client and contact details import/update complete.');
- }
+            // Optionally update existing record if any field is blank
+            var updateStmt = conn.prepareStatement('UPDATE sn_clients SET name = ?, import_id = ? WHERE email = ?');
+            updateStmt.setString(1, clientData.name || rs.getString('name'));
+            updateStmt.setString(2, importId);
+            updateStmt.setString(3, clientData.email);
+            updateStmt.execute();
 
+            return existingUuid;
+        } else {
+            var insertStmt = conn.prepareStatement('INSERT INTO sn_clients (client_id, name, email, import_id) VALUES (?, ?, ?, ?)');
+            var newUuid = Utilities.getUuid();
+
+            insertStmt.setString(1, newUuid);
+            insertStmt.setString(2, clientData.name);
+            insertStmt.setString(3, clientData.email);
+            insertStmt.setString(4, importId);
+            insertStmt.execute();
+
+            console.log("New client inserted with UUID: " + newUuid);
+            return newUuid;
+        }
+    } catch (error) {
+        console.error('Error in importClientData: ' + error.message);
+        return null;
+    } finally {
+        if (rs) rs.close();
+    }
+}

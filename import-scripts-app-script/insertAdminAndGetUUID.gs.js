@@ -1,4 +1,6 @@
-// 4df57691-4d43-4cfb-9338-00e4cfafa63d
+//The initial admin user uuid is 4df57691-4d43-4cfb-9338-00e4cfafa63d
+// this can be used to regenerate the above uuid
+
 function insertUserAndGetUuid() {
     var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
     var uuid = Utilities.getUuid();
@@ -13,6 +15,5 @@ function insertUserAndGetUuid() {
 
     stmt.execute();
     conn.close();
-    // uuid = 4df57691-4d43-4cfb-9338-00e4cfafa63d
     return uuid;
 }
