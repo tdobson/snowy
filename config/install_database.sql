@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS sn_plots (
     plot_install_id CHAR(36) NOT NULL,               -- Identifies the plot install from importPlotInstallData
     plot_number VARCHAR(255) NOT NULL,          -- Alphanumeric identifier for the plot.
     plot_status CHAR(36),                       -- Indicates the current status of the plot. // from importStatus
-    site CHAR(36),                              -- Identifies the site where the plot is located. // from importSiteData
+    site_id CHAR(36),                              -- Identifies the site where the plot is located. // from importSiteData
     housetype VARCHAR(255),                     -- Description of the type of house on the plot.
     g99 BOOLEAN,                                -- Indicates whether G99 standards apply.
     mpan VARCHAR(255),                          -- MPAN for the plot.
@@ -334,6 +334,7 @@ CREATE TABLE IF NOT EXISTS sn_addresses (
 -- Details the sites where projects are located.
 CREATE TABLE IF NOT EXISTS sn_sites (
     site_id CHAR(36) NOT NULL,           -- Unique identifier for the site.
+    site_name CHAR(255),                -- the name of the site
     dno_details_id CHAR(36),             -- DNO details ID.
     site_address_id CHAR(36),            -- Address details.
     site_manager_id CHAR(36),            -- User ID of the site manager.
