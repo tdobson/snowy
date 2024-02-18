@@ -3,9 +3,10 @@ info:
   title: Snowy API
   version: 1.0.0
 paths:
-  /users:
+  /api/v1/users:
     get:
       summary: Get all users
       responses:
         '200':
           description: Success
+y
