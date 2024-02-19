@@ -36,6 +36,8 @@
  * - It's important to ensure proper error handling around database operations.
  */
 function importAddress(conn, importId, addressData, sheet, pvNumber) {
+      //console.log(JSON.stringify(addressData));
+
   if (!addressData.address_line_1 || !addressData.address_postcode) {
     console.log("Address line 1 and postcode are required.");
     return;

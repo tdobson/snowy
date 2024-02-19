@@ -1024,8 +1024,20 @@ function querySheetsByIndex(config) {
  * @param {string} dateString - The date string to be sanitized.
  * @return {string|null} The sanitized date string in 'yyyy-MM-dd' format, or null if input is invalid.
  */
-function sanitizeDateForSql(dateString) {
-    if (dateString && dateString.trim() !== "") {
+function sanitizeDateForSql(dateInput) {
+    let dateString;
+
+    // Check if the input is a Date object or a string
+    if (dateInput instanceof Date) {
+        // Input is a Date object, convert to string
+        dateString = dateInput.toISOString();
+    } else if (typeof dateInput === 'string') {
+        // Input is a string, use it directly
+        dateString = dateInput.trim();
+    }
+
+    // Proceed only if dateString is not empty and represents a valid date
+    if (dateString && !isNaN(Date.parse(dateString))) {
         try {
             // Attempt to parse the date string and format it
             var date = new Date(dateString);
@@ -1037,9 +1049,11 @@ function sanitizeDateForSql(dateString) {
             console.error("Error parsing date: " + dateString + " - " + e.message);
         }
     }
-    // Return null for invalid or empty date strings
+
+    // Return null for invalid or empty date inputs
     return null;
 }
+
 
 // Function to check float values and set them to 0 if they're null
 function sanitizeFloat(value) {

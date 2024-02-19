@@ -117,14 +117,14 @@ updateStmt.setString(24, plotInstallData.plotInstallId);
 
     // Sanitize and set date_install for insert
     if (plotInstallData.dateInstall) {
-        insertStmt.setDate(3, plotInstallData.dateInstall);
+        insertStmt.setString(3, sanitizeDateForSql(plotInstallData.dateInstall));
     } else {
         insertStmt.setNull(3, 0); // Setting null for date field
     }
 
     // Sanitize and set date_checked for insert
     if (plotInstallData.dateChecked) {
-        insertStmt.setDate(4, plotInstallData.dateChecked);
+        insertStmt.setString(4, sanitizeDateForSql(plotInstallData.dateChecked));
     } else {
         insertStmt.setNull(4, 0); // Setting null for date field
     }
