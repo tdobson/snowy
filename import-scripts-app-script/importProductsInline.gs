@@ -54,14 +54,14 @@ function importProductData(conn,importId, productData) {
     updateStmt.setString(1, productData.productType || rs.getString('product_type'));
     updateStmt.setString(2, productData.manufacturer || rs.getString('manufacturer'));
     updateStmt.setString(3, productData.productModel || rs.getString('product_model'));
-    updateStmt.setFloat(4, productData.kwp !== undefined ? productData.kwp : rs.getFloat('kwp'));
-    updateStmt.setFloat(5, productData.voc !== undefined ? productData.voc : rs.getFloat('voc'));
-    updateStmt.setFloat(6, productData.isc !== undefined ? productData.isc : rs.getFloat('isc'));
+    updateStmt.setFloat(4, sanitizeFloat(productData.kwp !== undefined ? productData.kwp : rs.getFloat('kwp')));
+    updateStmt.setFloat(5, sanitizeFloat(productData.voc !== undefined ? productData.voc : rs.getFloat('voc')));
+    updateStmt.setFloat(6, sanitizeFloat(productData.isc !== undefined ? productData.isc : rs.getFloat('isc')));
     updateStmt.setString(7, productData.type || rs.getString('type'));
-    updateStmt.setFloat(8, productData.capacity !== undefined ? productData.capacity : rs.getFloat('capacity'));
-    updateStmt.setInt(9, productData.noPhases !== undefined ? productData.noPhases : rs.getInt('no_phases'));
+    updateStmt.setFloat(8, sanitizeFloat(productData.capacity !== undefined ? productData.capacity : rs.getFloat('capacity')));
+    updateStmt.setInt(9, convertPhaseToInt(productData.noPhases !== undefined ? productData.noPhases : rs.getInt('no_phases'))); // Assuming noPhases is always provided as an integer
     updateStmt.setString(10, productData.modelRef || rs.getString('model_ref'));
-    updateStmt.setFloat(11, productData.costToday !== undefined ? productData.costToday : rs.getFloat('cost_today'));
+    updateStmt.setFloat(11, sanitizeFloat(productData.costToday !== undefined ? productData.costToday : rs.getFloat('cost_today')));
     updateStmt.setString(12, productData.mcsProductReference || rs.getString('mcs_product_reference'));
     updateStmt.setString(13, productData.mcsProductId || rs.getString('mcs_product_id'));
     updateStmt.setString(14, importId);
@@ -80,14 +80,14 @@ function importProductData(conn,importId, productData) {
     insertStmt.setString(3, productData.manufacturer);
     insertStmt.setString(4, productData.productModel);
     insertStmt.setString(5, productData.productName);
-    insertStmt.setFloat(6, productData.kwp);
-    insertStmt.setFloat(7, productData.voc);
-    insertStmt.setFloat(8, productData.isc);
+    insertStmt.setFloat(6, sanitizeFloat(productData.kwp));
+    insertStmt.setFloat(7, sanitizeFloat(productData.voc));
+    insertStmt.setFloat(8, sanitizeFloat(productData.isc));
     insertStmt.setString(9, productData.type);
-    insertStmt.setFloat(10, productData.capacity);
-    insertStmt.setInt(11, productData.noPhases);
+    insertStmt.setFloat(10, sanitizeFloat(productData.capacity));
+    insertStmt.setInt(11, convertPhaseToInt(productData.noPhases)); // Assuming noPhases is always provided as an integer
     insertStmt.setString(12, productData.modelRef);
-    insertStmt.setFloat(13, productData.costToday);
+    insertStmt.setFloat(13, sanitizeFloat(productData.costToday));
     insertStmt.setString(14, productData.mcsProductReference);
     insertStmt.setString(15, productData.mcsProductId);
     insertStmt.setString(16, importId);

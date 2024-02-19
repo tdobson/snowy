@@ -45,20 +45,19 @@ function importPlotData(conn, importId,plotData,sheet) {
         // Update existing record
         var updateStmt = conn.prepareStatement('UPDATE sn_plots SET project_id = ?, plot_number = ?, plot_status = ?, site_id = ?, housetype = ?, g99 = ?, mpan = ?, plot_address_id = ?, plot_approved = ?, commissioning_form_submitted = ?, import_id = ?, tracker_ref = ? WHERE plot_id = ?');
 
-        // Set parameters for updateStmt based on plotData fields
-        updateStmt.setString(1, plotData.projectId);
-        updateStmt.setString(2, plotData.plotNumber);
-        updateStmt.setString(3, plotData.plotStatusId);
-        updateStmt.setString(4, plotData.projectData.siteId);
-        updateStmt.setString(5, plotData.housetype);
-        updateStmt.setBoolean(6, plotData.g99);
-        updateStmt.setString(7, plotData.mpan);
-        updateStmt.setString(8, plotData.plotAddressId);
-        updateStmt.setBoolean(9, plotData.plotApproved);
-        updateStmt.setBoolean(10, plotData.commissioningFormSubmitted);
-        updateStmt.setString(11, importId);
-        updateStmt.setString(12, plotData.trackerRef);
-        updateStmt.setString(13, plotData.plotId);
+updateStmt.setString(1, plotData.projectId);
+updateStmt.setString(2, plotData.plotNumber);
+updateStmt.setString(3, plotData.plotStatusId);
+updateStmt.setString(4, plotData.projectData.siteId);
+updateStmt.setString(5, plotData.housetype);
+updateStmt.setBoolean(6, sanitizeBoolean(plotData.g99)); // Sanitize g99
+updateStmt.setString(7, plotData.mpan);
+updateStmt.setString(8, plotData.plotAddressId);
+updateStmt.setBoolean(9, sanitizeBoolean(plotData.plotApproved)); // Sanitize plotApproved
+updateStmt.setBoolean(10, sanitizeBoolean(plotData.commissioningFormSubmitted)); // Sanitize commissioningFormSubmitted
+updateStmt.setString(11, importId);
+updateStmt.setString(12, plotData.trackerRef);
+updateStmt.setString(13, plotData.plotId);
 
         updateStmt.execute();
     } else {
@@ -66,6 +65,8 @@ function importPlotData(conn, importId,plotData,sheet) {
         plotData.plotId = uuid;
         plotData.plotSpecData.plotId = uuid;
         plotData.plotInstallData.plotId = uuid;
+        plotData.elevationData.plot_id = uuid;
+        plotData.elevationSpecData.plot_id = uuid;
 
     plotData.projectData.dnoDetailsId = lookupDnoDetailsByMpan(conn,importId, plotData.projectData.dnoDetails.refNumber);
     plotData.projectData.regionId = getRegionIdFromRegionNumber(plotData.siteData.addressData.address_region_number);
@@ -76,32 +77,32 @@ function importPlotData(conn, importId,plotData,sheet) {
 
 
 
-    plotData.plotAddressId = importAddressData(conn,importId, plotData.addressData);
+    plotData.plotAddressId = importAddress(conn,importId, plotData.addressData);
     plotData.plotStatusId = importStatus(conn, importId,{ status_state: plotData.plotStatus, status_group: "Plot Status Group" });
 
     plotData.elevationSpecData.plot_spec_id = importPlotSpecData(conn,importId, plotData.plotSpecData);
     plotData.elevationData.plot_install_id = importPlotInstallData(conn, importId, plotData.plotInstallData);
 
-    plotData.elevationSpecData.plot_spec_id = importElevationInstallData(conn, importId, plotData.elevationData)
-    plotData.elevationData.plot_install_id = importElevationSpecData(conn, importId, plotData.elevationSpecData)
 
+    plotData.elevationData.elevation_install_id = importElevationInstallData(conn, importId, plotData.elevationData)
+    plotData.elevationSpecData.elevation_spec_id = importElevationSpecData(conn, importId, plotData.elevationSpecData)
 
         // Insert new record
         var insertStmt = conn.prepareStatement('INSERT INTO sn_plots (plot_id, project_id, plot_number, plot_status, site_id, housetype, g99, mpan, plot_address_id, plot_approved, commissioning_form_submitted, import_id, tracker_ref) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-        insertStmt.setString(1, plotData.plotId);
-        insertStmt.setString(2, plotData.projectId);
-        insertStmt.setString(3, plotData.plotNumber);
-        insertStmt.setString(4, plotData.plotStatusId);
-        insertStmt.setString(5, plotData.projectData.siteId);
-        insertStmt.setString(6, plotData.housetype);
-        insertStmt.setBoolean(7, plotData.g99);
-        insertStmt.setString(8, plotData.mpan);
-        insertStmt.setString(9, plotData.plotAddressId);
-        insertStmt.setBoolean(10, plotData.plotApproved);
-        insertStmt.setBoolean(11, plotData.commissioningFormSubmitted);
-        insertStmt.setString(12, importId);
-        insertStmt.setString(13, plotData.trackerRef);
+insertStmt.setString(1, plotData.plotId);
+insertStmt.setString(2, plotData.projectId);
+insertStmt.setString(3, plotData.plotNumber);
+insertStmt.setString(4, plotData.plotStatusId);
+insertStmt.setString(5, plotData.projectData.siteId);
+insertStmt.setString(6, plotData.housetype);
+insertStmt.setBoolean(7, sanitizeBoolean(plotData.g99)); // Sanitize g99
+insertStmt.setString(8, plotData.mpan);
+insertStmt.setString(9, plotData.plotAddressId);
+insertStmt.setBoolean(10, sanitizeBoolean(plotData.plotApproved)); // Sanitize plotApproved
+insertStmt.setBoolean(11, sanitizeBoolean(plotData.commissioningFormSubmitted)); // Sanitize commissioningFormSubmitted
+insertStmt.setString(12, importId);
+insertStmt.setString(13, plotData.trackerRef);
 
 
 

@@ -40,6 +40,7 @@
  * - This function relies on 'importProductData' to manage the insertion or updating of product-related information in the 'sn_products' table.
  */
  function importElevationInstallData(conn, importId, elevationData) {
+  console.log(JSON.stringify(elevationData))
      if (!elevationData.plot_install_id || !elevationData.plot_id) {
          console.log("Plot install ID and plot ID are required.");
          return;
@@ -67,23 +68,24 @@
          // Optionally update existing record
          var updateStmt = conn.prepareStatement('UPDATE sn_elevations_install SET type_test_ref = ?, pitch = ?, orientation = ?, kk_figure = ?, kwp = ?, strings = ?, module_qty = ?, inverter = ?, inverter_cost = ?, panel = ?, panel_cost = ?, panels_total_cost = ?, roof_kit = ?, roof_kit_cost = ?, annual_yield = ?, import_id = ? WHERE elevation_install_id = ?');
 
-         updateStmt.setString(1, elevationData.type_test_ref || rs.getString('type_test_ref'));
-         updateStmt.setFloat(2, elevationData.pitch !== undefined ? elevationData.pitch : rs.getFloat('pitch'));
-         updateStmt.setString(3, elevationData.orientation || rs.getString('orientation'));
-         updateStmt.setFloat(4, elevationData.kk_figure !== undefined ? elevationData.kk_figure : rs.getFloat('kk_figure'));
-         updateStmt.setFloat(5, elevationData.kwp !== undefined ? elevationData.kwp : rs.getFloat('kwp'));
-         updateStmt.setInt(6, elevationData.strings !== undefined ? elevationData.strings : rs.getInt('strings'));
-         updateStmt.setInt(7, elevationData.module_qty !== undefined ? elevationData.module_qty : rs.getInt('module_qty'));
-         updateStmt.setString(8, elevationData.inverter || rs.getString('inverter'));
-         updateStmt.setFloat(9, elevationData.inverter_cost !== undefined ? elevationData.inverter_cost : rs.getFloat('inverter_cost'));
-         updateStmt.setString(10, elevationData.panel || rs.getString('panel'));
-         updateStmt.setFloat(11, elevationData.panel_cost !== undefined ? elevationData.panel_cost : rs.getFloat('panel_cost'));
-         updateStmt.setFloat(12, elevationData.panels_total_cost !== undefined ? elevationData.panels_total_cost : rs.getFloat('panels_total_cost'));
-         updateStmt.setString(13, elevationData.roof_kit || rs.getString('roof_kit'));
-         updateStmt.setFloat(14, elevationData.roof_kit_cost !== undefined ? elevationData.roof_kit_cost : rs.getFloat('roof_kit_cost'));
-         updateStmt.setFloat(15, elevationData.annual_yield !== undefined ? elevationData.annual_yield : rs.getFloat('annual_yield'));
-         updateStmt.setString(16, importId);
-         updateStmt.setString(17, existingUuid);
+updateStmt.setString(1, elevationData.type_test_ref || rs.getString('type_test_ref'));
+updateStmt.setFloat(2, sanitizeFloat(elevationData.pitch !== undefined ? elevationData.pitch : rs.getFloat('pitch'))); // Sanitized pitch
+updateStmt.setString(3, elevationData.orientation || rs.getString('orientation'));
+updateStmt.setFloat(4, sanitizeFloat(elevationData.kk_figure !== undefined ? elevationData.kk_figure : rs.getFloat('kk_figure'))); // Sanitized kk_figure
+updateStmt.setFloat(5, sanitizeFloat(elevationData.kwp !== undefined ? elevationData.kwp : rs.getFloat('kwp'))); // Sanitized kwp
+updateStmt.setInt(6, elevationData.strings !== undefined ? elevationData.strings : rs.getInt('strings'));
+updateStmt.setInt(7, elevationData.module_qty !== undefined ? elevationData.module_qty : rs.getInt('module_qty'));
+updateStmt.setString(8, elevationData.inverter || rs.getString('inverter'));
+updateStmt.setFloat(9, sanitizeFloat(elevationData.inverter_cost !== undefined ? elevationData.inverter_cost : rs.getFloat('inverter_cost'))); // Sanitized inverter_cost
+updateStmt.setString(10, elevationData.panel || rs.getString('panel'));
+updateStmt.setFloat(11, sanitizeFloat(elevationData.panel_cost !== undefined ? elevationData.panel_cost : rs.getFloat('panel_cost'))); // Sanitized panel_cost
+updateStmt.setFloat(12, sanitizeFloat(elevationData.panels_total_cost !== undefined ? elevationData.panels_total_cost : rs.getFloat('panels_total_cost'))); // Sanitized panels_total_cost
+updateStmt.setString(13, elevationData.roof_kit || rs.getString('roof_kit'));
+updateStmt.setFloat(14, sanitizeFloat(elevationData.roof_kit_cost !== undefined ? elevationData.roof_kit_cost : rs.getFloat('roof_kit_cost'))); // Sanitized roof_kit_cost
+updateStmt.setFloat(15, sanitizeFloat(elevationData.annual_yield !== undefined ? elevationData.annual_yield : rs.getFloat('annual_yield'))); // Sanitized annual_yield
+updateStmt.setString(16, importId);
+updateStmt.setString(17, existingUuid);
+
 
          updateStmt.execute();
          console.log("Elevation data updated for UUID: " + existingUuid);
@@ -92,26 +94,26 @@
      } else {
 var insertStmt = conn.prepareStatement('INSERT INTO sn_elevations_install (elevation_install_id, plot_install_id, plot_id, type_test_ref, pitch, orientation, kk_figure, kwp, strings, module_qty, inverter, inverter_cost, panel, panel_cost, panels_total_cost, roof_kit, roof_kit_cost, annual_yield, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-             var newUuid = Utilities.getUuid();
-             insertStmt.setString(1, newUuid);
-             insertStmt.setString(2, elevationData.plot_install_id);
-             insertStmt.setString(3, elevationData.plot_id);
-             insertStmt.setString(4, elevationData.type_test_ref);
-             insertStmt.setFloat(5, elevationData.pitch);
-             insertStmt.setString(6, elevationData.orientation);
-             insertStmt.setFloat(7, elevationData.kk_figure);
-             insertStmt.setFloat(8, elevationData.kwp);
-             insertStmt.setInt(9, elevationData.strings);
-             insertStmt.setInt(10, elevationData.module_qty);
-             insertStmt.setString(11, elevationData.inverter);
-             insertStmt.setFloat(12, elevationData.inverter_cost);
-             insertStmt.setString(13, elevationData.panel);
-             insertStmt.setFloat(14, elevationData.panel_cost);
-             insertStmt.setFloat(15, elevationData.panels_total_cost);
-             insertStmt.setString(16, elevationData.roof_kit);
-             insertStmt.setFloat(17, elevationData.roof_kit_cost);
-             insertStmt.setFloat(18, elevationData.annual_yield);
-             insertStmt.setString(19, importId);
+var newUuid = Utilities.getUuid();
+insertStmt.setString(1, newUuid);
+insertStmt.setString(2, elevationData.plot_install_id);
+insertStmt.setString(3, elevationData.plot_id);
+insertStmt.setString(4, elevationData.type_test_ref);
+insertStmt.setFloat(5, sanitizeFloat(elevationData.pitch)); // Sanitized pitch
+insertStmt.setString(6, elevationData.orientation);
+insertStmt.setFloat(7, sanitizeFloat(elevationData.kk_figure)); // Sanitized kk_figure
+insertStmt.setFloat(8, sanitizeFloat(elevationData.kwp)); // Sanitized kwp
+insertStmt.setInt(9, elevationData.strings);
+insertStmt.setInt(10, elevationData.module_qty);
+insertStmt.setString(11, elevationData.inverter);
+insertStmt.setFloat(12, sanitizeFloat(elevationData.inverter_cost)); // Sanitized inverter_cost
+insertStmt.setString(13, elevationData.panel);
+insertStmt.setFloat(14, sanitizeFloat(elevationData.panel_cost)); // Sanitized panel_cost
+insertStmt.setFloat(15, sanitizeFloat(elevationData.panels_total_cost)); // Sanitized panels_total_cost
+insertStmt.setString(16, elevationData.roof_kit);
+insertStmt.setFloat(17, sanitizeFloat(elevationData.roof_kit_cost)); // Sanitized roof_kit_cost
+insertStmt.setFloat(18, sanitizeFloat(elevationData.annual_yield)); // Sanitized annual_yield
+insertStmt.setString(19, importId);
 
              insertStmt.execute();
              console.log("New elevation installed with UUID: " + newUuid);

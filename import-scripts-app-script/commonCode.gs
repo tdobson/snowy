@@ -1040,3 +1040,34 @@ function sanitizeDateForSql(dateString) {
     // Return null for invalid or empty date strings
     return null;
 }
+
+// Function to check float values and set them to 0 if they're null
+function sanitizeFloat(value) {
+    // Check if the value is not null, not an empty string, and is a valid number
+    return (value !== null && value !== '' && !isNaN(value)) ? parseFloat(value) : 0;
+}
+
+function convertPhaseToInt(phase) {
+    if (phase === "Single Phase" || phase ===  "1") {
+        return 1;
+    } else if (phase === "Three Phase" || phase === "3") {
+        return 3;
+    } else {
+        return 0; // Default value for any other phase
+    }
+}
+
+function determineInstallStatus(dateInstall, dateChecked) {
+    if (dateInstall && !dateChecked) {
+        return '2nd fix';
+    } else if (dateInstall && dateChecked) {
+        return 'Complete';
+    } else {
+        return '1st fix';
+    }
+}
+
+function sanitizeBoolean(value) {
+    const trueValues = ['yes', 'true', '1'];
+    return trueValues.includes(value.toString().toLowerCase());
+}

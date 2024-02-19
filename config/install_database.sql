@@ -208,7 +208,7 @@ CREATE TABLE IF NOT EXISTS sn_elevations_spec (
     roof_kit_cost FLOAT,               -- Cost of the roof mounting kit.
     annual_yield FLOAT,                -- Expected annual energy yield.
     import_id CHAR(36),                -- Import event ID.
-    PRIMARY KEY (elevation_id)
+    PRIMARY KEY (elevation_spec_id)
     -- FOREIGN KEY constraints omitted
 );
 
@@ -234,7 +234,7 @@ CREATE TABLE IF NOT EXISTS sn_elevations_install (
     roof_kit_cost FLOAT,               -- Cost of the roof mounting kit.
     annual_yield FLOAT,                -- Expected annual energy yield.
     import_id CHAR(36),                -- Import event ID.
-    PRIMARY KEY (elevation_id)
+    PRIMARY KEY (elevation_install_id)
     -- FOREIGN KEY constraints omitted
 );
 

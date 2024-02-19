@@ -86,7 +86,7 @@ function importProject(conn, importId, projectData) {
     } else {
         var insertStmt = conn.prepareStatement('INSERT INTO sn_projects (project_id, client_id, pv_number, dno_details_id, region_id, site_id, ref_number, project_name, job_code, comments, import_id, project_process_id, dno_zone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-        var newProjectId = Utilities.getUuid();
+        projectIdReturned = Utilities.getUuid();
 
         insertStmt.setString(1, newProjectId);
         insertStmt.setString(2, projectData.clientId);
@@ -106,5 +106,5 @@ function importProject(conn, importId, projectData) {
 
           rs.close();
           checkProjectStmt.close();
-          return newProjectId;
+          return projectIdReturned;
 }
