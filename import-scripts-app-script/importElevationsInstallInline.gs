@@ -40,7 +40,7 @@
  * - This function relies on 'importProductData' to manage the insertion or updating of product-related information in the 'sn_products' table.
  */
  function importElevationInstallData(conn, importId, elevationData) {
-  console.log(JSON.stringify(elevationData))
+  //console.log(JSON.stringify(elevationData))
      if (!elevationData.plot_install_id || !elevationData.plot_id) {
          console.log("Plot install ID and plot ID are required.");
          return;
@@ -73,8 +73,8 @@ updateStmt.setFloat(2, sanitizeFloat(elevationData.pitch !== undefined ? elevati
 updateStmt.setString(3, elevationData.orientation || rs.getString('orientation'));
 updateStmt.setFloat(4, sanitizeFloat(elevationData.kk_figure !== undefined ? elevationData.kk_figure : rs.getFloat('kk_figure'))); // Sanitized kk_figure
 updateStmt.setFloat(5, sanitizeFloat(elevationData.kwp !== undefined ? elevationData.kwp : rs.getFloat('kwp'))); // Sanitized kwp
-updateStmt.setInt(6, elevationData.strings !== undefined ? elevationData.strings : rs.getInt('strings'));
-updateStmt.setInt(7, elevationData.module_qty !== undefined ? elevationData.module_qty : rs.getInt('module_qty'));
+updateStmt.setInt(6, sanitizeInt(elevationData.strings !== undefined ? elevationData.strings : rs.getInt('strings')));
+updateStmt.setInt(7, sanitizeInt((elevationData.module_qty !== undefined ? elevationData.module_qty : rs.getInt('module_qty'))));
 updateStmt.setString(8, elevationData.inverter || rs.getString('inverter'));
 updateStmt.setFloat(9, sanitizeFloat(elevationData.inverter_cost !== undefined ? elevationData.inverter_cost : rs.getFloat('inverter_cost'))); // Sanitized inverter_cost
 updateStmt.setString(10, elevationData.panel || rs.getString('panel'));
@@ -97,14 +97,14 @@ var insertStmt = conn.prepareStatement('INSERT INTO sn_elevations_install (eleva
 var newUuid = Utilities.getUuid();
 insertStmt.setString(1, newUuid);
 insertStmt.setString(2, elevationData.plot_install_id);
-insertStmt.setString(3, elevationData.plot_id);
+insertStmt.setString(importElevationInstallDatalevationData.plot_id);
 insertStmt.setString(4, elevationData.type_test_ref);
 insertStmt.setFloat(5, sanitizeFloat(elevationData.pitch)); // Sanitized pitch
 insertStmt.setString(6, elevationData.orientation);
 insertStmt.setFloat(7, sanitizeFloat(elevationData.kk_figure)); // Sanitized kk_figure
 insertStmt.setFloat(8, sanitizeFloat(elevationData.kwp)); // Sanitized kwp
-insertStmt.setInt(9, elevationData.strings);
-insertStmt.setInt(10, elevationData.module_qty);
+insertStmt.setInt(9, sanitizeInt(elevationData.strings));
+insertStmt.setInt(10, sanitizeInt(elevationData.module_qty));
 insertStmt.setString(11, elevationData.inverter);
 insertStmt.setFloat(12, sanitizeFloat(elevationData.inverter_cost)); // Sanitized inverter_cost
 insertStmt.setString(13, elevationData.panel);

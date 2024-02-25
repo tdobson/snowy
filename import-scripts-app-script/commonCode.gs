@@ -1061,6 +1061,16 @@ function sanitizeFloat(value) {
     return (value !== null && value !== '' && !isNaN(value)) ? parseFloat(value) : 0;
 }
 
+// Function to sanitize Int values, convert them to whole numbers, and set to 0 if invalid
+function sanitizeInt(value) {
+    // Ensure the value is not null, undefined, an empty string, and is a valid number
+    if (value !== null && value !== undefined && value !== '' && !isNaN(parseFloat(value))) {
+        return Math.round(parseFloat(value)); // Convert to whole number
+    } else {
+        return 0; // Return 0 for invalid inputs
+    }
+}
+
 function convertPhaseToInt(phase) {
     if (phase === "Single Phase" || phase ===  "1") {
         return 1;

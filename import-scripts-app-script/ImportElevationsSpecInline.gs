@@ -72,8 +72,8 @@ updateStmt.setFloat(2, sanitizeFloat(elevationSpecData.pitch !== undefined ? ele
 updateStmt.setString(3, elevationSpecData.orientation || rs.getString('orientation'));
 updateStmt.setFloat(4, sanitizeFloat(elevationSpecData.kk_figure !== undefined ? elevationSpecData.kk_figure : rs.getFloat('kk_figure'))); // Sanitized kk_figure
 updateStmt.setFloat(5, sanitizeFloat(elevationSpecData.kwp !== undefined ? elevationSpecData.kwp : rs.getFloat('kwp'))); // Sanitized kwp
-updateStmt.setInt(6, elevationSpecData.strings !== undefined ? elevationSpecData.strings : rs.getInt('strings'));
-updateStmt.setInt(7, elevationSpecData.module_qty !== undefined ? elevationSpecData.module_qty : rs.getInt('module_qty'));
+updateStmt.setInt(6, sanitizeInt(elevationSpecData.strings !== undefined ? elevationSpecData.strings : rs.getInt('strings')));
+updateStmt.setInt(7, sanitizeInt(elevationSpecData.module_qty !== undefined ? elevationSpecData.module_qty : rs.getInt('module_qty')));
 updateStmt.setString(8, elevationSpecData.inverter || rs.getString('inverter'));
 updateStmt.setFloat(9, sanitizeFloat(elevationSpecData.inverter_cost !== undefined ? elevationSpecData.inverter_cost : rs.getFloat('inverter_cost'))); // Sanitized inverter_cost
 updateStmt.setString(10, elevationSpecData.panel || rs.getString('panel'));
