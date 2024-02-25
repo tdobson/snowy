@@ -8,6 +8,7 @@ ImportEvent.init({
     importId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     importDate: {
         type: DataTypes.DATE,

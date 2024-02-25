@@ -7,6 +7,7 @@ McsSubmission.init({
     mcsSubmissionId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     mcsSubmitStatus: {
         type: DataTypes.CHAR(36),

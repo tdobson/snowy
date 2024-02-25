@@ -8,6 +8,7 @@ Product.init({
     productId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     productType: DataTypes.STRING,
     manufacturer: DataTypes.STRING,

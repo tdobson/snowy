@@ -8,6 +8,7 @@ FormSubmission.init({
     submissionId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     dmSubmissionId: {
         type: DataTypes.STRING,

@@ -8,6 +8,7 @@ PlotInstall.init({
     plotInstallId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     dateInstall: DataTypes.DATE,
     dateChecked: DataTypes.DATE,

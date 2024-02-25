@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS sn_clients (
     client_name VARCHAR(255) NOT NULL UNIQUE,   -- Name of the client.
     client_address_id CHAR(36),                   -- Address details.
     client_plot_card_required VARCHAR(255),     -- Type of plot card required by the client (null if not required).
-    contact_id VARCHAR(255),                    -- Name of the primary contact for the client.
+    contact_id CHAR(36),                    -- Name of the primary contact for the client.
     import_id CHAR(36),                         -- Identifier for the import event.
     PRIMARY KEY (client_id)
     -- FOREIGN KEY constraints omitted

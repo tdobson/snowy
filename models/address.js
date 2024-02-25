@@ -9,6 +9,7 @@ Address.init({
     addressId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     addressLine1: DataTypes.STRING,
     addressLine2: DataTypes.STRING,
@@ -34,7 +35,8 @@ Address.init({
 }, {
     sequelize,
     modelName: 'Address',
-    tableName: 'sn_addresses'
+    tableName: 'sn_addresses',
+    underscored: true,
 });
 
 module.exports = Address;

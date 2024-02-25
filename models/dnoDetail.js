@@ -8,6 +8,7 @@ DnoDetail.init({
     dnoDetailsId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     mpanPrefix: {
         type: DataTypes.INTEGER,

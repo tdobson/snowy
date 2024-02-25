@@ -8,6 +8,7 @@ PlotSpec.init({
     plotSpecId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
 
     dateSpecified: DataTypes.DATE,

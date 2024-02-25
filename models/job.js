@@ -8,6 +8,7 @@ Job.init({
     jobId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     plotId: {
         type: DataTypes.CHAR(36),

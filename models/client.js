@@ -8,6 +8,7 @@ Client.init({
     clientId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     clientLegacyNumber: DataTypes.STRING(255),
     clientName: {

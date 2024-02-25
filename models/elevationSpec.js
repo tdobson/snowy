@@ -8,6 +8,7 @@ ElevationSpec.init({
     elevationSpecId: {
         type: DataTypes.CHAR(36),
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
     },
     plotSpecId: {
         type: DataTypes.CHAR(36),
