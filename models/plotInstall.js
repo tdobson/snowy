@@ -78,7 +78,8 @@ PlotInstall.init({
 }, {
     sequelize,
     modelName: 'PlotInstall',
-    tableName: 'sn_plot_install'
+    tableName: 'sn_plot_install',
+    underscored: true,
 });
 
 module.exports = PlotInstall;

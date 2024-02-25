@@ -49,7 +49,8 @@ Site.init({
 }, {
     sequelize,
     modelName: 'Site',
-    tableName: 'sn_sites'
+    tableName: 'sn_sites',
+    underscored: true,
 });
 
 module.exports = Site;

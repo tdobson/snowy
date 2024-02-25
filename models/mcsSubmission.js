@@ -48,7 +48,8 @@ McsSubmission.init({
 }, {
     sequelize,
     modelName: 'McsSubmission',
-    tableName: 'sn_mcs_submission'
+    tableName: 'sn_mcs_submission',
+    underscored: true,
 });
 
 module.exports = McsSubmission;

@@ -65,18 +65,8 @@ ElevationInstall.init({
 }, {
     sequelize,
     modelName: 'ElevationInstall',
-    tableName: 'sn_elevations_install'
+    tableName: 'sn_elevations_install',
+    underscored: true,
 });
-
-// In the Elevation Install model, you can add a method to get the associated record
-ElevationInstall.prototype.getAssociatedRecord = async function () {
-    if (this.plotInstall) {
-        return this.plotInstall;
-    } else if (this.plotSpec) {
-        return this.plotSpec;
-    } else {
-        return null;
-    }
-};
 
 module.exports = ElevationInstall;

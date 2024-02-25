@@ -65,18 +65,8 @@ ElevationSpec.init({
 }, {
     sequelize,
     modelName: 'ElevationSpec',
-    tableName: 'sn_elevations_spec'
+    tableName: 'sn_elevations_spec',
+    underscored: true,
 });
-
-// In the Elevation model, you can add a method to get the associated record
-ElevationSpec.prototype.getAssociatedRecord = async function () {
-    if (this.plotInstall) {
-        return this.plotInstall;
-    } else if (this.plotSpec) {
-        return this.plotSpec;
-    } else {
-        return null;
-    }
-};
 
 module.exports = ElevationSpec;

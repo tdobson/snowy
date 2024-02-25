@@ -65,7 +65,8 @@ PlotSpec.init({
 }, {
     sequelize,
     modelName: 'PlotSpec',
-    tableName: 'sn_plot_spec'
+    tableName: 'sn_plot_spec',
+    underscored: true,
 });
 
 module.exports = PlotSpec;

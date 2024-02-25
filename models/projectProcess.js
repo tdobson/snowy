@@ -50,7 +50,8 @@ ProjectProcess.init({
 }, {
     sequelize,
     modelName: 'ProjectProcess',
-    tableName: 'sn_project_process'
+    tableName: 'sn_project_process',
+    underscored: true,
 });
 
 module.exports = ProjectProcess;

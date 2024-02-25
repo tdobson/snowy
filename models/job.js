@@ -87,7 +87,8 @@ Job.init({
 }, {
     sequelize,
     modelName: 'Job',
-    tableName: 'sn_jobs'
+    tableName: 'sn_jobs',
+    underscored: true,
 });
 
 module.exports = Job;

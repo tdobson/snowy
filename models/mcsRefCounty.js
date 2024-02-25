@@ -30,7 +30,8 @@ McsRefCounty.init({
 }, {
     sequelize,
     modelName: 'McsRefCounty',
-    tableName: 'sn_mcs_ref_counties'
+    tableName: 'sn_mcs_ref_counties',
+    underscored: true,
 });
 
 module.exports = McsRefCounty;

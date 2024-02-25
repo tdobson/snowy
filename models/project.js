@@ -68,7 +68,8 @@ Project.init({
 }, {
     sequelize,
     modelName: 'Project',
-    tableName: 'sn_projects'
+    tableName: 'sn_projects',
+    underscored: true,
 });
 
 module.exports = Project;

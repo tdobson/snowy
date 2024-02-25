@@ -35,7 +35,8 @@ Status.init({
 }, {
     sequelize,
     modelName: 'Status',
-    tableName: 'sn_status'
+    tableName: 'sn_status',
+    underscored: true,
 });
 
 module.exports = Status;

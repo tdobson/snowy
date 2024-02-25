@@ -27,7 +27,8 @@ Team.init({
 }, {
     sequelize,
     modelName: 'Team',
-    tableName: 'sn_teams'
+    tableName: 'sn_teams',
+    underscored: true,
 });
 
 module.exports = Team;

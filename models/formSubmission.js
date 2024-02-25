@@ -40,7 +40,8 @@ FormSubmission.init({
 }, {
     sequelize,
     modelName: 'FormSubmission',
-    tableName: 'sn_form_submissions'
+    tableName: 'sn_form_submissions',
+    underscored: true,
 });
 
 module.exports = FormSubmission;

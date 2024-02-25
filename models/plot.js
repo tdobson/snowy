@@ -73,7 +73,8 @@ Plot.init({
 }, {
     sequelize,
     modelName: 'Plot',
-    tableName: 'sn_plots'
+    tableName: 'sn_plots',
+    underscored: true,
 });
 
 module.exports = Plot;

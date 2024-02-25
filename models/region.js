@@ -27,7 +27,8 @@ Region.init({
 }, {
     sequelize,
     modelName: 'Region',
-    tableName: 'sn_region'
+    tableName: 'sn_region',
+    underscored: true,
 });
 
 module.exports = Region;

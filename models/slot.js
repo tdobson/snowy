@@ -40,7 +40,8 @@ Slot.init({
 }, {
     sequelize,
     modelName: 'Slot',
-    tableName: 'sn_slots'
+    tableName: 'sn_slots',
+    underscored: true,
 });
 
 module.exports = Slot;

@@ -36,7 +36,8 @@ DnoDetail.init({
 }, {
     sequelize,
     modelName: 'DnoDetail',
-    tableName: 'sn_dno_details'
+    tableName: 'sn_dno_details',
+    underscored: true,
 });
 
 module.exports = DnoDetail;

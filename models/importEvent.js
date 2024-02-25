@@ -40,7 +40,8 @@ ImportEvent.init({
 }, {
     sequelize,
     modelName: 'ImportEvent',
-    tableName: 'sn_import_events'
+    tableName: 'sn_import_events',
+    underscored: true,
 });
 
 module.exports = ImportEvent;
