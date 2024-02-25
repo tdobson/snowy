@@ -97,7 +97,7 @@ var insertStmt = conn.prepareStatement('INSERT INTO sn_elevations_install (eleva
 var newUuid = Utilities.getUuid();
 insertStmt.setString(1, newUuid);
 insertStmt.setString(2, elevationData.plot_install_id);
-insertStmt.setString(importElevationInstallDatalevationData.plot_id);
+insertStmt.setString(3, elevationData.plot_id);
 insertStmt.setString(4, elevationData.type_test_ref);
 insertStmt.setFloat(5, sanitizeFloat(elevationData.pitch)); // Sanitized pitch
 insertStmt.setString(6, elevationData.orientation);

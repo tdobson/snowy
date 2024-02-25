@@ -103,8 +103,8 @@ insertStmt.setFloat(5, sanitizeFloat(elevationSpecData.pitch)); // Sanitize pitc
 insertStmt.setString(6, elevationSpecData.orientation);
 insertStmt.setFloat(7, sanitizeFloat(elevationSpecData.kk_figure)); // Sanitize kk_figure
 insertStmt.setFloat(8, sanitizeFloat(elevationSpecData.kwp)); // Sanitize kwp
-insertStmt.setInt(9, elevationSpecData.strings);
-insertStmt.setInt(10, elevationSpecData.module_qty);
+insertStmt.setInt(9, sanitizeInt(elevationSpecData.strings));
+insertStmt.setInt(10, sanitizeInt(elevationSpecData.module_qty));
 insertStmt.setString(11, elevationSpecData.inverter);
 insertStmt.setFloat(12, sanitizeFloat(elevationSpecData.inverter_cost)); // Sanitize inverter_cost
 insertStmt.setString(13, elevationSpecData.panel);
