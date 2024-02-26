@@ -10,6 +10,10 @@ Site.init({
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4
     },
+    siteName: {
+        type: DataTypes.STRING(255),
+        // allowNull: true is default
+    },
     projectId: {
         type: DataTypes.CHAR(36),
         references: {

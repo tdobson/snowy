@@ -24,13 +24,6 @@ Plot.init({
             key: 'plot_install_id',
         }
     },
-    plotSpecId: {
-        type: DataTypes.CHAR(36),
-        references: {
-            model: 'sn_plot_spec',
-            key: 'plot_spec_id',
-        }
-    },
     plotNumber: {
         type: DataTypes.STRING,
         allowNull: false

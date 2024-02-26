@@ -10,6 +10,14 @@ PlotInstall.init({
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4
     },
+    plotId: {
+        type: DataTypes.CHAR(36),
+        allowNull: false,
+        references: {
+            model: 'sn_plots', // Ensure this matches your MCS submission table name
+            key: 'plot_id',
+        }
+    },
     dateInstall: DataTypes.DATE,
     dateChecked: DataTypes.DATE,
     installBy: {

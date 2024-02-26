@@ -16,7 +16,7 @@ Status.init({
     },
     statusName: {
         type: DataTypes.STRING(255),
-        allowNull: true
+        allowNull: false
     },
     statusGroup: {
         type: DataTypes.STRING(255),

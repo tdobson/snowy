@@ -95,7 +95,6 @@ CREATE TABLE IF NOT EXISTS sn_project_process (
 CREATE TABLE IF NOT EXISTS sn_plots (
     plot_id CHAR(36) NOT NULL,                  -- Unique identifier for each plot.
     project_id CHAR(36) NOT NULL,               -- Identifies the project the plot belongs to. // from importProjectDetails
-    plot_spec_id CHAR(36) NOT NULL,               -- Identifies the plot spec // from importPlotSpecData
     plot_install_id CHAR(36) NOT NULL,               -- Identifies the plot install from importPlotInstallData
     plot_number VARCHAR(255) NOT NULL,          -- Alphanumeric identifier for the plot.
     plot_status CHAR(36),                       -- Indicates the current status of the plot. // from importStatus
