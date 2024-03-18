@@ -1,4 +1,3 @@
-
 /**
  * Imports product data into the database and either updates an existing product or inserts a new one based on the product name, which must be unique.
  *
@@ -25,6 +24,15 @@
  *   - costToday: Float - Optional. The current cost of the product.
  *   - mcsProductReference: String - Optional. MCS certification reference number.
  *   - mcsProductId: String - Optional. MCS certification code.
+ *   - customFields - Custom fields data for the product. The object should have the following structure:
+ *     - {string} entityType - The type of entity the custom fields belong to. For product custom fields, this should be 'product'.
+ *     - {string} entityId - The UUID of the specific product instance the custom fields are associated with.
+ *     - {string} instanceId - Optional: The UUID of the instance or customer associated with the custom fields.
+ *     - {Object} fields - An object containing key-value pairs of custom field names and their corresponding details.
+ *       - {string} fieldName - The name or key of the custom field.
+ *         - {*} value - The actual value of the custom field. The type depends on the field's data type.
+ *         - {string} uiName - Optional: The user-editable name of the custom field.
+ *         - {string} description - Optional: The user-editable description of the custom field.
  * @param {String} importId - A unique identifier for the import session.
  * @param {JdbcConnection} conn - An active JDBC connection to the database.
  *
@@ -34,70 +42,90 @@
  * - The function logs actions and errors to the console for tracking purposes.
  * - It's important to ensure proper error handling around database operations.
  */
-function importProductData(conn,importId, productData) {
-  if (!productData.productName) {
-    console.log("Product name is required.");
-    return;
-  }
+function importProductData(conn, importId, productData) {
+    if (!productData.productName) {
+        console.log("Product name is required.");
+        return;
+    }
 
-  var checkProductStmt = conn.prepareStatement('SELECT * FROM sn_products WHERE product_name = ?');
-  checkProductStmt.setString(1, productData.productName);
-  var rs = checkProductStmt.executeQuery();
+    var checkProductStmt = conn.prepareStatement('SELECT * FROM sn_products WHERE product_name = ?');
+    checkProductStmt.setString(1, productData.productName);
+    var rs = checkProductStmt.executeQuery();
 
-  if (rs.next()) {
-    var existingUuid = rs.getString('product_id');
-    console.log("Product already exists with UUID: " + existingUuid);
+    if (rs.next()) {
+        var existingUuid = rs.getString('product_id');
+        console.log("Product already exists with UUID: " + existingUuid);
 
-    // Optionally update existing record if any field is blank
-    var updateStmt = conn.prepareStatement('UPDATE sn_products SET product_type = ?, manufacturer = ?, product_model = ?, kwp = ?, voc = ?, isc = ?, type = ?, capacity = ?, no_phases = ?, model_ref = ?, cost_today = ?, mcs_product_reference = ?, mcs_product_id = ?, import_id = ? WHERE product_id = ?');
+        // Optionally update existing record if any field is blank
+        var updateStmt = conn.prepareStatement('UPDATE sn_products SET product_type = ?, manufacturer = ?, product_model = ?, kwp = ?, voc = ?, isc = ?, type = ?, capacity = ?, no_phases = ?, model_ref = ?, cost_today = ?, mcs_product_reference = ?, mcs_product_id = ?, import_id = ? WHERE product_id = ?');
 
-    updateStmt.setString(1, productData.productType || rs.getString('product_type'));
-    updateStmt.setString(2, productData.manufacturer || rs.getString('manufacturer'));
-    updateStmt.setString(3, productData.productModel || rs.getString('product_model'));
-    updateStmt.setFloat(4, sanitizeFloat(productData.kwp !== undefined ? productData.kwp : rs.getFloat('kwp')));
-    updateStmt.setFloat(5, sanitizeFloat(productData.voc !== undefined ? productData.voc : rs.getFloat('voc')));
-    updateStmt.setFloat(6, sanitizeFloat(productData.isc !== undefined ? productData.isc : rs.getFloat('isc')));
-    updateStmt.setString(7, productData.type || rs.getString('type'));
-    updateStmt.setFloat(8, sanitizeFloat(productData.capacity !== undefined ? productData.capacity : rs.getFloat('capacity')));
-    updateStmt.setInt(9, convertPhaseToInt(productData.noPhases !== undefined ? productData.noPhases : rs.getInt('no_phases'))); // Assuming noPhases is always provided as an integer
-    updateStmt.setString(10, productData.modelRef || rs.getString('model_ref'));
-    updateStmt.setFloat(11, sanitizeFloat(productData.costToday !== undefined ? productData.costToday : rs.getFloat('cost_today')));
-    updateStmt.setString(12, productData.mcsProductReference || rs.getString('mcs_product_reference'));
-    updateStmt.setString(13, productData.mcsProductId || rs.getString('mcs_product_id'));
-    updateStmt.setString(14, importId);
-    updateStmt.setString(15, existingUuid);
+        updateStmt.setString(1, productData.productType || rs.getString('product_type'));
+        updateStmt.setString(2, productData.manufacturer || rs.getString('manufacturer'));
+        updateStmt.setString(3, productData.productModel || rs.getString('product_model'));
+        updateStmt.setFloat(4, sanitizeFloat(productData.kwp !== undefined ? productData.kwp : rs.getFloat('kwp')));
+        updateStmt.setFloat(5, sanitizeFloat(productData.voc !== undefined ? productData.voc : rs.getFloat('voc')));
+        updateStmt.setFloat(6, sanitizeFloat(productData.isc !== undefined ? productData.isc : rs.getFloat('isc')));
+        updateStmt.setString(7, productData.type || rs.getString('type'));
+        updateStmt.setFloat(8, sanitizeFloat(productData.capacity !== undefined ? productData.capacity : rs.getFloat('capacity')));
+        updateStmt.setInt(9, convertPhaseToInt(productData.noPhases !== undefined ? productData.noPhases : rs.getInt('no_phases'))); // Assuming noPhases is always provided as an integer
+        updateStmt.setString(10, productData.modelRef || rs.getString('model_ref'));
+        updateStmt.setFloat(11, sanitizeFloat(productData.costToday !== undefined ? productData.costToday : rs.getFloat('cost_today')));
+        updateStmt.setString(12, productData.mcsProductReference || rs.getString('mcs_product_reference'));
+        updateStmt.setString(13, productData.mcsProductId || rs.getString('mcs_product_id'));
+        updateStmt.setString(14, importId);
+        updateStmt.setString(15, existingUuid);
 
-    updateStmt.execute();
-    console.log("Product data updated for UUID: " + existingUuid);
+        updateStmt.execute();
+        console.log("Product data updated for UUID: " + existingUuid);
 
-    return existingUuid; // Returning the existing UUID
-  } else {
-    var insertStmt = conn.prepareStatement('INSERT INTO sn_products (product_id, product_type, manufacturer, product_model, product_name, kwp, voc, isc, type, capacity, no_phases, model_ref, cost_today, mcs_product_reference, mcs_product_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        // Import custom fields for the existing product
+        if (productData.customFields) {
+            productData.customFields.entityType = 'product';
+            productData.customFields.entityId = existingUuid;
+            var customFieldsImported = importCustomFields(conn, importId, productData.customFields);
+            if (!customFieldsImported) {
+                console.error('Failed to import custom fields for product: ' + existingUuid);
+            }
+        }
 
-    var newUuid = Utilities.getUuid();
-    insertStmt.setString(1, newUuid);
-    insertStmt.setString(2, productData.productType);
-    insertStmt.setString(3, productData.manufacturer);
-    insertStmt.setString(4, productData.productModel);
-    insertStmt.setString(5, productData.productName);
-    insertStmt.setFloat(6, sanitizeFloat(productData.kwp));
-    insertStmt.setFloat(7, sanitizeFloat(productData.voc));
-    insertStmt.setFloat(8, sanitizeFloat(productData.isc));
-    insertStmt.setString(9, productData.type);
-    insertStmt.setFloat(10, sanitizeFloat(productData.capacity));
-    insertStmt.setInt(11, convertPhaseToInt(productData.noPhases)); // Assuming noPhases is always provided as an integer
-    insertStmt.setString(12, productData.modelRef);
-    insertStmt.setFloat(13, sanitizeFloat(productData.costToday));
-    insertStmt.setString(14, productData.mcsProductReference);
-    insertStmt.setString(15, productData.mcsProductId);
-    insertStmt.setString(16, importId);
+        return existingUuid; // Returning the existing UUID
+    } else {
+        var insertStmt = conn.prepareStatement('INSERT INTO sn_products (product_id, product_type, manufacturer, product_model, product_name, kwp, voc, isc, type, capacity, no_phases, model_ref, cost_today, mcs_product_reference, mcs_product_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-    insertStmt.execute();
-    console.log("New product inserted with UUID: " + newUuid);
+        var newUuid = Utilities.getUuid();
+        insertStmt.setString(1, newUuid);
+        insertStmt.setString(2, productData.productType);
+        insertStmt.setString(3, productData.manufacturer);
+        insertStmt.setString(4, productData.productModel);
+        insertStmt.setString(5, productData.productName);
+        insertStmt.setFloat(6, sanitizeFloat(productData.kwp));
+        insertStmt.setFloat(7, sanitizeFloat(productData.voc));
+        insertStmt.setFloat(8, sanitizeFloat(productData.isc));
+        insertStmt.setString(9, productData.type);
+        insertStmt.setFloat(10, sanitizeFloat(productData.capacity));
+        insertStmt.setInt(11, convertPhaseToInt(productData.noPhases)); // Assuming noPhases is always provided as an integer
+        insertStmt.setString(12, productData.modelRef);
+        insertStmt.setFloat(13, sanitizeFloat(productData.costToday));
+        insertStmt.setString(14, productData.mcsProductReference);
+        insertStmt.setString(15, productData.mcsProductId);
+        insertStmt.setString(16, importId);
 
-    return newUuid; // Returning the new UUID
-  }
+        insertStmt.execute();
+        console.log("New product inserted with UUID: " + newUuid);
 
-  rs.close();
-  checkProductStmt.close();
+        // Import custom fields for the new product
+        if (productData.customFields) {
+            productData.customFields.entityType = 'product';
+            productData.customFields.entityId = newUuid;
+            var customFieldsImported = importCustomFields(conn, importId, productData.customFields);
+            if (!customFieldsImported) {
+                console.error('Failed to import custom fields for product: ' + newUuid);
+            }
+        }
+
+        return newUuid; // Returning the new UUID
+    }
+
+    rs.close();
+    checkProductStmt.close();
 }

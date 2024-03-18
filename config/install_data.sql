@@ -1,3 +1,5 @@
+
+
 -- First, insert an entry into sn_import_events
 SET @import_event_id = UUID(); -- Generate a unique ID for the import event
 INSERT INTO sn_import_events (import_id, import_date, user_id, import_ref, import_source, import_notes)

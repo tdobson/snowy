@@ -26,6 +26,15 @@
  *     - `jobCode` (String): A code associated with the job or project.
  *     - `comments` (String): Any additional comments or notes about the project.
  *     - `dnoZone` (String): The specific zone of the DNO relevant to the project.
+ *   - `customFields` - Custom fields data for the project. The object should have the following structure:
+ *     - {string} entityType - The type of entity the custom fields belong to. For project custom fields, this should be 'project'.
+ *     - {string} entityId - The UUID of the specific project instance the custom fields are associated with.
+ *     - {string} instanceId - Optional: The UUID of the instance or customer associated with the custom fields.
+ *     - {Object} fields - An object containing key-value pairs of custom field names and their corresponding details.
+ *       - {string} fieldName - The name or key of the custom field.
+ *         - {*} value - The actual value of the custom field. The type depends on the field's data type.
+ *         - {string} uiName - Optional: The user-editable name of the custom field.
+ *         - {string} description - Optional: The user-editable description of the custom field.
  *
  * @param {String} importId - The unique identifier for the import event. This ID is used to log the import event in the `sn_import_events` table.
  *
@@ -46,7 +55,8 @@
  *     jobCode: "JOB123",
  *     comments: "Urgent installation required",
  *     dnoZone: "Zone 3"
- *   }
+ *   },
+ *   customFields: { /* custom fields data *\/ }
  * };
  *
  * // Example usage:
@@ -57,7 +67,6 @@
  * - The function performs necessary checks to avoid duplicate entries based on the `pvNumber` and ensures data consistency across related tables.
  */
 function importProject(conn, importId, projectData) {
-
     var checkProjectStmt = conn.prepareStatement('SELECT * FROM sn_projects WHERE pv_number = ?');
     checkProjectStmt.setString(1, projectData.pvNumber);
     var rs = checkProjectStmt.executeQuery();
@@ -83,28 +92,49 @@ function importProject(conn, importId, projectData) {
 
         updateStmt.execute();
         projectIdReturned = existingProjectId;
+
+        // Import custom fields for the existing project
+        if (projectData.customFields) {
+            projectData.customFields.entityType = 'project';
+            projectData.customFields.entityId = existingProjectId;
+            var customFieldsImported = importCustomFields(conn, importId, projectData.customFields);
+            if (!customFieldsImported) {
+                console.error('Failed to import custom fields for project: ' + existingProjectId);
+            }
+        }
     } else {
         var insertStmt = conn.prepareStatement('INSERT INTO sn_projects (project_id, client_id, pv_number, dno_details_id, region_id, site_id, ref_number, project_name, job_code, comments, import_id, project_process_id, dno_zone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
         projectIdReturned = Utilities.getUuid();
 
-        insertStmt.setString(1, newProjectId);
+        insertStmt.setString(1, projectIdReturned);
         insertStmt.setString(2, projectData.clientId);
         insertStmt.setString(3, projectData.pvNumber);
-          insertStmt.setString(4, projectData.dnoDetailsId);
-          insertStmt.setString(5, projectData.regionId);
-          insertStmt.setString(6, projectData.siteId);
-          insertStmt.setString(7, projectData.additionalDetails.refNumber);
-          insertStmt.setString(8, projectData.additionalDetails.projectName);
-          insertStmt.setString(9, projectData.additionalDetails.jobCode);
-          insertStmt.setString(10, projectData.additionalDetails.comments);
-          insertStmt.setString(11, importId);
-          insertStmt.setString(12, projectData.projectProcessId);
-          insertStmt.setString(13, projectData.additionalDetails.dnoZone);
-              insertStmt.execute();
-          }
+        insertStmt.setString(4, projectData.dnoDetailsId);
+        insertStmt.setString(5, projectData.regionId);
+        insertStmt.setString(6, projectData.siteId);
+        insertStmt.setString(7, projectData.additionalDetails.refNumber);
+        insertStmt.setString(8, projectData.additionalDetails.projectName);
+        insertStmt.setString(9, projectData.additionalDetails.jobCode);
+        insertStmt.setString(10, projectData.additionalDetails.comments);
+        insertStmt.setString(11, importId);
+        insertStmt.setString(12, projectData.projectProcessId);
+        insertStmt.setString(13, projectData.additionalDetails.dnoZone);
 
-          rs.close();
-          checkProjectStmt.close();
-          return projectIdReturned;
+        insertStmt.execute();
+
+        // Import custom fields for the new project
+        if (projectData.customFields) {
+            projectData.customFields.entityType = 'project';
+            projectData.customFields.entityId = projectIdReturned;
+            var customFieldsImported = importCustomFields(conn, importId, projectData.customFields);
+            if (!customFieldsImported) {
+                console.error('Failed to import custom fields for project: ' + projectIdReturned);
+            }
+        }
+    }
+
+    rs.close();
+    checkProjectStmt.close();
+    return projectIdReturned;
 }

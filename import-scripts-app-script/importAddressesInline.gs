@@ -1,4 +1,3 @@
-
 /**
  * Imports address data into a MySQL database and either updates an existing address or inserts a new one.
  * Additionally, it can fetch and set the region ID for an address based on a provided PV number.
@@ -24,6 +23,15 @@
  *   - address_country: String - Optional. The country of the address.
  *   - address_region_id: String - Optional. Region identifier (updated based on PV number if provided).
  *   - address_region_number: String - Optional. Looks up region_id based on this if it exists.
+ *   - customFields - Custom fields data for the address. The object should have the following structure:
+ *     - {string} entityType - The type of entity the custom fields belong to. For address custom fields, this should be 'address'.
+ *     - {string} entityId - The UUID of the specific address instance the custom fields are associated with.
+ *     - {string} instanceId - Optional: The UUID of the instance or customer associated with the custom fields.
+ *     - {Object} fields - An object containing key-value pairs of custom field names and their corresponding details.
+ *       - {string} fieldName - The name or key of the custom field.
+ *         - {*} value - The actual value of the custom field. The type depends on the field's data type.
+ *         - {string} uiName - Optional: The user-editable name of the custom field.
+ *         - {string} description - Optional: The user-editable description of the custom field.
  * @param {String} importId - A unique identifier for the import session.
  * @param {JdbcConnection} conn - An active JDBC connection to the database.
  * @param {Sheet} sheet - The Google Sheets Sheet object (used if PV number is provided).
@@ -36,83 +44,103 @@
  * - It's important to ensure proper error handling around database operations.
  */
 function importAddress(conn, importId, addressData, sheet, pvNumber) {
-      //console.log(JSON.stringify(addressData));
+    //console.log(JSON.stringify(addressData));
 
-  if (!addressData.address_line_1 || !addressData.address_postcode) {
-    console.log("Address line 1 and postcode are required.");
-    return;
-  }
-
-  // Declare regionId once at the top
-  var regionId;
-
-  // Check if address_region_number is provided and use it to get regionId
-  if (addressData.address_region_number) {
-    try {
-      regionId = getRegionIdFromRegionNumber(conn, addressData.address_region_number);
-      if (regionId) {
-        addressData.address_region_id = regionId;
-      }
-    } catch (error) {
-      console.log("Couldn't get region ID from address_region_number: " + error.message);
+    if (!addressData.address_line_1 || !addressData.address_postcode) {
+        console.log("Address line 1 and postcode are required.");
+        return;
     }
-  } else if (pvNumber) {
-    // If pvNumber is provided, use it to get regionNumber and then regionId
-    try {
-      var regionNumber = getRegionByPVNumber(sheet, pvNumber);
-      regionId = getRegionIdFromRegionNumber(conn, regionNumber);
-      if (regionId) {
-        addressData.address_region_id = regionId;
-      }
-    } catch (error) {
-      console.log("Couldn't get region ID from PV number: " + error.message);
+
+    // Declare regionId once at the top
+    var regionId;
+
+    // Check if address_region_number is provided and use it to get regionId
+    if (addressData.address_region_number) {
+        try {
+            regionId = getRegionIdFromRegionNumber(conn, addressData.address_region_number);
+            if (regionId) {
+                addressData.address_region_id = regionId;
+            }
+        } catch (error) {
+            console.log("Couldn't get region ID from address_region_number: " + error.message);
+        }
+    } else if (pvNumber) {
+        // If pvNumber is provided, use it to get regionNumber and then regionId
+        try {
+            var regionNumber = getRegionByPVNumber(sheet, pvNumber);
+            regionId = getRegionIdFromRegionNumber(conn, regionNumber);
+            if (regionId) {
+                addressData.address_region_id = regionId;
+            }
+        } catch (error) {
+            console.log("Couldn't get region ID from PV number: " + error.message);
+        }
     }
-  }
 
-  var checkAddressStmt = conn.prepareStatement('SELECT * FROM sn_addresses WHERE address_line_1 = ? AND address_postcode = ?');
-  checkAddressStmt.setString(1, addressData.address_line_1);
-  checkAddressStmt.setString(2, addressData.address_postcode);
-  var rs = checkAddressStmt.executeQuery();
+    var checkAddressStmt = conn.prepareStatement('SELECT * FROM sn_addresses WHERE address_line_1 = ? AND address_postcode = ?');
+    checkAddressStmt.setString(1, addressData.address_line_1);
+    checkAddressStmt.setString(2, addressData.address_postcode);
+    var rs = checkAddressStmt.executeQuery();
 
-  if (rs.next()) {
-    var existingUuid = rs.getString('address_id');
-    console.log("Address already exists with UUID: " + existingUuid);
+    if (rs.next()) {
+        var existingUuid = rs.getString('address_id');
+        console.log("Address already exists with UUID: " + existingUuid);
 
-    // Optionally update existing record if any field is blank
-    var updateStmt = conn.prepareStatement('UPDATE sn_addresses SET address_line_2 = ?, address_town = ?, address_county = ?, address_country = ?, address_region_id = ?, import_id = ? WHERE address_id = ?');
+        // Optionally update existing record if any field is blank
+        var updateStmt = conn.prepareStatement('UPDATE sn_addresses SET address_line_2 = ?, address_town = ?, address_county = ?, address_country = ?, address_region_id = ?, import_id = ? WHERE address_id = ?');
 
-    updateStmt.setString(1, addressData.address_line_2 || rs.getString('address_line_2'));
-    updateStmt.setString(2, addressData.address_town || rs.getString('address_town'));
-    updateStmt.setString(3, addressData.address_county || rs.getString('address_county'));
-    updateStmt.setString(4, addressData.address_country || rs.getString('address_country'));
-    updateStmt.setString(5, addressData.address_region_id);
-    updateStmt.setString(6, importId);
-    updateStmt.setString(7, existingUuid);
+        updateStmt.setString(1, addressData.address_line_2 || rs.getString('address_line_2'));
+        updateStmt.setString(2, addressData.address_town || rs.getString('address_town'));
+        updateStmt.setString(3, addressData.address_county || rs.getString('address_county'));
+        updateStmt.setString(4, addressData.address_country || rs.getString('address_country'));
+        updateStmt.setString(5, addressData.address_region_id);
+        updateStmt.setString(6, importId);
+        updateStmt.setString(7, existingUuid);
 
-    updateStmt.execute();
-    console.log("Address data updated for UUID: " + existingUuid);
+        updateStmt.execute();
+        console.log("Address data updated for UUID: " + existingUuid);
 
-    return existingUuid; // Returning the existing UUID
-  } else {
-    var insertStmt = conn.prepareStatement('INSERT INTO sn_addresses (address_id, address_line_1, address_line_2, address_town, address_county, address_postcode, address_country, address_region_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        // Import custom fields for the existing address
+        if (addressData.customFields) {
+            addressData.customFields.entityType = 'address';
+            addressData.customFields.entityId = existingUuid;
+            var customFieldsImported = importCustomFields(conn, importId, addressData.customFields);
+            if (!customFieldsImported) {
+                console.error('Failed to import custom fields for address: ' + existingUuid);
+            }
+        }
 
-    var newUuid = Utilities.getUuid();
-    insertStmt.setString(1, newUuid);
-    insertStmt.setString(2, addressData.address_line_1);
-    insertStmt.setString(3, addressData.address_line_2);
-    insertStmt.setString(4, addressData.address_town);
-    insertStmt.setString(5, addressData.address_county);
-    insertStmt.setString(6, addressData.address_postcode);
-    insertStmt.setString(7, addressData.address_country);
-    insertStmt.setString(8, addressData.address_region_id);
-    insertStmt.setString(9, importId);
+        return existingUuid; // Returning the existing UUID
+    } else {
+        var insertStmt = conn.prepareStatement('INSERT INTO sn_addresses (address_id, address_line_1, address_line_2, address_town, address_county, address_postcode, address_country, address_region_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-    insertStmt.execute();
-    console.log("New address inserted with UUID: " + newUuid);
+        var newUuid = Utilities.getUuid();
+        insertStmt.setString(1, newUuid);
+        insertStmt.setString(2, addressData.address_line_1);
+        insertStmt.setString(3, addressData.address_line_2);
+        insertStmt.setString(4, addressData.address_town);
+        insertStmt.setString(5, addressData.address_county);
+        insertStmt.setString(6, addressData.address_postcode);
+        insertStmt.setString(7, addressData.address_country);
+        insertStmt.setString(8, addressData.address_region_id);
+        insertStmt.setString(9, importId);
 
-    return newUuid; // Returning the new UUID
-  }
+        insertStmt.execute();
+        console.log("New address inserted with UUID: " + newUuid);
 
-  rs.close();
-  checkAddressStmt.close();
+        // Import custom fields for the new address
+        if (addressData.customFields) {
+            addressData.customFields.entityType = 'address';
+            addressData.customFields.entityId = newUuid;
+            var customFieldsImported = importCustomFields(conn, importId, addressData.customFields);
+            if (!customFieldsImported) {
+                console.error('Failed to import custom fields for address: ' + newUuid);
+            }
+        }
+
+        return newUuid; // Returning the new UUID
+    }
+
+    rs.close();
+    checkAddressStmt.close();
 }

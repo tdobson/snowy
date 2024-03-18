@@ -20,11 +20,20 @@
  *   - {string} client_plot_card_required - Indicates if a plot card is required for the client.
  *   - {Object} userData - User data object for creating or linking a contact ID.
  *   - {Object} addressData - Address details for the client.
+ *   - {Object} customFields - Custom fields data for the client. The object should have the following structure:
+ *     - {string} entityType - The type of entity the custom fields belong to. For client custom fields, this should be 'client'.
+ *     - {string} entityId - The UUID of the specific client instance the custom fields are associated with.
+ *     - {string} instanceId - Optional: The UUID of the instance or customer associated with the custom fields.
+ *     - {Object} fields - An object containing key-value pairs of custom field names and their corresponding details.
+ *       - {string} fieldName - The name or key of the custom field.
+ *         - {*} value - The actual value of the custom field. The type depends on the field's data type.
+ *         - {string} uiName - Optional: The user-editable name of the custom field.
+ *         - {string} description - Optional: The user-editable description of the custom field.
  * @returns {string|null} UUID of the existing or new client record, or null in case of an error.
  */
 function importClient(conn, importId, clientData) {
-    if (!clientData || !clientData.name ) {
-        console.log("Client name and email are required.");
+    if (!clientData || !clientData.name) {
+        console.log("Client name is required.");
         return null;
     }
 
@@ -49,6 +58,16 @@ function importClient(conn, importId, clientData) {
             updateStmt.setString(6, clientData.name);
             updateStmt.execute();
 
+            // Import custom fields for the existing client
+            if (clientData.customFields) {
+                clientData.customFields.entityType = 'client';
+                clientData.customFields.entityId = existingUuid;
+                var customFieldsImported = importCustomFields(conn, importId, clientData.customFields);
+                if (!customFieldsImported) {
+                    console.error('Failed to import custom fields for client: ' + existingUuid);
+                }
+            }
+
             return existingUuid;
         } else {
             var insertStmt = conn.prepareStatement('INSERT INTO sn_clients (client_id, client_legacy_number, client_name, client_address_id, client_plot_card_required, contact_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?)');
@@ -62,6 +81,16 @@ function importClient(conn, importId, clientData) {
             insertStmt.setString(6, clientContactId);
             insertStmt.setString(7, importId);
             insertStmt.execute();
+
+            // Import custom fields for the new client
+            if (clientData.customFields) {
+                clientData.customFields.entityType = 'client';
+                clientData.customFields.entityId = newUuid;
+                var customFieldsImported = importCustomFields(conn, importId, clientData.customFields);
+                if (!customFieldsImported) {
+                    console.error('Failed to import custom fields for client: ' + newUuid);
+                }
+            }
 
             console.log("New client inserted with UUID: " + newUuid);
             return newUuid;

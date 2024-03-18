@@ -1095,3 +1095,129 @@ function sanitizeBoolean(value) {
     const trueValues = ['yes', 'true', '1'];
     return trueValues.includes(value.toString().toLowerCase());
 }
+
+/**
+ * Joins data from multiple sheets in a Google Sheets spreadsheet based on a specified row index
+ * from one sheet and corresponding matching data in the other sheets. It also includes data from a
+ * special sheet (e.g., "Site Data") for all records. This function is designed to use a particular
+ * row's data in one sheet as the base for joining data from the other sheets on a common join column.
+ *
+ * @param {Object} config - Configuration object containing all necessary parameters for the query.
+ * @param {string} config.sheetId - The unique identifier for the Google Sheets spreadsheet containing the data.
+ * @param {Object} config.sheets - An object where each key corresponds to a sheet name within the spreadsheet,
+ *   and each value is an object with specific configuration for that sheet.
+ *   @param {Array<string>} [config.sheets[SheetName].returnColumns] - An optional array specifying the names of the
+ *     columns to return from the sheet. If omitted, all columns are included.
+ *   @param {string} [config.sheets[SheetName].joinOn] - Specifies the column name used to join data from this sheet
+ *     with the other sheets. This should be the common join column (e.g., "Plot NO") for all sheets except the special sheet.
+ *   @param {number} [config.sheets[SheetName].searchIndex] - An optional index specifying the row in the sheet
+ *     (starting from 0 for the first data row, excluding the header) to use as the base for joining. This parameter
+ *     should only be present in one sheet's configuration.
+ *
+ * @returns {Object} An object where each key is a sheet name and its value is an object representing the joined data
+ *   from that sheet. The object includes key-value pairs where keys are the column names (with spaces and special
+ *   characters removed) and values are the corresponding cell values. The special sheet's data is included as a
+ *   separate key-value pair in the returned object.
+ *
+ * @example
+ * // Example input configuration
+ * const config = {
+ *   sheetId: "1A2B3C4D5E6F7G8H9I0J",
+ *   sheets: {
+ *     "MAP": {
+ *       returnColumns: ["PLOT NO", "Elevation No", "Building Side", "kWh/kWp"],
+ *       joinOn: "Plot NO",
+ *       searchIndex: 2
+ *     },
+ *     "Total Costings": {
+ *       joinOn: "Plot NO"
+ *     },
+ *     "Site Data": {}
+ *   }
+ * };
+ *
+ * // Example output
+ * {
+ *   "MAP": {
+ *     "PLOTNO": "34",
+ *     "ElevationNo": "1",
+ *     "BuildingSide": "Front",
+ *     "kWhkWp": "1032"
+ *   },
+ *   "Total_Costings": {
+ *     "PLOTNO": "34",
+ *     "PARCEL": "",
+ *     "Housetype": "Moresby",
+ *     "HouseNoname": "21",
+ *     "Street": "Lower Mead",
+ *     "Town": "Okehampton",
+ *     "Postcode": "EX20 1XS",
+ *     "MPAN": "2600002955828",
+ *     ...
+ *   },
+ *   "Site_Data": {
+ *     "Client": "Barratt Homes",
+ *     "Jobcode": "BAR-OKE",
+ *     "Site_name": "Okement",
+ *     "Site_address": "Crediton Road, Okehampton",
+ *     "Site_post_code": "EX201XP",
+ *     "MCS_Zone": "Zone 4",
+ *     "Total_systems": "7",
+ *     "Total_Panels": "28",
+ *     "Site_kWp": "88.8",
+ *     "Site_cotwo": "12248.0512"
+ *   }
+ * }
+ */
+ function querySheetsByIndexWithSpecialSheet(config) {
+   const spreadsheet = SpreadsheetApp.openById(config.sheetId);
+   const sheetData = {};
+
+   // Load and structure data from each sheet based on the config
+   Object.keys(config.sheets).forEach(sheetName => {
+     const formattedSheetName = formatColumnName(sheetName); // Format the sheet name
+     const sheet = spreadsheet.getSheetByName(sheetName);
+     const data = sheet.getDataRange().getValues();
+     const headers = data[0];
+     const selectColumns = config.sheets[sheetName].returnColumns || headers;
+     const selectIndices = selectColumns.map(col => headers.indexOf(col));
+
+     sheetData[formattedSheetName] = data.slice(1).map(row => {
+       const rowData = {};
+       headers.forEach((header, index) => {
+         if (selectIndices.includes(index) || !config.sheets[sheetName].returnColumns) {
+           rowData[formatColumnName(header)] = row[index];
+         }
+       });
+       return rowData;
+     });
+   });
+
+   // Identify the sheet and row index for the base data
+   const baseSheetName = Object.keys(config.sheets).find(sheetName => typeof config.sheets[sheetName].searchIndex !== 'undefined');
+   const formattedBaseSheetName = formatColumnName(baseSheetName); // Format the base sheet name
+   const baseRowIndex = config.sheets[baseSheetName].searchIndex;
+   const baseRowData = sheetData[formattedBaseSheetName][baseRowIndex];
+
+   // Join data based on the common join key and base row data
+   const joinedData = {};
+   const joinKey = baseRowData[formatColumnName(config.sheets[baseSheetName].joinOn)];
+
+   joinedData[formattedBaseSheetName] = baseRowData;
+
+   Object.keys(sheetData).forEach(formattedSheetName => {
+     const originalSheetName = Object.keys(config.sheets).find(name => formatColumnName(name) === formattedSheetName);
+     if (formattedSheetName !== formattedBaseSheetName && config.sheets[originalSheetName].joinOn) {
+       const matchingRow = sheetData[formattedSheetName].find(r => r[formatColumnName(config.sheets[originalSheetName].joinOn)] === joinKey);
+
+       if (matchingRow) {
+         joinedData[formattedSheetName] = matchingRow;
+       }
+     } else if (!config.sheets[originalSheetName].joinOn) {
+       // Include the special sheet data in the joined data
+       joinedData[formattedSheetName] = sheetData[formattedSheetName][0];
+     }
+   });
+
+   return joinedData;
+ }

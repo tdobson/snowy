@@ -29,6 +29,15 @@
  *   - roof_kit: String - Optional. Identifier for the roof mounting kit.
  *   - roof_kit_cost: Float - Optional. Cost of the roof mounting kit.
  *   - annual_yield: Float - Optional. Expected annual energy yield.
+ *   - customFields - Custom fields data for the elevation specification. The object should have the following structure:
+ *     - {string} entityType - The type of entity the custom fields belong to. For elevation specification custom fields, this should be 'elevationSpec'.
+ *     - {string} entityId - The UUID of the specific elevation specification instance the custom fields are associated with.
+ *     - {string} instanceId - Optional: The UUID of the instance or customer associated with the custom fields.
+ *     - {Object} fields - An object containing key-value pairs of custom field names and their corresponding details.
+ *       - {string} fieldName - The name or key of the custom field.
+ *         - {*} value - The actual value of the custom field. The type depends on the field's data type.
+ *         - {string} uiName - Optional: The user-editable name of the custom field.
+ *         - {string} description - Optional: The user-editable description of the custom field.
  * @param {String} importId - A unique identifier for the import session.
  * @param {JdbcConnection} conn - An active JDBC connection to the database.
  *
@@ -39,89 +48,107 @@
  * - It's important to ensure proper error handling around database operations.
  * - This function relies on 'importProductData' to manage the insertion or updating of product-related information in the 'sn_products' table.
  */
- function importElevationSpecData(conn, importId, elevationSpecData) {
-     if (!elevationSpecData.plot_spec_id || !elevationSpecData.plot_id) {
-         console.log("Plot spec ID and plot ID are required.");
-         return;
-     }
+function importElevationSpecData(conn, importId, elevationSpecData) {
+    if (!elevationSpecData.plot_spec_id || !elevationSpecData.plot_id) {
+        console.log("Plot spec ID and plot ID are required.");
+        return;
+    }
 
-     // Insert or update inverter and panel details in product table
-     if (elevationSpecData.inverter) {
-         importProductData(conn, importId,{ productName: elevationSpecData.inverter, productType: 'Inverter', costToday: elevationSpecData.inverter_cost });
-     }
+    // Insert or update inverter and panel details in product table
+    if (elevationSpecData.inverter) {
+        importProductData(conn, importId, { productName: elevationSpecData.inverter, productType: 'Inverter', costToday: elevationSpecData.inverter_cost });
+    }
 
-     if (elevationSpecData.panel) {
-         importProductData(conn, importId,{ productName: elevationSpecData.panel, productType: 'Panel', costToday: elevationSpecData.panel_cost });
-     }
+    if (elevationSpecData.panel) {
+        importProductData(conn, importId, { productName: elevationSpecData.panel, productType: 'Panel', costToday: elevationSpecData.panel_cost });
+    }
 
-     // Check if elevation spec data already exists
-     var checkElevationSpecStmt = conn.prepareStatement('SELECT * FROM sn_elevations_spec WHERE plot_spec_id = ? AND plot_id = ?');
-     checkElevationSpecStmt.setString(1, elevationSpecData.plot_spec_id);
-     checkElevationSpecStmt.setString(2, elevationSpecData.plot_id);
-     var rs = checkElevationSpecStmt.executeQuery();
+    // Check if elevation spec data already exists
+    var checkElevationSpecStmt = conn.prepareStatement('SELECT * FROM sn_elevations_spec WHERE plot_spec_id = ? AND plot_id = ?');
+    checkElevationSpecStmt.setString(1, elevationSpecData.plot_spec_id);
+    checkElevationSpecStmt.setString(2, elevationSpecData.plot_id);
+    var rs = checkElevationSpecStmt.executeQuery();
 
-     if (rs.next()) {
-         var existingUuid = rs.getString('elevation_spec_id');
-         console.log("Elevation spec already exists with UUID: " + existingUuid);
+    if (rs.next()) {
+        var existingUuid = rs.getString('elevation_spec_id');
+        console.log("Elevation spec already exists with UUID: " + existingUuid);
 
-         // Update existing record
-         var updateStmt = conn.prepareStatement('UPDATE sn_elevations_spec SET type_test_ref = ?, pitch = ?, orientation = ?, kk_figure = ?, kwp = ?, strings = ?, module_qty = ?, inverter = ?, inverter_cost = ?, panel = ?, panel_cost = ?, panels_total_cost = ?, roof_kit = ?, roof_kit_cost = ?, annual_yield = ?, import_id = ? WHERE elevation_spec_id = ?');
+        // Update existing record
+        var updateStmt = conn.prepareStatement('UPDATE sn_elevations_spec SET type_test_ref = ?, pitch = ?, orientation = ?, kk_figure = ?, kwp = ?, strings = ?, module_qty = ?, inverter = ?, inverter_cost = ?, panel = ?, panel_cost = ?, panels_total_cost = ?, roof_kit = ?, roof_kit_cost = ?, annual_yield = ?, import_id = ? WHERE elevation_spec_id = ?');
 
-updateStmt.setString(1, elevationSpecData.type_test_ref || rs.getString('type_test_ref'));
-updateStmt.setFloat(2, sanitizeFloat(elevationSpecData.pitch !== undefined ? elevationSpecData.pitch : rs.getFloat('pitch'))); // Sanitized pitch
-updateStmt.setString(3, elevationSpecData.orientation || rs.getString('orientation'));
-updateStmt.setFloat(4, sanitizeFloat(elevationSpecData.kk_figure !== undefined ? elevationSpecData.kk_figure : rs.getFloat('kk_figure'))); // Sanitized kk_figure
-updateStmt.setFloat(5, sanitizeFloat(elevationSpecData.kwp !== undefined ? elevationSpecData.kwp : rs.getFloat('kwp'))); // Sanitized kwp
-updateStmt.setInt(6, sanitizeInt(elevationSpecData.strings !== undefined ? elevationSpecData.strings : rs.getInt('strings')));
-updateStmt.setInt(7, sanitizeInt(elevationSpecData.module_qty !== undefined ? elevationSpecData.module_qty : rs.getInt('module_qty')));
-updateStmt.setString(8, elevationSpecData.inverter || rs.getString('inverter'));
-updateStmt.setFloat(9, sanitizeFloat(elevationSpecData.inverter_cost !== undefined ? elevationSpecData.inverter_cost : rs.getFloat('inverter_cost'))); // Sanitized inverter_cost
-updateStmt.setString(10, elevationSpecData.panel || rs.getString('panel'));
-updateStmt.setFloat(11, sanitizeFloat(elevationSpecData.panel_cost !== undefined ? elevationSpecData.panel_cost : rs.getFloat('panel_cost'))); // Sanitized panel_cost
-updateStmt.setFloat(12, sanitizeFloat(elevationSpecData.panels_total_cost !== undefined ? elevationSpecData.panels_total_cost : rs.getFloat('panels_total_cost'))); // Sanitized panels_total_cost
-updateStmt.setString(13, elevationSpecData.roof_kit || rs.getString('roof_kit'));
-updateStmt.setFloat(14, sanitizeFloat(elevationSpecData.roof_kit_cost !== undefined ? elevationSpecData.roof_kit_cost : rs.getFloat('roof_kit_cost'))); // Sanitized roof_kit_cost
-updateStmt.setFloat(15, sanitizeFloat(elevationSpecData.annual_yield !== undefined ? elevationSpecData.annual_yield : rs.getFloat('annual_yield'))); // Sanitized annual_yield
-updateStmt.setString(16, importId);
-updateStmt.setString(17, existingUuid);
+        updateStmt.setString(1, elevationSpecData.type_test_ref || rs.getString('type_test_ref'));
+        updateStmt.setFloat(2, sanitizeFloat(elevationSpecData.pitch !== undefined ? elevationSpecData.pitch : rs.getFloat('pitch'))); // Sanitized pitch
+        updateStmt.setString(3, elevationSpecData.orientation || rs.getString('orientation'));
+        updateStmt.setFloat(4, sanitizeFloat(elevationSpecData.kk_figure !== undefined ? elevationSpecData.kk_figure : rs.getFloat('kk_figure'))); // Sanitized kk_figure
+        updateStmt.setFloat(5, sanitizeFloat(elevationSpecData.kwp !== undefined ? elevationSpecData.kwp : rs.getFloat('kwp'))); // Sanitized kwp
+        updateStmt.setInt(6, sanitizeInt(elevationSpecData.strings !== undefined ? elevationSpecData.strings : rs.getInt('strings')));
+        updateStmt.setInt(7, sanitizeInt(elevationSpecData.module_qty !== undefined ? elevationSpecData.module_qty : rs.getInt('module_qty')));
+        updateStmt.setString(8, elevationSpecData.inverter || rs.getString('inverter'));
+        updateStmt.setFloat(9, sanitizeFloat(elevationSpecData.inverter_cost !== undefined ? elevationSpecData.inverter_cost : rs.getFloat('inverter_cost'))); // Sanitized inverter_cost
+        updateStmt.setString(10, elevationSpecData.panel || rs.getString('panel'));
+        updateStmt.setFloat(11, sanitizeFloat(elevationSpecData.panel_cost !== undefined ? elevationSpecData.panel_cost : rs.getFloat('panel_cost'))); // Sanitized panel_cost
+        updateStmt.setFloat(12, sanitizeFloat(elevationSpecData.panels_total_cost !== undefined ? elevationSpecData.panels_total_cost : rs.getFloat('panels_total_cost'))); // Sanitized panels_total_cost
+        updateStmt.setString(13, elevationSpecData.roof_kit || rs.getString('roof_kit'));
+        updateStmt.setFloat(14, sanitizeFloat(elevationSpecData.roof_kit_cost !== undefined ? elevationSpecData.roof_kit_cost : rs.getFloat('roof_kit_cost'))); // Sanitized roof_kit_cost
+        updateStmt.setFloat(15, sanitizeFloat(elevationSpecData.annual_yield !== undefined ? elevationSpecData.annual_yield : rs.getFloat('annual_yield'))); // Sanitized annual_yield
+        updateStmt.setString(16, importId);
+        updateStmt.setString(17, existingUuid);
 
+        updateStmt.execute();
+        console.log("Elevation spec data updated for UUID: " + existingUuid);
 
-         updateStmt.execute();
-         console.log("Elevation spec data updated for UUID: " + existingUuid);
+        // Import custom fields for the existing elevation specification
+        if (elevationSpecData.customFields) {
+            elevationSpecData.customFields.entityType = 'elevationSpec';
+            elevationSpecData.customFields.entityId = existingUuid;
+            var customFieldsImported = importCustomFields(conn, importId, elevationSpecData.customFields);
+            if (!customFieldsImported) {
+                console.error('Failed to import custom fields for elevation specification: ' + existingUuid);
+            }
+        }
 
-         return existingUuid; // Returning the existing UUID
-     } else {
-         // Insert new elevation spec record
-         var insertStmt = conn.prepareStatement('INSERT INTO sn_elevations_spec (elevation_spec_id, plot_spec_id, plot_id, type_test_ref, pitch, orientation, kk_figure, kwp, strings, module_qty, inverter, inverter_cost, panel, panel_cost, panels_total_cost, roof_kit, roof_kit_cost, annual_yield, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        return existingUuid; // Returning the existing UUID
+    } else {
+        // Insert new elevation spec record
+        var insertStmt = conn.prepareStatement('INSERT INTO sn_elevations_spec (elevation_spec_id, plot_spec_id, plot_id, type_test_ref, pitch, orientation, kk_figure, kwp, strings, module_qty, inverter, inverter_cost, panel, panel_cost, panels_total_cost, roof_kit, roof_kit_cost, annual_yield, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
-var newUuid = Utilities.getUuid();
-insertStmt.setString(1, newUuid);
-insertStmt.setString(2, elevationSpecData.plot_spec_id);
-insertStmt.setString(3, elevationSpecData.plot_id);
-insertStmt.setString(4, elevationSpecData.type_test_ref);
-insertStmt.setFloat(5, sanitizeFloat(elevationSpecData.pitch)); // Sanitize pitch
-insertStmt.setString(6, elevationSpecData.orientation);
-insertStmt.setFloat(7, sanitizeFloat(elevationSpecData.kk_figure)); // Sanitize kk_figure
-insertStmt.setFloat(8, sanitizeFloat(elevationSpecData.kwp)); // Sanitize kwp
-insertStmt.setInt(9, sanitizeInt(elevationSpecData.strings));
-insertStmt.setInt(10, sanitizeInt(elevationSpecData.module_qty));
-insertStmt.setString(11, elevationSpecData.inverter);
-insertStmt.setFloat(12, sanitizeFloat(elevationSpecData.inverter_cost)); // Sanitize inverter_cost
-insertStmt.setString(13, elevationSpecData.panel);
-insertStmt.setFloat(14, sanitizeFloat(elevationSpecData.panel_cost)); // Sanitize panel_cost
-insertStmt.setFloat(15, sanitizeFloat(elevationSpecData.panels_total_cost)); // Sanitize panels_total_cost
-insertStmt.setString(16, elevationSpecData.roof_kit);
-insertStmt.setFloat(17, sanitizeFloat(elevationSpecData.roof_kit_cost)); // Sanitize roof_kit_cost
-insertStmt.setFloat(18, sanitizeFloat(elevationSpecData.annual_yield)); // Sanitize annual_yield
-insertStmt.setString(19, importId);
+        var newUuid = Utilities.getUuid();
+        insertStmt.setString(1, newUuid);
+        insertStmt.setString(2, elevationSpecData.plot_spec_id);
+        insertStmt.setString(3, elevationSpecData.plot_id);
+        insertStmt.setString(4, elevationSpecData.type_test_ref);
+        insertStmt.setFloat(5, sanitizeFloat(elevationSpecData.pitch)); // Sanitize pitch
+        insertStmt.setString(6, elevationSpecData.orientation);
+        insertStmt.setFloat(7, sanitizeFloat(elevationSpecData.kk_figure)); // Sanitize kk_figure
+        insertStmt.setFloat(8, sanitizeFloat(elevationSpecData.kwp)); // Sanitize kwp
+        insertStmt.setInt(9, sanitizeInt(elevationSpecData.strings));
+        insertStmt.setInt(10, sanitizeInt(elevationSpecData.module_qty));
+        insertStmt.setString(11, elevationSpecData.inverter);
+        insertStmt.setFloat(12, sanitizeFloat(elevationSpecData.inverter_cost)); // Sanitize inverter_cost
+        insertStmt.setString(13, elevationSpecData.panel);
+        insertStmt.setFloat(14, sanitizeFloat(elevationSpecData.panel_cost)); // Sanitize panel_cost
+        insertStmt.setFloat(15, sanitizeFloat(elevationSpecData.panels_total_cost)); // Sanitize panels_total_cost
+        insertStmt.setString(16, elevationSpecData.roof_kit);
+        insertStmt.setFloat(17, sanitizeFloat(elevationSpecData.roof_kit_cost)); // Sanitize roof_kit_cost
+        insertStmt.setFloat(18, sanitizeFloat(elevationSpecData.annual_yield)); // Sanitize annual_yield
+        insertStmt.setString(19, importId);
 
-         insertStmt.execute();
-         console.log("New elevation spec inserted with UUID: " + newUuid);
+        insertStmt.execute();
+        console.log("New elevation spec inserted with UUID: " + newUuid);
 
-         return newUuid; // Returning the new UUID
-     }
+        // Import custom fields for the new elevation specification
+        if (elevationSpecData.customFields) {
+            elevationSpecData.customFields.entityType = 'elevationSpec';
+            elevationSpecData.customFields.entityId = newUuid;
+            var customFieldsImported = importCustomFields(conn, importId, elevationSpecData.customFields);
+            if (!customFieldsImported) {
+                console.error('Failed to import custom fields for elevation specification: ' + newUuid);
+            }
+        }
 
-     rs.close();
-     checkElevationSpecStmt.close();
- }
+        return newUuid; // Returning the new UUID
+    }
 
+    rs.close();
+    checkElevationSpecStmt.close();
+}
