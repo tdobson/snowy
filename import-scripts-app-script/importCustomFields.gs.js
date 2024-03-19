@@ -19,13 +19,13 @@
  * - import_id (CHAR(36)): Import event that created or last updated the custom field record.
  *
  * @param {JdbcConnection} conn - An active JDBC connection to the database.
+ * @param {String} instanceId - The UUID of the instance or customer associated with the custom fields.
  * @param {String} importId - A unique identifier for the import session.
  * @param {Object} customFieldsData - Object containing custom field data.
  *   The customFieldsData object should have the following structure:
  *   {
  *     entityType: 'client', // The type of entity the custom fields belong to (e.g., 'client', 'project', 'site')
  *     entityId: 'abc123', // The UUID of the specific entity instance
- *     instanceId: 'def456', // The UUID of the instance or customer associated with the custom fields
  *     fields: {
  *       'Field 1': {
  *         value: 'Value 1',
@@ -42,10 +42,9 @@
  *   }
  * @returns {boolean} True if the import is successful, false otherwise.
  */
-function importCustomFields(conn, importId, customFieldsData) {
+function importCustomFields(conn, instanceId, importId, customFieldsData) {
     var entityType = customFieldsData.entityType;
     var entityId = customFieldsData.entityId;
-    var instanceId = customFieldsData.instanceId;
     var fields = customFieldsData.fields;
 
     for (var fieldName in fields) {

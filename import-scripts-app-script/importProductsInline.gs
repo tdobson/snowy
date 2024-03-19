@@ -1,131 +1,175 @@
 /**
- * Imports product data into the database and either updates an existing product or inserts a new one based on the product name, which must be unique.
+ * Imports or updates plot specification data into the sn_plot_spec table in the database. This function
+ * is designed to handle the insertion of new plot specification records or the updating of existing ones.
+ * It uses various sub-functions to handle related data such as the plot's specification status, meter, and battery.
+ * The function also ensures traceability by logging each import event in the sn_import_events table.
  *
- * Prerequisites:
- * - A MySQL database with the 'sn_products' table set up.
+ * @param {JdbcConnection} conn - An active JDBC connection to the database. This connection is used
+ *                                to execute SQL statements for inserting or updating data in the database.
+ * @param {string} instanceId - The unique identifier for the customer instance.
+ * @param {string} importId - A unique identifier for the import session.
+ * @param {Object} plotSpecData - An object containing all necessary plot specification details. The structure
+ *                                is expected to match the columns of the sn_plot_spec table. It should include:
+ *                                - plotSpecId: Unique identifier for the plot specification.
+ *                                - plotId: Unique identifier for the plot.
+ *                                - dateSpecified: Date when the specification was made.
+ *                                - specifiedBy: User ID of the person who specified this plot.
+ *                                - plotSpecStatus: Status of the plot specification.
+ *                                - phase: Phase information (1 or 3 phase).
+ *                                - p1, p2, p3: Details specific to each phase.
+ *                                - annualYield: Expected annual yield from the plot.
+ *                                - kwp: Kilowatt-peak of the plot.
+ *                                - kwpWithLimitation: Kilowatt-peak with limitations.
+ *                                - limiterRequired: Indicates if a power limiter was required.
+ *                                - limiterValueIfNotZero: Value of the limiter if not zero.
+ *                                - labourCost: Labour cost of the specification.
+ *                                - meter: Meter product ID.
+ *                                - meterCost: Cost of the meter.
+ *                                - battery: Battery product ID.
+ *                                - batteryCost: Cost of the battery.
+ *                                - overallCost: Total cost associated with this plot specification.
+ *                                - landlordSupply: Indicates if the landlord is responsible for the supply.
+ *                                - customFields - Custom fields data for the plot specification. The object should have the following structure:
+ *                                  - {string} entityType - The type of entity the custom fields belong to. For plot specification custom fields, this should be 'plotSpec'.
+ *                                  - {string} entityId - The UUID of the specific plot specification instance the custom fields are associated with.
+ *                                  - {string} instanceId - Optional: The UUID of the instance or customer associated with the custom fields.
+ *                                  - {Object} fields - An object containing key-value pairs of custom field names and their corresponding details.
+ *                                    - {string} fieldName - The name or key of the custom field.
+ *                                      - {*} value - The actual value of the custom field. The type depends on the field's data type.
+ *                                      - {string} uiName - Optional: The user-editable name of the custom field.
+ *                                      - {string} description - Optional: The user-editable description of the custom field.
  *
- * Usage:
- * - Call this function with an object containing product details and a unique import ID.
- * - The function checks if a product with the same name already exists in the database.
- * - If it exists, the function updates the existing record; otherwise, it inserts a new record with a unique UUID.
+ * @returns {String} The plot_spec_id of the inserted, updated, or existing plot specification record.
  *
- * @param {Object} productData - An object containing the product details. Expected keys:
- *   - productName: String - Mandatory. The name of the product (must be unique).
- *   - productType: String - Optional. The type of the product (e.g., Roof Kit, Panel, Battery, Inverter).
- *   - manufacturer: String - Optional. The manufacturer's name.
- *   - productModel: String - Optional. The model of the product.
- *   - kwp: Float - Optional. Kilowatt-peak of the product.
- *   - voc: Float - Optional. Open circuit voltage (VOC) of the product.
- *   - isc: Float - Optional. Short circuit current (ISC) of the product.
- *   - type: String - Optional. Another field to specify the product type.
- *   - capacity: Float - Optional. Capacity of the product.
- *   - noPhases: Integer - Optional. Number of phases.
- *   - modelRef: String - Optional. A reference to the product model.
- *   - costToday: Float - Optional. The current cost of the product.
- *   - mcsProductReference: String - Optional. MCS certification reference number.
- *   - mcsProductId: String - Optional. MCS certification code.
- *   - customFields - Custom fields data for the product. The object should have the following structure:
- *     - {string} entityType - The type of entity the custom fields belong to. For product custom fields, this should be 'product'.
- *     - {string} entityId - The UUID of the specific product instance the custom fields are associated with.
- *     - {string} instanceId - Optional: The UUID of the instance or customer associated with the custom fields.
- *     - {Object} fields - An object containing key-value pairs of custom field names and their corresponding details.
- *       - {string} fieldName - The name or key of the custom field.
- *         - {*} value - The actual value of the custom field. The type depends on the field's data type.
- *         - {string} uiName - Optional: The user-editable name of the custom field.
- *         - {string} description - Optional: The user-editable description of the custom field.
- * @param {String} importId - A unique identifier for the import session.
- * @param {JdbcConnection} conn - An active JDBC connection to the database.
- *
- * @returns {String} UUID of the existing or new product record.
- *
- * Note:
- * - The function logs actions and errors to the console for tracking purposes.
- * - It's important to ensure proper error handling around database operations.
+ * @example
+ * // Example usage
+ * var conn = Jdbc.getConnection('jdbc:mysql://example.com:3306/database', 'user', 'password');
+ * var instanceId = 'abc123';
+ * var importId = '67890';
+ * var plotSpecData = {
+ *   plotSpecId: '12345',
+ *   plotId: 'abcde',
+ *   // ... other fields ...
+ * };
+ * var plotSpecId = importPlotSpecData(conn, instanceId, importId, plotSpecData);
  */
-function importProductData(conn, importId, productData) {
-    if (!productData.productName) {
-        console.log("Product name is required.");
-        return;
+function importPlotSpecData(conn, instanceId, importId, plotSpecData) {
+    var checkPlotSpecStmt = conn.prepareStatement('SELECT * FROM sn_plot_spec WHERE instance_id = ? AND (plot_spec_id = ? OR plot_id = ?)');
+    checkPlotSpecStmt.setString(1, instanceId);
+    checkPlotSpecStmt.setString(2, plotSpecData.plotSpecId);
+    checkPlotSpecStmt.setString(3, plotSpecData.plotId);
+
+    var rs = checkPlotSpecStmt.executeQuery();
+
+    plotSpecData.plotInstallStatus = "Specified";
+    if (plotSpecData.plotInstallStatus) {
+        plotSpecData.plotSpecStatusId = importStatus(conn, instanceId, importId, { status_state: plotSpecData.plotInstallStatus, status_group: "Plot Status Group" });
     }
 
-    var checkProductStmt = conn.prepareStatement('SELECT * FROM sn_products WHERE product_name = ?');
-    checkProductStmt.setString(1, productData.productName);
-    var rs = checkProductStmt.executeQuery();
+    if (plotSpecData.meter) {
+        var meterProductId = importProductData(conn, instanceId, importId, { productName: plotSpecData.meter, productType: 'Meter', costToday: plotSpecData.meterCost }); //todo wrap these in objects to pass
+    }
+    if (plotSpecData.battery) {
+        var batteryProductId = importProductData(conn, instanceId, importId, { productName: plotSpecData.battery, productType: 'Battery', costToday: plotSpecData.batteryCost });
+    }
 
     if (rs.next()) {
-        var existingUuid = rs.getString('product_id');
-        console.log("Product already exists with UUID: " + existingUuid);
+        // Update existing record
+        var updateStmt = conn.prepareStatement('UPDATE sn_plot_spec SET instance_id = ?, plot_id = ?, date_specified = ?, specified_by = ?, plot_spec_status = ?, phase = ?, p1 = ?, p2 = ?, p3 = ?, annual_yield = ?, kwp = ?, kwp_with_limitation = ?, limiter_required = ?, limiter_value_if_not_zero = ?, labour_cost = ?, meter = ?, meter_cost = ?, battery = ?, battery_cost = ?, overall_cost = ?, landlord_supply = ?, import_id = ? WHERE plot_spec_id = ?');
 
-        // Optionally update existing record if any field is blank
-        var updateStmt = conn.prepareStatement('UPDATE sn_products SET product_type = ?, manufacturer = ?, product_model = ?, kwp = ?, voc = ?, isc = ?, type = ?, capacity = ?, no_phases = ?, model_ref = ?, cost_today = ?, mcs_product_reference = ?, mcs_product_id = ?, import_id = ? WHERE product_id = ?');
+        updateStmt.setString(1, instanceId);
+        updateStmt.setString(2, plotSpecData.plotId);
 
-        updateStmt.setString(1, productData.productType || rs.getString('product_type'));
-        updateStmt.setString(2, productData.manufacturer || rs.getString('manufacturer'));
-        updateStmt.setString(3, productData.productModel || rs.getString('product_model'));
-        updateStmt.setFloat(4, sanitizeFloat(productData.kwp !== undefined ? productData.kwp : rs.getFloat('kwp')));
-        updateStmt.setFloat(5, sanitizeFloat(productData.voc !== undefined ? productData.voc : rs.getFloat('voc')));
-        updateStmt.setFloat(6, sanitizeFloat(productData.isc !== undefined ? productData.isc : rs.getFloat('isc')));
-        updateStmt.setString(7, productData.type || rs.getString('type'));
-        updateStmt.setFloat(8, sanitizeFloat(productData.capacity !== undefined ? productData.capacity : rs.getFloat('capacity')));
-        updateStmt.setInt(9, convertPhaseToInt(productData.noPhases !== undefined ? productData.noPhases : rs.getInt('no_phases'))); // Assuming noPhases is always provided as an integer
-        updateStmt.setString(10, productData.modelRef || rs.getString('model_ref'));
-        updateStmt.setFloat(11, sanitizeFloat(productData.costToday !== undefined ? productData.costToday : rs.getFloat('cost_today')));
-        updateStmt.setString(12, productData.mcsProductReference || rs.getString('mcs_product_reference'));
-        updateStmt.setString(13, productData.mcsProductId || rs.getString('mcs_product_id'));
-        updateStmt.setString(14, importId);
-        updateStmt.setString(15, existingUuid);
+        var sanitizedDateSpecified = sanitizeDateForSql(plotSpecData.dateSpecified);
+        if (sanitizedDateSpecified) {
+            updateStmt.setString(3, sanitizedDateSpecified);
+        } else {
+            updateStmt.setNull(3, 0); // Setting null for date field
+        }
+
+        updateStmt.setString(4, plotSpecData.specifiedBy);
+        updateStmt.setString(5, plotSpecData.plotSpecStatus);
+        updateStmt.setString(6, convertPhaseToInt(plotSpecData.phase));
+        updateStmt.setFloat(7, sanitizeFloat(plotSpecData.p1));
+        updateStmt.setFloat(8, sanitizeFloat(plotSpecData.p2));
+        updateStmt.setFloat(9, sanitizeFloat(plotSpecData.p3));
+        updateStmt.setFloat(10, sanitizeFloat(plotSpecData.annualYield));
+        updateStmt.setFloat(11, sanitizeFloat(plotSpecData.kwp));
+        updateStmt.setFloat(12, sanitizeFloat(plotSpecData.kwpWithLimitation));
+        updateStmt.setBoolean(13, plotSpecData.limiterRequired);
+        updateStmt.setFloat(14, sanitizeFloat(plotSpecData.limiterValueIfNotZero));
+        updateStmt.setFloat(15, sanitizeFloat(plotSpecData.labourCost));
+        updateStmt.setString(16, meterProductId); // Ensure you have a way to map plotSpecData.meter to a valid meter ID or value
+        updateStmt.setFloat(17, sanitizeFloat(plotSpecData.meterCost));
+        updateStmt.setString(18, batteryProductId); // Ensure you have a way to map plotSpecData.battery to a valid battery ID or value
+        updateStmt.setFloat(19, sanitizeFloat(plotSpecData.batteryCost));
+        updateStmt.setFloat(20, sanitizeFloat(plotSpecData.overallCost));
+        updateStmt.setBoolean(21, plotSpecData.landlordSupply);
+        updateStmt.setString(22, importId);
+        updateStmt.setString(23, plotSpecData.plotSpecId);
 
         updateStmt.execute();
-        console.log("Product data updated for UUID: " + existingUuid);
 
-        // Import custom fields for the existing product
-        if (productData.customFields) {
-            productData.customFields.entityType = 'product';
-            productData.customFields.entityId = existingUuid;
-            var customFieldsImported = importCustomFields(conn, importId, productData.customFields);
+        // Import custom fields for the existing plot specification
+        if (plotSpecData.customFields) {
+            plotSpecData.customFields.entityType = 'plotSpec';
+            plotSpecData.customFields.entityId = plotSpecData.plotSpecId;
+            plotSpecData.customFields.instanceId = instanceId;
+            var customFieldsImported = importCustomFields(conn, instanceId, importId, plotSpecData.customFields);
             if (!customFieldsImported) {
-                console.error('Failed to import custom fields for product: ' + existingUuid);
+                console.error('Failed to import custom fields for plot specification: ' + plotSpecData.plotSpecId);
             }
         }
-
-        return existingUuid; // Returning the existing UUID
     } else {
-        var insertStmt = conn.prepareStatement('INSERT INTO sn_products (product_id, product_type, manufacturer, product_model, product_name, kwp, voc, isc, type, capacity, no_phases, model_ref, cost_today, mcs_product_reference, mcs_product_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        // Insert new record
+        var insertStmt = conn.prepareStatement('INSERT INTO sn_plot_spec (instance_id, plot_spec_id, plot_id, date_specified, specified_by, plot_spec_status, phase, p1, p2, p3, annual_yield, kwp, kwp_with_limitation, limiter_required, limiter_value_if_not_zero, labour_cost, meter, meter_cost, battery, battery_cost, overall_cost, landlord_supply, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        plotSpecData.plotSpecId = Utilities.getUuid();
+        insertStmt.setString(1, instanceId);
+        insertStmt.setString(2, plotSpecData.plotSpecId);
+        insertStmt.setString(3, plotSpecData.plotId);
 
-        var newUuid = Utilities.getUuid();
-        insertStmt.setString(1, newUuid);
-        insertStmt.setString(2, productData.productType);
-        insertStmt.setString(3, productData.manufacturer);
-        insertStmt.setString(4, productData.productModel);
-        insertStmt.setString(5, productData.productName);
-        insertStmt.setFloat(6, sanitizeFloat(productData.kwp));
-        insertStmt.setFloat(7, sanitizeFloat(productData.voc));
-        insertStmt.setFloat(8, sanitizeFloat(productData.isc));
-        insertStmt.setString(9, productData.type);
-        insertStmt.setFloat(10, sanitizeFloat(productData.capacity));
-        insertStmt.setInt(11, convertPhaseToInt(productData.noPhases)); // Assuming noPhases is always provided as an integer
-        insertStmt.setString(12, productData.modelRef);
-        insertStmt.setFloat(13, sanitizeFloat(productData.costToday));
-        insertStmt.setString(14, productData.mcsProductReference);
-        insertStmt.setString(15, productData.mcsProductId);
-        insertStmt.setString(16, importId);
+        // Sanitize and set date_specified for insert
+        if (plotSpecData.dateSpecified) {
+            insertStmt.setString(4, sanitizeDateForSql(plotSpecData.dateSpecified)); // Assuming dateSpecified is already a SQL date
+        } else {
+            insertStmt.setNull(4, 0); // Correct pattern for setting null dates
+        }
+
+        insertStmt.setString(5, plotSpecData.specifiedBy);
+        insertStmt.setString(6, plotSpecData.plotSpecStatus);
+        insertStmt.setString(7, convertPhaseToInt(plotSpecData.phase));
+        insertStmt.setFloat(8, sanitizeFloat(plotSpecData.p1));
+        insertStmt.setFloat(9, sanitizeFloat(plotSpecData.p2));
+        insertStmt.setFloat(10, sanitizeFloat(plotSpecData.p3));
+        insertStmt.setFloat(11, sanitizeFloat(plotSpecData.annualYield));
+        insertStmt.setFloat(12, sanitizeFloat(plotSpecData.kwp));
+        insertStmt.setFloat(13, sanitizeFloat(plotSpecData.kwpWithLimitation));
+        insertStmt.setBoolean(14, plotSpecData.limiterRequired);
+        insertStmt.setFloat(15, sanitizeFloat(plotSpecData.limiterValueIfNotZero));
+        insertStmt.setFloat(16, sanitizeFloat(plotSpecData.labourCost));
+        insertStmt.setString(17, meterProductId); // Ensure this matches your data model
+        insertStmt.setFloat(18, sanitizeFloat(plotSpecData.meterCost));
+        insertStmt.setString(19, batteryProductId); // Ensure this matches your data model
+        insertStmt.setFloat(20, sanitizeFloat(plotSpecData.batteryCost));
+        insertStmt.setFloat(21, sanitizeFloat(plotSpecData.overallCost));
+        insertStmt.setBoolean(22, plotSpecData.landlordSupply);
+        insertStmt.setString(23, importId);
 
         insertStmt.execute();
-        console.log("New product inserted with UUID: " + newUuid);
 
-        // Import custom fields for the new product
-        if (productData.customFields) {
-            productData.customFields.entityType = 'product';
-            productData.customFields.entityId = newUuid;
-            var customFieldsImported = importCustomFields(conn, importId, productData.customFields);
+        // Import custom fields for the new plot specification
+        if (plotSpecData.customFields) {
+            plotSpecData.customFields.entityType = 'plotSpec';
+            plotSpecData.customFields.entityId = plotSpecData.plotSpecId;
+            plotSpecData.customFields.instanceId = instanceId;
+            var customFieldsImported = importCustomFields(conn, instanceId, importId, plotSpecData.customFields);
             if (!customFieldsImported) {
-                console.error('Failed to import custom fields for product: ' + newUuid);
+                console.error('Failed to import custom fields for plot specification: ' + plotSpecData.plotSpecId);
             }
         }
-
-        return newUuid; // Returning the new UUID
     }
 
     rs.close();
-    checkProductStmt.close();
+    checkPlotSpecStmt.close();
+    return plotSpecData.plotSpecId;
 }

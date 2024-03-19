@@ -29,36 +29,38 @@
  * @param {JdbcConnection} conn - An active JDBC connection to the database.
  * @returns {string|null} UUID of the existing or new status record, or null in case of an error.
  */
-function importStatus(conn, importId, statusData) {
-    if (!statusData || !statusData.status_state || !statusData.status_group) {
+function importStatus(conn, instanceId, importId, statusData) {
+    if (!statusData || !statusData.status_state || !statusData.status_group || !instanceId) {
         console.log("Status state and group are required.");
         return null;
     }
 
     try {
-        var checkStatusStmt = conn.prepareStatement('SELECT * FROM sn_status WHERE status_state = ? AND status_group = ?');
-        checkStatusStmt.setString(1, statusData.status_state);
-        checkStatusStmt.setString(2, statusData.status_group);
+        var checkStatusStmt = conn.prepareStatement('SELECT * FROM sn_status WHERE instance_id = ? AND status_state = ? AND status_group = ?');
+        checkStatusStmt.setString(1, instanceId);
+        checkStatusStmt.setString(2, statusData.status_state);
+        checkStatusStmt.setString(3, statusData.status_group);
 
         var rs = checkStatusStmt.executeQuery();
         if (rs.next()) {
             var existingUuid = rs.getString('status_id');
             console.log("Status already exists with ID: " + existingUuid);
 
-            var updateStmt = conn.prepareStatement('UPDATE sn_status SET status_name = ?, status_code = ?, status_description = ?, import_id = ? WHERE status_state = ? AND status_group = ?');
+            var updateStmt = conn.prepareStatement('UPDATE sn_status SET status_name = ?, status_code = ?, status_description = ?, import_id = ? WHERE instance_id = ? AND status_state = ? AND status_group = ?');
             updateStmt.setString(1, statusData.status_name || rs.getString('status_name'));
             updateStmt.setString(2, statusData.status_code || rs.getString('status_code'));
             updateStmt.setString(3, statusData.status_description || rs.getString('status_description'));
             updateStmt.setString(4, importId);
-            updateStmt.setString(5, statusData.status_state);
-            updateStmt.setString(6, statusData.status_group);
+            updateStmt.setString(5, instanceId);
+            updateStmt.setString(6, statusData.status_state);
+            updateStmt.setString(7, statusData.status_group);
             updateStmt.execute();
 
             // Import custom fields for the existing status
             if (statusData.customFields) {
                 statusData.customFields.entityType = 'status';
                 statusData.customFields.entityId = existingUuid;
-                var customFieldsImported = importCustomFields(conn, importId, statusData.customFields);
+                var customFieldsImported = importCustomFields(conn,instanceId, importId, statusData.customFields);
                 if (!customFieldsImported) {
                     console.error('Failed to import custom fields for status: ' + existingUuid);
                 }
@@ -66,16 +68,17 @@ function importStatus(conn, importId, statusData) {
 
             return existingUuid;
         } else {
-            var insertStmt = conn.prepareStatement('INSERT INTO sn_status (status_id, status_state, status_name, status_group, status_code, status_description, import_id) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            var insertStmt = conn.prepareStatement('INSERT INTO sn_status (status_id, instance_id, status_state, status_name, status_group, status_code, status_description, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
             var newUuid = Utilities.getUuid();
 
             insertStmt.setString(1, newUuid);
-            insertStmt.setString(2, statusData.status_state);
-            insertStmt.setString(3, statusData.status_name || 'Default Name'); // Use a default value if status_name is not provided
-            insertStmt.setString(4, statusData.status_group);
-            insertStmt.setString(5, statusData.status_code);
-            insertStmt.setString(6, statusData.status_description);
-            insertStmt.setString(7, importId);
+            insertStmt.setString(2, instanceId);
+            insertStmt.setString(3, statusData.status_state);
+            insertStmt.setString(4, statusData.status_name || 'Default Name'); // Use a default value if status_name is not provided
+            insertStmt.setString(5, statusData.status_group);
+            insertStmt.setString(6, statusData.status_code);
+            insertStmt.setString(7, statusData.status_description);
+            insertStmt.setString(8, importId);
             insertStmt.execute();
 
             console.log("New status inserted with ID: " + newUuid);
@@ -84,7 +87,7 @@ function importStatus(conn, importId, statusData) {
             if (statusData.customFields) {
                 statusData.customFields.entityType = 'status';
                 statusData.customFields.entityId = newUuid;
-                var customFieldsImported = importCustomFields(conn, importId, statusData.customFields);
+                var customFieldsImported = importCustomFields(conn,instanceId, importId, statusData.customFields);
                 if (!customFieldsImported) {
                     console.error('Failed to import custom fields for status: ' + newUuid);
                 }
@@ -99,7 +102,6 @@ function importStatus(conn, importId, statusData) {
         if (conn) rs.close();
     }
 }
-
 /**
  * Looks up status details by status state in the sn_status table in the database.
  *
@@ -107,11 +109,12 @@ function importStatus(conn, importId, statusData) {
  * @param {JdbcConnection} conn - An active JDBC connection to the database.
  * @returns {Object|null} - The status details if found, or null if not found.
  */
-function lookupStatusByState(conn, statusState, statusGroup) {
+function lookupStatusByState(conn, instanceId, statusState, statusGroup) {
     try {
-        var checkStatusStmt = conn.prepareStatement('SELECT * FROM sn_status WHERE status_state = ? AND status_group = ?');
-        checkStatusStmt.setString(1, statusState);
-        checkStatusStmt.setString(2, statusGroup);
+        var checkStatusStmt = conn.prepareStatement('SELECT * FROM sn_status WHERE instance_id = ? AND status_state = ? AND status_group = ?');
+        checkStatusStmt.setString(1, instanceId);
+        checkStatusStmt.setString(2, statusState);
+        checkStatusStmt.setString(3, statusGroup);
 
         var rs = checkStatusStmt.executeQuery();
         if (rs.next()) {

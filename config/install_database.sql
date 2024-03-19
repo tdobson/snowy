@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS sn_import_events (
     import_id CHAR(36) NOT NULL,      -- Unique identifier for each import event.
     import_date DATE NOT NULL,        -- Date of the import event.
     imported_by CHAR(36) NOT NULL,    -- Foreign key to 'sn_users', identifying the user who performed the import.
+        instance_id CHAR(36)              -- Instance that the event is attached to.
     modified_date DATE NOT NULL,      -- Date of the last modification event.
     modified_by CHAR(36),             -- Foreign key to 'sn_users', identifying the user who performed the import.
     modification_ref VARCHAR(255),    -- Reference identifier for the import event.
@@ -72,6 +73,7 @@ CREATE TABLE IF NOT EXISTS sn_projects (
 CREATE TABLE IF NOT EXISTS sn_project_process (
     project_process_id CHAR(36) NOT NULL,    -- Primary Key: Unique identifier for each approval process.
     approval_status CHAR(36),         -- Links to the current status of the approval in sn_status.
+    instance_id CHAR(36)              -- Instance that the site is attached to.
     deadline_to_connect DATE,         -- Deadline for the project to establish a connection.
     auth_letter_sent BOOLEAN,         -- Indicates whether the letter of authority has been sent.
     mpan_request_sent BOOLEAN,        -- Indicates if the MPAN request has been sent.
@@ -119,6 +121,7 @@ CREATE TABLE IF NOT EXISTS sn_plots (
 CREATE TABLE IF NOT EXISTS sn_plot_spec (
     plot_spec_id CHAR(36) NOT NULL,             -- Unique identifier for the plot specification.
     plot_id CHAR(36) NOT NULL,                  -- Unique identifier for each plot.
+    instance_id CHAR(36)              -- Instance that the site is attached to.
     date_specified DATE,                        -- Date when this specification was made.
     specified_by CHAR(36),                      -- User ID of the person who specified this plot.
     plot_spec_status CHAR(36),                  -- Status of the plot.
@@ -163,6 +166,7 @@ CREATE TABLE IF NOT EXISTS sn_clients (
 CREATE TABLE IF NOT EXISTS sn_plot_install (
     plot_install_id CHAR(36) NOT NULL,          -- Unique identifier for each installed plot.
     plot_id CHAR(36) NOT NULL,                  -- Unique identifier for each plot.
+    instance_id CHAR(36)              -- Instance that the site is attached to.
     date_install DATE,                          -- Date when the plot was actually installed.
     date_checked DATE,                          -- Date when the installation was checked.
     install_by CHAR(36),                        -- User ID of the person who installed the plot.
@@ -195,6 +199,7 @@ CREATE TABLE IF NOT EXISTS sn_elevations_spec (
     elevation_spec_id CHAR(36) NOT NULL,    -- Unique identifier for each elevation record.
     plot_spec_id CHAR(36) NOT NULL,     -- Reference to the plot, either as specified or as installed.
     plot_id CHAR(36) NOT NULL,         -- Plot identifier.
+    instance_id CHAR(36)              -- Instance that the site is attached to.
     type_test_ref VARCHAR(255),        -- Reference to a type test or other technical specification.
     pitch FLOAT,                       -- Pitch of the installation surface.
     orientation VARCHAR(255),          -- Orientation of the solar panels.
@@ -221,6 +226,7 @@ CREATE TABLE IF NOT EXISTS sn_elevations_install (
     elevation_install_id CHAR(36) NOT NULL,    -- Unique identifier for each elevation record.
     plot_install_id CHAR(36) NOT NULL,     -- Reference to the plot, either as specified or as installed.
     plot_id CHAR(36) NOT NULL,         -- Plot identifier.
+    instance_id CHAR(36)              -- Instance that the site is attached to.
     type_test_ref VARCHAR(255),        -- Reference to a type test or other technical specification.
     pitch FLOAT,                       -- Pitch of the installation surface.
     orientation VARCHAR(255),          -- Orientation of the solar panels.
@@ -333,6 +339,7 @@ CREATE TABLE IF NOT EXISTS sn_addresses (
     address_postcode VARCHAR(255),       -- Postcode of the address.
     address_country VARCHAR(255),        -- Country of the address.
     address_region_id CHAR(36),          -- Region ID.
+    instance_id CHAR(36)              -- Instance that the site is attached to.
     import_id CHAR(36),                  -- Import event ID.
     PRIMARY KEY (address_id)
     -- FOREIGN KEY constraints omitted
@@ -347,6 +354,8 @@ CREATE TABLE IF NOT EXISTS sn_sites (
     dno_details_id CHAR(36),             -- DNO details ID.
     site_address_id CHAR(36),            -- Address details.
     site_manager_id CHAR(36),            -- User ID of the site manager.
+    site_surveyor_id CHAR(36),            -- User ID of the site surveyor
+    site_agent_id CHAR(36),            -- User ID of the site agent.
     import_id CHAR(36),                  -- Import event ID.
     PRIMARY KEY (site_id)
     -- FOREIGN KEY constraints omitted
@@ -363,6 +372,7 @@ CREATE TABLE IF NOT EXISTS sn_dno_details (
     contact_no VARCHAR(255),             -- Contact phone number.
     internal_tel VARCHAR(255),           -- Internal telephone number.
     type VARCHAR(255),                   -- Type of DNO.
+    instance_id CHAR(36)              -- Instance that the site is attached to.
     import_id CHAR(36),                  -- Import event ID.
     PRIMARY KEY (dno_details_id)
     -- FOREIGN KEY constraints omitted

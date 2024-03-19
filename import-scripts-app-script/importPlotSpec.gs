@@ -6,6 +6,8 @@
  *
  * @param {JdbcConnection} conn - An active JDBC connection to the database. This connection is used
  *                                to execute SQL statements for inserting or updating data in the database.
+ * @param {string} instanceId - The unique identifier for the customer instance.
+ * @param {string} importId - A unique identifier for the import session.
  * @param {Object} plotSpecData - An object containing all necessary plot specification details. The structure
  *                                is expected to match the columns of the sn_plot_spec table. It should include:
  *                                - plotSpecId: Unique identifier for the plot specification.
@@ -36,74 +38,75 @@
  *                                      - {*} value - The actual value of the custom field. The type depends on the field's data type.
  *                                      - {string} uiName - Optional: The user-editable name of the custom field.
  *                                      - {string} description - Optional: The user-editable description of the custom field.
- * @param {String} importId - A unique identifier for the import session. This ID is used for logging the import
- *                            event in the sn_import_events table for traceability.
  *
  * @returns {String} The plot_spec_id of the inserted, updated, or existing plot specification record.
  *
  * @example
  * // Example usage
  * var conn = Jdbc.getConnection('jdbc:mysql://example.com:3306/database', 'user', 'password');
+ * var instanceId = 'abc123';
+ * var importId = '67890';
  * var plotSpecData = {
  *   plotSpecId: '12345',
  *   plotId: 'abcde',
  *   // ... other fields ...
  * };
- * var importId = '67890';
- * var plotSpecId = importPlotSpecData(conn, plotSpecData, importId);
+ * var plotSpecId = importPlotSpecData(conn, instanceId, importId, plotSpecData);
  */
-function importPlotSpecData(conn, importId, plotSpecData) {
-    var checkPlotSpecStmt = conn.prepareStatement('SELECT * FROM sn_plot_spec WHERE plot_spec_id = ? OR plot_id = ?');
-    checkPlotSpecStmt.setString(1, plotSpecData.plotSpecId);
-    checkPlotSpecStmt.setString(2, plotSpecData.plotId);
+function importPlotSpecData(conn, instanceId, importId, plotSpecData) {
+    var checkPlotSpecStmt = conn.prepareStatement('SELECT * FROM sn_plot_spec WHERE instance_id = ? AND (plot_spec_id = ? OR plot_id = ?)');
+    checkPlotSpecStmt.setString(1, instanceId);
+    checkPlotSpecStmt.setString(2, plotSpecData.plotSpecId);
+    checkPlotSpecStmt.setString(3, plotSpecData.plotId);
 
     var rs = checkPlotSpecStmt.executeQuery();
 
     plotSpecData.plotInstallStatus = "Specified";
     if (plotSpecData.plotInstallStatus) {
-        plotSpecData.plotSpecStatusId = importStatus(conn, importId, { status_state: plotSpecData.plotInstallStatus, status_group: "Plot Status Group" });
+        plotSpecData.plotSpecStatusId = importStatus(conn, instanceId, importId, { status_state: plotSpecData.plotInstallStatus, status_group: "Plot Status Group" });
     }
 
     if (plotSpecData.meter) {
-        var meterProductId = importProductData(conn, importId, { productName: plotSpecData.meter, productType: 'Meter', costToday: plotSpecData.meterCost });
+        var meterProductId = importProductData(conn, instanceId, importId, { productName: plotSpecData.meter, productType: 'Meter', costToday: plotSpecData.meterCost }); //todo wrap these in objects to pass
     }
     if (plotSpecData.battery) {
-        var batteryProductId = importProductData(conn, importId, { productName: plotSpecData.battery, productType: 'Battery', costToday: plotSpecData.batteryCost });
+        var batteryProductId = importProductData(conn, instanceId, importId, { productName: plotSpecData.battery, productType: 'Battery', costToday: plotSpecData.batteryCost });
     }
 
     if (rs.next()) {
         // Update existing record
-        var updateStmt = conn.prepareStatement('UPDATE sn_plot_spec SET plot_id = ?, date_specified = ?, specified_by = ?, plot_spec_status = ?, phase = ?, p1 = ?, p2 = ?, p3 = ?, annual_yield = ?, kwp = ?, kwp_with_limitation = ?, limiter_required = ?, limiter_value_if_not_zero = ?, labour_cost = ?, meter = ?, meter_cost = ?, battery = ?, battery_cost = ?, overall_cost = ?, landlord_supply = ?, import_id = ? WHERE plot_spec_id = ?');
+        var updateStmt = conn.prepareStatement('UPDATE sn_plot_spec SET instance_id = ?, plot_id = ?, date_specified = ?, specified_by = ?, plot_spec_status = ?, phase = ?, p1 = ?, p2 = ?, p3 = ?, annual_yield = ?, kwp = ?, kwp_with_limitation = ?, limiter_required = ?, limiter_value_if_not_zero = ?, labour_cost = ?, meter = ?, meter_cost = ?, battery = ?, battery_cost = ?, overall_cost = ?, landlord_supply = ?, import_id = ? WHERE plot_spec_id = ?');
 
-        updateStmt.setString(1, plotSpecData.plotId);
+        updateStmt.setString(1, instanceId);
+        updateStmt.setString(2, plotSpecData.plotId);
 
         var sanitizedDateSpecified = sanitizeDateForSql(plotSpecData.dateSpecified);
         if (sanitizedDateSpecified) {
-            updateStmt.setDate(2, sanitizedDateSpecified);
+            updateStmt.setString(3, sanitizedDateSpecified);
         } else {
-            updateStmt.setNull(2, 0); // Setting null for date field
+            updateStmt.setNull(3, 0); // Setting null for date field
         }
 
-        updateStmt.setString(3, plotSpecData.specifiedBy);
-        updateStmt.setString(4, plotSpecData.plotSpecStatus);
-        updateStmt.setString(5, convertPhaseToInt(plotSpecData.phase));
-        updateStmt.setFloat(6, sanitizeFloat(plotSpecData.p1));
-        updateStmt.setFloat(7, sanitizeFloat(plotSpecData.p2));
-        updateStmt.setFloat(8, sanitizeFloat(plotSpecData.p3));
-        updateStmt.setFloat(9, sanitizeFloat(plotSpecData.annualYield));
-        updateStmt.setFloat(10, sanitizeFloat(plotSpecData.kwp));
-        updateStmt.setFloat(11, sanitizeFloat(plotSpecData.kwpWithLimitation));
-        updateStmt.setBoolean(12, plotSpecData.limiterRequired);
-        updateStmt.setFloat(13, sanitizeFloat(plotSpecData.limiterValueIfNotZero));
-        updateStmt.setFloat(14, sanitizeFloat(plotSpecData.labourCost));
-        updateStmt.setString(15, plotSpecData.meter); // Ensure you have a way to map plotSpecData.meter to a valid meter ID or value
-        updateStmt.setFloat(16, sanitizeFloat(plotSpecData.meterCost));
-        updateStmt.setString(17, plotSpecData.battery); // Ensure you have a way to map plotSpecData.battery to a valid battery ID or value
-        updateStmt.setFloat(18, sanitizeFloat(plotSpecData.batteryCost));
-        updateStmt.setFloat(19, sanitizeFloat(plotSpecData.overallCost));
-        updateStmt.setBoolean(20, plotSpecData.landlordSupply);
-        updateStmt.setString(21, importId);
-        updateStmt.setString(22, plotSpecData.plotSpecId);
+        updateStmt.setString(4, plotSpecData.specifiedBy);
+        updateStmt.setString(5, plotSpecData.plotSpecStatus);
+        updateStmt.setString(6, convertPhaseToInt(plotSpecData.phase));
+        updateStmt.setFloat(7, sanitizeFloat(plotSpecData.p1));
+        updateStmt.setFloat(8, sanitizeFloat(plotSpecData.p2));
+        updateStmt.setFloat(9, sanitizeFloat(plotSpecData.p3));
+        updateStmt.setFloat(10, sanitizeFloat(plotSpecData.annualYield));
+        updateStmt.setFloat(11, sanitizeFloat(plotSpecData.kwp));
+        updateStmt.setFloat(12, sanitizeFloat(plotSpecData.kwpWithLimitation));
+        updateStmt.setBoolean(13, plotSpecData.limiterRequired);
+        updateStmt.setFloat(14, sanitizeFloat(plotSpecData.limiterValueIfNotZero));
+        updateStmt.setFloat(15, sanitizeFloat(plotSpecData.labourCost));
+        updateStmt.setString(16, meterProductId); // Ensure you have a way to map plotSpecData.meter to a valid meter ID or value
+        updateStmt.setFloat(17, sanitizeFloat(plotSpecData.meterCost));
+        updateStmt.setString(18, batteryProductId); // Ensure you have a way to map plotSpecData.battery to a valid battery ID or value
+        updateStmt.setFloat(19, sanitizeFloat(plotSpecData.batteryCost));
+        updateStmt.setFloat(20, sanitizeFloat(plotSpecData.overallCost));
+        updateStmt.setBoolean(21, plotSpecData.landlordSupply);
+        updateStmt.setString(22, importId);
+        updateStmt.setString(23, plotSpecData.plotSpecId);
 
         updateStmt.execute();
 
@@ -111,44 +114,46 @@ function importPlotSpecData(conn, importId, plotSpecData) {
         if (plotSpecData.customFields) {
             plotSpecData.customFields.entityType = 'plotSpec';
             plotSpecData.customFields.entityId = plotSpecData.plotSpecId;
-            var customFieldsImported = importCustomFields(conn, importId, plotSpecData.customFields);
+            plotSpecData.customFields.instanceId = instanceId;
+            var customFieldsImported = importCustomFields(conn,instanceId, importId, plotSpecData.customFields);
             if (!customFieldsImported) {
                 console.error('Failed to import custom fields for plot specification: ' + plotSpecData.plotSpecId);
             }
         }
     } else {
         // Insert new record
-        var insertStmt = conn.prepareStatement('INSERT INTO sn_plot_spec (plot_spec_id, plot_id, date_specified, specified_by, plot_spec_status, phase, p1, p2, p3, annual_yield, kwp, kwp_with_limitation, limiter_required, limiter_value_if_not_zero, labour_cost, meter, meter_cost, battery, battery_cost, overall_cost, landlord_supply, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        var insertStmt = conn.prepareStatement('INSERT INTO sn_plot_spec (instance_id, plot_spec_id, plot_id, date_specified, specified_by, plot_spec_status, phase, p1, p2, p3, annual_yield, kwp, kwp_with_limitation, limiter_required, limiter_value_if_not_zero, labour_cost, meter, meter_cost, battery, battery_cost, overall_cost, landlord_supply, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
         plotSpecData.plotSpecId = Utilities.getUuid();
-        insertStmt.setString(1, plotSpecData.plotSpecId);
-        insertStmt.setString(2, plotSpecData.plotId);
+        insertStmt.setString(1, instanceId);
+        insertStmt.setString(2, plotSpecData.plotSpecId);
+        insertStmt.setString(3, plotSpecData.plotId);
 
         // Sanitize and set date_specified for insert
         if (plotSpecData.dateSpecified) {
-            insertStmt.setDate(3, plotSpecData.dateSpecified); // Assuming dateSpecified is already a SQL date
+            insertStmt.setString(4, sanitizeDateForSql(plotSpecData.dateSpecified)); // Assuming dateSpecified is already a SQL date
         } else {
-            insertStmt.setNull(3, 0); // Correct pattern for setting null dates
+            insertStmt.setNull(4, 0); // Correct pattern for setting null dates
         }
 
-        insertStmt.setString(4, plotSpecData.specifiedBy);
-        insertStmt.setString(5, plotSpecData.plotSpecStatus);
-        insertStmt.setString(6, convertPhaseToInt(plotSpecData.phase));
-        insertStmt.setFloat(7, sanitizeFloat(plotSpecData.p1));
-        insertStmt.setFloat(8, sanitizeFloat(plotSpecData.p2));
-        insertStmt.setFloat(9, sanitizeFloat(plotSpecData.p3));
-        insertStmt.setFloat(10, sanitizeFloat(plotSpecData.annualYield));
-        insertStmt.setFloat(11, sanitizeFloat(plotSpecData.kwp));
-        insertStmt.setFloat(12, sanitizeFloat(plotSpecData.kwpWithLimitation));
-        insertStmt.setBoolean(13, plotSpecData.limiterRequired);
-        insertStmt.setFloat(14, sanitizeFloat(plotSpecData.limiterValueIfNotZero));
-        insertStmt.setFloat(15, sanitizeFloat(plotSpecData.labourCost));
-        insertStmt.setString(16, plotSpecData.meter); // Ensure this matches your data model
-        insertStmt.setFloat(17, sanitizeFloat(plotSpecData.meterCost));
-        insertStmt.setString(18, plotSpecData.battery); // Ensure this matches your data model
-        insertStmt.setFloat(19, sanitizeFloat(plotSpecData.batteryCost));
-        insertStmt.setFloat(20, sanitizeFloat(plotSpecData.overallCost));
-        insertStmt.setBoolean(21, plotSpecData.landlordSupply);
-        insertStmt.setString(22, importId);
+        insertStmt.setString(5, plotSpecData.specifiedBy);
+        insertStmt.setString(6, plotSpecData.plotSpecStatus);
+        insertStmt.setString(7, convertPhaseToInt(plotSpecData.phase));
+        insertStmt.setFloat(8, sanitizeFloat(plotSpecData.p1));
+        insertStmt.setFloat(9, sanitizeFloat(plotSpecData.p2));
+        insertStmt.setFloat(10, sanitizeFloat(plotSpecData.p3));
+        insertStmt.setFloat(11, sanitizeFloat(plotSpecData.annualYield));
+        insertStmt.setFloat(12, sanitizeFloat(plotSpecData.kwp));
+        insertStmt.setFloat(13, sanitizeFloat(plotSpecData.kwpWithLimitation));
+        insertStmt.setBoolean(14, plotSpecData.limiterRequired);
+        insertStmt.setFloat(15, sanitizeFloat(plotSpecData.limiterValueIfNotZero));
+        insertStmt.setFloat(16, sanitizeFloat(plotSpecData.labourCost));
+        insertStmt.setString(17, meterProductId); // Ensure this matches your data model
+        insertStmt.setFloat(18, sanitizeFloat(plotSpecData.meterCost));
+        insertStmt.setString(19, batteryProductId); // Ensure this matches your data model
+        insertStmt.setFloat(20, sanitizeFloat(plotSpecData.batteryCost));
+        insertStmt.setFloat(21, sanitizeFloat(plotSpecData.overallCost));
+        insertStmt.setBoolean(22, plotSpecData.landlordSupply);
+        insertStmt.setString(23, importId);
 
         insertStmt.execute();
 
@@ -156,7 +161,8 @@ function importPlotSpecData(conn, importId, plotSpecData) {
         if (plotSpecData.customFields) {
             plotSpecData.customFields.entityType = 'plotSpec';
             plotSpecData.customFields.entityId = plotSpecData.plotSpecId;
-            var customFieldsImported = importCustomFields(conn, importId, plotSpecData.customFields);
+            plotSpecData.customFields.instanceId = instanceId;
+            var customFieldsImported = importCustomFields(conn,instanceId, importId, plotSpecData.customFields);
             if (!customFieldsImported) {
                 console.error('Failed to import custom fields for plot specification: ' + plotSpecData.plotSpecId);
             }

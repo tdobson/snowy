@@ -8,11 +8,12 @@
  * - Client data must include the client's name and email as unique identifiers.
  *
  * Usage:
- * - Call this function with an object containing client details, a database connection, and a unique import ID.
+ * - Call this function with an object containing client details, an instance ID, a database connection, and a unique import ID.
  * - Ensure the database connection is active and the import ID is unique for each import session.
  *
  * @param {JdbcConnection} conn - An active JDBC connection to the database.
- * @param {String} importId - A unique identifier for the import session.
+ * @param {string} instanceId - The unique identifier for the customer instance.
+ * @param {string} importId - A unique identifier for the import session.
  * @param {Object} clientData - Object containing client details, including:
  *   - {string} email - Email of the client (used as a unique identifier).
  *   - {string} name - Name of the client.
@@ -31,38 +32,40 @@
  *         - {string} description - Optional: The user-editable description of the custom field.
  * @returns {string|null} UUID of the existing or new client record, or null in case of an error.
  */
-function importClient(conn, importId, clientData) {
-    if (!clientData || !clientData.name) {
+function importClient(conn, instanceId, importId, clientData) {
+    if (!clientData || !clientData.name || !instanceId) {
         console.log("Client name is required.");
         return null;
     }
 
-    var clientContactId = importUserData(conn, importId, clientData.userData);
-    var clientAddressId = importAddress(conn, importId, clientData.addressData);
+    var clientContactId = importUserData(conn, instanceId, importId, clientData.userData);
+    var clientAddressId = importAddress(conn, instanceId, importId, clientData.addressData);
 
     try {
-        var checkClientStmt = conn.prepareStatement('SELECT * FROM sn_clients WHERE client_name = ?');
-        checkClientStmt.setString(1, clientData.name);
+        var checkClientStmt = conn.prepareStatement('SELECT * FROM sn_clients WHERE instance_id = ? AND client_name = ?');
+        checkClientStmt.setString(1, instanceId);
+        checkClientStmt.setString(2, clientData.name);
 
         var rs = checkClientStmt.executeQuery();
         if (rs.next()) {
             var existingUuid = rs.getString('client_id');
             console.log("Client already exists with UUID: " + existingUuid);
 
-            var updateStmt = conn.prepareStatement('UPDATE sn_clients SET client_legacy_number = ?, client_plot_card_required = ?, client_address_id = ?, contact_id = ?, import_id = ? WHERE client_name = ?');
+            var updateStmt = conn.prepareStatement('UPDATE sn_clients SET client_legacy_number = ?, client_plot_card_required = ?, client_address_id = ?, contact_id = ?, import_id = ? WHERE instance_id = ? AND client_name = ?');
             updateStmt.setString(1, clientData.client_legacy_number || rs.getString('client_legacy_number'));
             updateStmt.setString(2, clientData.client_plot_card_required || rs.getString('client_plot_card_required'));
             updateStmt.setString(3, clientAddressId || rs.getString('client_address_id'));
             updateStmt.setString(4, clientContactId || rs.getString('contact_id'));
             updateStmt.setString(5, importId);
-            updateStmt.setString(6, clientData.name);
+            updateStmt.setString(6, instanceId);
+            updateStmt.setString(7, clientData.name);
             updateStmt.execute();
 
             // Import custom fields for the existing client
             if (clientData.customFields) {
                 clientData.customFields.entityType = 'client';
                 clientData.customFields.entityId = existingUuid;
-                var customFieldsImported = importCustomFields(conn, importId, clientData.customFields);
+                var customFieldsImported = importCustomFields(conn, instanceId, importId, clientData.customFields);
                 if (!customFieldsImported) {
                     console.error('Failed to import custom fields for client: ' + existingUuid);
                 }
@@ -70,23 +73,24 @@ function importClient(conn, importId, clientData) {
 
             return existingUuid;
         } else {
-            var insertStmt = conn.prepareStatement('INSERT INTO sn_clients (client_id, client_legacy_number, client_name, client_address_id, client_plot_card_required, contact_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            var insertStmt = conn.prepareStatement('INSERT INTO sn_clients (client_id, instance_id, client_legacy_number, client_name, client_address_id, client_plot_card_required, contact_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
             var newUuid = Utilities.getUuid();
 
             insertStmt.setString(1, newUuid);
-            insertStmt.setString(2, clientData.client_legacy_number);
-            insertStmt.setString(3, clientData.name);
-            insertStmt.setString(4, clientAddressId);
-            insertStmt.setString(5, clientData.client_plot_card_required);
-            insertStmt.setString(6, clientContactId);
-            insertStmt.setString(7, importId);
+            insertStmt.setString(2, instanceId);
+            insertStmt.setString(3, clientData.client_legacy_number);
+            insertStmt.setString(4, clientData.name);
+            insertStmt.setString(5, clientAddressId);
+            insertStmt.setString(6, clientData.client_plot_card_required);
+            insertStmt.setString(7, clientContactId);
+            insertStmt.setString(8, importId);
             insertStmt.execute();
 
             // Import custom fields for the new client
             if (clientData.customFields) {
                 clientData.customFields.entityType = 'client';
                 clientData.customFields.entityId = newUuid;
-                var customFieldsImported = importCustomFields(conn, importId, clientData.customFields);
+                var customFieldsImported = importCustomFields(conn,instanceId, importId, clientData.customFields);
                 if (!customFieldsImported) {
                     console.error('Failed to import custom fields for client: ' + newUuid);
                 }

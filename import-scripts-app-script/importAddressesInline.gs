@@ -8,12 +8,13 @@
  * - The 'getRegionByPVNumber' and 'getRegionIdFromRegionNumber' functions must be defined and functional.
  *
  * Usage:
- * - Call this function with an object containing address details, a unique import ID, a database connection,
+ * - Call this function with an object containing address details, a unique import ID, an instance ID, a database connection,
  *   a Sheet object, and an optional PV number.
- * - The function checks the address against the database using the address line 1 and postcode.
+ * - The function checks the address against the database using the address line 1, postcode, and instance ID.
  * - If a PV number is provided, the function attempts to fetch the corresponding region number and region ID.
  * - If the address exists, the function updates it; otherwise, it inserts a new address.
  *
+ * @param {String} instanceId - The unique identifier for the customer instance.
  * @param {Object} addressData - An object containing the address details. Expected keys:
  *   - address_line_1: String - Mandatory. The first line of the address.
  *   - address_line_2: String - Optional. The second line of the address.
@@ -43,21 +44,18 @@
  * - The function logs actions and errors to the console for tracking purposes.
  * - It's important to ensure proper error handling around database operations.
  */
-function importAddress(conn, importId, addressData, sheet, pvNumber) {
-    //console.log(JSON.stringify(addressData));
-
-    if (!addressData.address_line_1 || !addressData.address_postcode) {
+function importAddress(conn, instanceId, importId, addressData, sheet, pvNumber) {
+    if (!addressData.address_line_1 || !addressData.address_postcode || !instanceId) {
         console.log("Address line 1 and postcode are required.");
         return;
     }
 
-    // Declare regionId once at the top
     var regionId;
 
     // Check if address_region_number is provided and use it to get regionId
     if (addressData.address_region_number) {
         try {
-            regionId = getRegionIdFromRegionNumber(conn, addressData.address_region_number);
+            regionId = getRegionIdFromRegionNumber(conn, instanceId, addressData.address_region_number);
             if (regionId) {
                 addressData.address_region_id = regionId;
             }
@@ -68,7 +66,7 @@ function importAddress(conn, importId, addressData, sheet, pvNumber) {
         // If pvNumber is provided, use it to get regionNumber and then regionId
         try {
             var regionNumber = getRegionByPVNumber(sheet, pvNumber);
-            regionId = getRegionIdFromRegionNumber(conn, regionNumber);
+            regionId = getRegionIdFromRegionNumber(conn,instanceId, regionNumber);
             if (regionId) {
                 addressData.address_region_id = regionId;
             }
@@ -77,9 +75,10 @@ function importAddress(conn, importId, addressData, sheet, pvNumber) {
         }
     }
 
-    var checkAddressStmt = conn.prepareStatement('SELECT * FROM sn_addresses WHERE address_line_1 = ? AND address_postcode = ?');
-    checkAddressStmt.setString(1, addressData.address_line_1);
-    checkAddressStmt.setString(2, addressData.address_postcode);
+    var checkAddressStmt = conn.prepareStatement('SELECT * FROM sn_addresses WHERE instance_id = ? AND address_line_1 = ? AND address_postcode = ?');
+    checkAddressStmt.setString(1, instanceId);
+    checkAddressStmt.setString(2, addressData.address_line_1);
+    checkAddressStmt.setString(3, addressData.address_postcode);
     var rs = checkAddressStmt.executeQuery();
 
     if (rs.next()) {
@@ -87,7 +86,7 @@ function importAddress(conn, importId, addressData, sheet, pvNumber) {
         console.log("Address already exists with UUID: " + existingUuid);
 
         // Optionally update existing record if any field is blank
-        var updateStmt = conn.prepareStatement('UPDATE sn_addresses SET address_line_2 = ?, address_town = ?, address_county = ?, address_country = ?, address_region_id = ?, import_id = ? WHERE address_id = ?');
+        var updateStmt = conn.prepareStatement('UPDATE sn_addresses SET address_line_2 = ?, address_town = ?, address_county = ?, address_country = ?, address_region_id = ?, import_id = ? WHERE instance_id = ? AND address_id = ?');
 
         updateStmt.setString(1, addressData.address_line_2 || rs.getString('address_line_2'));
         updateStmt.setString(2, addressData.address_town || rs.getString('address_town'));
@@ -95,7 +94,8 @@ function importAddress(conn, importId, addressData, sheet, pvNumber) {
         updateStmt.setString(4, addressData.address_country || rs.getString('address_country'));
         updateStmt.setString(5, addressData.address_region_id);
         updateStmt.setString(6, importId);
-        updateStmt.setString(7, existingUuid);
+        updateStmt.setString(7, instanceId);
+        updateStmt.setString(8, existingUuid);
 
         updateStmt.execute();
         console.log("Address data updated for UUID: " + existingUuid);
@@ -104,7 +104,7 @@ function importAddress(conn, importId, addressData, sheet, pvNumber) {
         if (addressData.customFields) {
             addressData.customFields.entityType = 'address';
             addressData.customFields.entityId = existingUuid;
-            var customFieldsImported = importCustomFields(conn, importId, addressData.customFields);
+            var customFieldsImported = importCustomFields(conn,instanceId, importId, addressData.customFields);
             if (!customFieldsImported) {
                 console.error('Failed to import custom fields for address: ' + existingUuid);
             }
@@ -112,18 +112,19 @@ function importAddress(conn, importId, addressData, sheet, pvNumber) {
 
         return existingUuid; // Returning the existing UUID
     } else {
-        var insertStmt = conn.prepareStatement('INSERT INTO sn_addresses (address_id, address_line_1, address_line_2, address_town, address_county, address_postcode, address_country, address_region_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        var insertStmt = conn.prepareStatement('INSERT INTO sn_addresses (address_id, instance_id, address_line_1, address_line_2, address_town, address_county, address_postcode, address_country, address_region_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
 
         var newUuid = Utilities.getUuid();
         insertStmt.setString(1, newUuid);
-        insertStmt.setString(2, addressData.address_line_1);
-        insertStmt.setString(3, addressData.address_line_2);
-        insertStmt.setString(4, addressData.address_town);
-        insertStmt.setString(5, addressData.address_county);
-        insertStmt.setString(6, addressData.address_postcode);
-        insertStmt.setString(7, addressData.address_country);
-        insertStmt.setString(8, addressData.address_region_id);
-        insertStmt.setString(9, importId);
+        insertStmt.setString(2, instanceId);
+        insertStmt.setString(3, addressData.address_line_1);
+        insertStmt.setString(4, addressData.address_line_2);
+        insertStmt.setString(5, addressData.address_town);
+        insertStmt.setString(6, addressData.address_county);
+        insertStmt.setString(7, addressData.address_postcode);
+        insertStmt.setString(8, addressData.address_country);
+        insertStmt.setString(9, addressData.address_region_id);
+        insertStmt.setString(10, importId);
 
         insertStmt.execute();
         console.log("New address inserted with UUID: " + newUuid);
@@ -132,7 +133,7 @@ function importAddress(conn, importId, addressData, sheet, pvNumber) {
         if (addressData.customFields) {
             addressData.customFields.entityType = 'address';
             addressData.customFields.entityId = newUuid;
-            var customFieldsImported = importCustomFields(conn, importId, addressData.customFields);
+            var customFieldsImported = importCustomFields(conn,instanceId, importId, addressData.customFields);
             if (!customFieldsImported) {
                 console.error('Failed to import custom fields for address: ' + newUuid);
             }

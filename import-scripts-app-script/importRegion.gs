@@ -36,18 +36,21 @@ function getRegionByPVNumber(sheet,pvNumber) {
  * - Correct database connection details configured in the script.
  *
  * Usage:
- * - Call this function with a region number to fetch the corresponding region_id from the database.
+ * - Call this function with a database connection, an instance ID, and a region number to fetch the corresponding region_id from the database.
  *
+ * @param {JdbcConnection} conn - An active JDBC connection to the database.
+ * @param {string} instanceId - The unique identifier for the customer instance.
  * @param {number} regionNumber - The region number to look up in the database.
  * @returns {string} The region_id corresponding to the provided region number or an empty string if not found.
  */
-function getRegionIdFromRegionNumber(conn, regionNumber) {
+function getRegionIdFromRegionNumber(conn, instanceId, regionNumber) {
   // Immediately return an empty string if regionNumber is not provided or is blank
   if (!regionNumber || regionNumber.toString().trim() === "") {
     return "";
   }
-  var stmt = conn.prepareStatement('SELECT region_id FROM sn_region WHERE region_number = ?');
-  stmt.setString(1, regionNumber.toString());
+  var stmt = conn.prepareStatement('SELECT region_id FROM sn_region WHERE instance_id = ? AND region_number = ?');
+  stmt.setString(1, instanceId);
+  stmt.setString(2, regionNumber.toString());
   var rs = stmt.executeQuery();
 
   var regionId = '';

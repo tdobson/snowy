@@ -12,7 +12,7 @@
  * - The database should have sn_dno_details and sn_import_events tables set up.
  *
  * Usage:
- * - Call this function to import or update DNO details from the "DNO-List" sheet in the active Google Spreadsheet.
+ * - Call this function with an instance ID, a unique import ID, and the active Google Sheets spreadsheet.
  * - Ensure the database connection details (GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD) are correctly set.
  *
  * Notes:
@@ -25,31 +25,27 @@
  * - If no existing DNO is found, a new record is inserted.
  * - The function logs completion of the import/update process.
  *
- * @param {Object} rowData - Row data object containing DNO details.
- *   - customFields - Custom fields data for the DNO. The object should have the following structure:
- *     - {string} entityType - The type of entity the custom fields belong to. For DNO custom fields, this should be 'dno'.
- *     - {string} entityId - The UUID of the specific DNO instance the custom fields are associated with.
- *     - {string} instanceId - Optional: The UUID of the instance or customer associated with the custom fields.
- *     - {Object} fields - An object containing key-value pairs of custom field names and their corresponding details.
- *       - {string} fieldName - The name or key of the custom field.
- *         - {*} value - The actual value of the custom field. The type depends on the field's data type.
- *         - {string} uiName - Optional: The user-editable name of the custom field.
- *         - {string} description - Optional: The user-editable description of the custom field.
- * @returns {void}
+ * @param {string} instanceId - The unique identifier for the customer instance.
+ * @param {string} importId - A unique identifier for the import session.
+ * @param {Sheet} sheet - The Google Sheets Sheet object, used for fetching DNO details.
+ * @returns {string|null} UUID of the new or existing DNO record, or null in case of an error.
  */
-function importDnoDetails(conn, importId, sheet) {
+function importDnoDetails(instanceId, importId, sheet) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("DNO-List");
     var data = sheet.getDataRange().getValues();
 
-    var checkDnoStmt = conn.prepareStatement('SELECT * FROM sn_dno_details WHERE mpan_prefix = ?');
-    var insertDnoStmt = conn.prepareStatement('INSERT INTO sn_dno_details (dno_details_id, mpan_prefix, dno_name, address, email_address, contact_no, internal_tel, type, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
-    var updateDnoStmt = conn.prepareStatement('UPDATE sn_dno_details SET dno_name = ?, address = ?, email_address = ?, contact_no = ?, internal_tel = ?, type = ? WHERE mpan_prefix = ?');
+    var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
+
+    var checkDnoStmt = conn.prepareStatement('SELECT * FROM sn_dno_details WHERE instance_id = ? AND mpan_prefix = ?');
+    var insertDnoStmt = conn.prepareStatement('INSERT INTO sn_dno_details (dno_details_id, instance_id, mpan_prefix, dno_name, address, email_address, contact_no, internal_tel, type, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    var updateDnoStmt = conn.prepareStatement('UPDATE sn_dno_details SET dno_name = ?, address = ?, email_address = ?, contact_no = ?, internal_tel = ?, type = ? WHERE instance_id = ? AND mpan_prefix = ?');
 
     var returnedUuid = null; // Initialize with null
 
     for (var i = 1; i < data.length; i++) {
         var rowData = rowDataToObject(sheet, i + 1, 1, sheet.getLastColumn());
-        checkDnoStmt.setString(1, rowData.MPAN_Prefix);
+        checkDnoStmt.setString(1, instanceId);
+        checkDnoStmt.setString(2, rowData.MPAN_Prefix);
         var rs = checkDnoStmt.executeQuery();
 
         if (rs.next()) {
@@ -63,14 +59,16 @@ function importDnoDetails(conn, importId, sheet) {
             updateDnoStmt.setString(4, rowData.CONTACT_NO || rs.getString('contact_no'));
             updateDnoStmt.setString(5, rowData.INTERNAL_TEL || rs.getString('internal_tel'));
             updateDnoStmt.setString(6, rowData.TYPE || rs.getString('type'));
-            updateDnoStmt.setString(7, rowData.MPAN_Prefix);
+            updateDnoStmt.setString(7, instanceId);
+            updateDnoStmt.setString(8, rowData.MPAN_Prefix);
             updateDnoStmt.execute();
 
             // Import custom fields for the existing DNO
             if (rowData.customFields) {
                 rowData.customFields.entityType = 'dno';
                 rowData.customFields.entityId = existingUuid;
-                var customFieldsImported = importCustomFields(conn, importId, rowData.customFields);
+                rowData.customFields.instanceId = instanceId;
+                var customFieldsImported = importCustomFields(conn, instanceId, importId, rowData.customFields);
                 if (!customFieldsImported) {
                     console.error('Failed to import custom fields for DNO: ' + existingUuid);
                 }
@@ -81,21 +79,23 @@ function importDnoDetails(conn, importId, sheet) {
 
             // Insert new record
             insertDnoStmt.setString(1, newUuid);
-            insertDnoStmt.setString(2, rowData.MPAN_Prefix);
-            insertDnoStmt.setString(3, rowData.DNO_NAME);
-            insertDnoStmt.setString(4, rowData.ADDRESS);
-            insertDnoStmt.setString(5, rowData.EMAIL_ADDRESS);
-            insertDnoStmt.setString(6, rowData.CONTACT_NO);
-            insertDnoStmt.setString(7, rowData.INTERNAL_TEL);
-            insertDnoStmt.setString(8, rowData.TYPE);
-            insertDnoStmt.setString(9, importId);
+            insertDnoStmt.setString(2, instanceId);
+            insertDnoStmt.setString(3, rowData.MPAN_Prefix);
+            insertDnoStmt.setString(4, rowData.DNO_NAME);
+            insertDnoStmt.setString(5, rowData.ADDRESS);
+            insertDnoStmt.setString(6, rowData.EMAIL_ADDRESS);
+            insertDnoStmt.setString(7, rowData.CONTACT_NO);
+            insertDnoStmt.setString(8, rowData.INTERNAL_TEL);
+            insertDnoStmt.setString(9, rowData.TYPE);
+            insertDnoStmt.setString(10, importId);
             insertDnoStmt.execute();
 
             // Import custom fields for the new DNO
             if (rowData.customFields) {
                 rowData.customFields.entityType = 'dno';
                 rowData.customFields.entityId = newUuid;
-                var customFieldsImported = importCustomFields(conn, importId, rowData.customFields);
+                rowData.customFields.instanceId = instanceId;
+                var customFieldsImported = importCustomFields(conn, instanceId, importId, rowData.customFields);
                 if (!customFieldsImported) {
                     console.error('Failed to import custom fields for DNO: ' + newUuid);
                 }
@@ -111,13 +111,15 @@ function importDnoDetails(conn, importId, sheet) {
 /**
  * Looks up Distribution Network Operator (DNO) details by MPAN ID in the sn_dno_details table in the database.
  *
+ * @param {string} instanceId - The unique identifier for the customer instance.
  * @param {string} mpanId - The MPAN ID to look up.
- * @returns {Object|null} - The DNO details if found, or null if not found.
+ * @returns {string|null} - The UUID of the DNO details if found, or null if not found.
  */
-function lookupDnoDetailsByMpan(conn, importId, mpanId) {
+function lookupDnoDetailsByMpan(conn, instanceId, mpanId) {
     try {
-        var checkDnoStmt = conn.prepareStatement('SELECT * FROM sn_dno_details WHERE mpan_prefix = ?');
-        checkDnoStmt.setString(1, mpanId);
+        var checkDnoStmt = conn.prepareStatement('SELECT * FROM sn_dno_details WHERE instance_id = ? AND mpan_prefix = ?');
+        checkDnoStmt.setString(1, instanceId);
+        checkDnoStmt.setString(2, mpanId);
 
         var rs = checkDnoStmt.executeQuery();
 
