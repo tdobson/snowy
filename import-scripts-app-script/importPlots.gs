@@ -53,7 +53,7 @@ function importPlotData(conn, instanceId, importId, plotData, sheet) {
 
     if (rs.next()) {
         // Update existing record
-        var updateStmt = conn.prepareStatement('UPDATE sn_plots SET project_id = ?, plot_number = ?, plot_status = ?, site_id = ?, housetype = ?, g99 = ?, mpan = ?, plot_address_id = ?, plot_approved = ?, commissioning_form_submitted = ?, import_id = ?, tracker_ref = ? WHERE instance_id = ? AND plot_id = ?');
+        var updateStmt = conn.prepareStatement('UPDATE sn_plots SET project_id = ?, plot_number = ?, plot_status = ?, site_id = ?, housetype = ?, g99 = ?, mpan = ?, plot_address_id = ?, plot_approved = ?, commissioning_form_submitted = ?, import_id = ?, tracker_ref = ? WHERE instance_id = ? AND plot_id = ?  ');
 
         updateStmt.setString(1, plotData.projectId);
         updateStmt.setString(2, plotData.plotNumber);
@@ -91,6 +91,8 @@ if (sanitizedCommissioningFormSubmitted) {
         updateStmt.setString(13, instanceId);
         updateStmt.setString(14, plotData.plotId);
 
+
+
         updateStmt.execute();
 
         // Import custom fields for the existing plot
@@ -127,7 +129,7 @@ if (sanitizedCommissioningFormSubmitted) {
         plotData.elevationSpecData.elevation_spec_id = importElevationSpecData(conn, instanceId, importId, plotData.elevationSpecData);
 
         // Insert new record
-        var insertStmt = conn.prepareStatement('INSERT INTO sn_plots (plot_id, instance_id, project_id, plot_number, plot_status, site_id, housetype, g99, mpan, plot_address_id, plot_approved, commissioning_form_submitted, import_id, tracker_ref) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        var insertStmt = conn.prepareStatement('INSERT INTO sn_plots (plot_id, instance_id, project_id, plot_number, plot_status, site_id, housetype, g99, mpan, plot_address_id, plot_approved, commissioning_form_submitted, import_id, tracker_ref, plot_install_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)');
 
         insertStmt.setString(1, plotData.plotId);
         insertStmt.setString(2, instanceId);
@@ -164,6 +166,8 @@ if (sanitizedCommissioningFormSubmitted) {
 }
         insertStmt.setString(13, importId);
         insertStmt.setString(14, plotData.trackerRef);
+        insertStmt.setString(15, plotData.elevationData.plot_install_id);
+
 
         insertStmt.execute();
 

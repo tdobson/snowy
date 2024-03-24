@@ -140,17 +140,17 @@ function prepareImportObject(importSheetData){
         plotData: {
             "plotId": "",
             "projectId": "",
-            "plotNumber": importSheetData.MAP.Plot_Number,
+            "plotNumber": importSheetData.MAP.PLOT_NO,
             "plotStatus": "Specified", // this really should be whether it's specified, signed off, or install or complete
             "siteId": "", // Needs to be derived from site import function, so no direct mapping
             "housetype": importSheetData.MAP.Housetype,
             "g99": "", // Assuming Gninenine indicates G99 compliance; adjust if necessary
             "mpan": importSheetData.Total_Costing.MPAN,
             "plotAddressId": "", // Needs to be derived from address import function, so no direct mapping
-            "plotApproved": "true",
+            "plotApproved": true,
             "commissioningFormSubmitted": "", // No direct mapping available; needs clarification
             "trackerRef": "",
-            "legacyPlotID": importSheetData.MAP.Plot_Number,
+            "legacyPlotID": importSheetData.MAP.PLOT_NO,
             addressData: {
                 "address_line_1": importSheetData.Total_Costing.House_No_name,
                 "address_line_2": importSheetData.Total_Costing.Street,
