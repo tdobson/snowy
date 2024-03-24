@@ -1,25 +1,49 @@
--- This view, sn_projects_info, provides a consolidated view of the total specified and installed kilowatt-peak values for each project.
-CREATE VIEW sn_projects_info AS
+CREATE VIEW sn_vw_plot_details AS
 SELECT
-    p.project_id,
-    SUM(ps.kwp) AS kwp_from_oscar, -- Sum of 'kwp' from 'sn_plot_specified' for each project.
-    SUM(pi.kwp) AS current_total_kwp, -- Sum of 'kwp' from 'sn_plot_installed' for each project.
-    SUM(pi.kwp_with_limitation) AS total_kwp_with_limitation -- Sum of 'kwp_with_limitation' from 'sn_plot_installed' for each project.
-    p.approved_kwp, -- Approved kwp from the DNO
+    p.plot_id, p.plot_number, p.plot_status, p.site_id, p.housetype, p.g99, p.mpan, p.plot_approved, p.commissioning_form_submitted,
+    ps.date_specified, ps.specified_by, ps.plot_spec_status, ps.phase, ps.p1, ps.p2, ps.p3, ps.annual_yield, ps.kwp, ps.kwp_with_limitation,
+    ps.limiter_required, ps.limiter_value_if_not_zero, ps.labour_cost, ps.meter, ps.meter_cost, ps.battery, ps.battery_cost, ps.overall_cost, ps.landlord_supply,
+    pi.date_install, pi.date_checked, pi.install_by, pi.checked_by, pi.plot_install_status,
+    es.type_test_ref, es.pitch, es.orientation, es.kk_figure, es.kwp AS elevation_kwp, es.strings, es.module_qty, es.inverter, es.inverter_cost,
+    es.panel, es.panel_cost, es.panels_total_cost, es.roof_kit, es.roof_kit_cost, es.annual_yield AS elevation_annual_yield,
+    ei.type_test_ref AS install_type_test_ref, ei.pitch AS install_pitch, ei.orientation AS install_orientation, ei.kk_figure AS install_kk_figure,
+    ei.kwp AS install_elevation_kwp, ei.strings AS install_strings, ei.module_qty AS install_module_qty, ei.inverter AS install_inverter,
+    ei.inverter_cost AS install_inverter_cost, ei.panel AS install_panel, ei.panel_cost AS install_panel_cost,
+    ei.panels_total_cost AS install_panels_total_cost, ei.roof_kit AS install_roof_kit, ei.roof_kit_cost AS install_roof_kit_cost,
+    ei.annual_yield AS install_elevation_annual_yield,
+    st.status_state, st.status_name, st.status_group, st.status_code, st.status_description,
+    a.address_line_1, a.address_line_2, a.address_town, a.address_county, a.address_postcode, a.address_country, a.address_region_id
 FROM
-    sn_projects p
-LEFT JOIN
-    sn_plots plt ON p.project_id = plt.project_id
-LEFT JOIN
-    sn_plot_specified ps ON plt.plot_id = ps.plot_meta_id
-LEFT JOIN
-    sn_plot_install pi ON plt.plot_id = pi.plot_meta_id
-GROUP BY
-    p.project_id;
+    sn_plots p
+    LEFT JOIN sn_plot_spec ps ON p.plot_id = ps.plot_id
+    LEFT JOIN sn_plot_install pi ON p.plot_id = pi.plot_id
+    LEFT JOIN sn_elevations_spec es ON p.plot_id = es.plot_id
+    LEFT JOIN sn_elevations_install ei ON p.plot_id = ei.plot_id
+    LEFT JOIN sn_status st ON p.plot_status = st.status_id
+    LEFT JOIN sn_addresses a ON p.plot_address_id = a.address_id;
+
+CREATE VIEW sn_vw_project_details AS
+SELECT
+    pr.project_id, pr.client_id, pr.pv_number, pr.dno_details_id, pr.region_id, pr.site_id, pr.ref_number, pr.project_name, pr.job_code, pr.comments,
+    pr.project_process_id, pr.dno_zone,
+    pp.approval_status, pp.deadline_to_connect, pp.auth_letter_sent, pp.mpan_request_sent, pp.schematic_created, pp.application_type,
+    pp.formal_dno_submitted, pp.submission_date, pp.dno_due_date, pp.dno_status, pp.approved_kwp, pp.quote_received, pp.customer_invoiced_date,
+    pp.dno_payment_made, pp.acceptance_form_returned, pp.date_approved,
+    c.client_legacy_number, c.client_name, c.client_address_id, c.client_plot_card_required, c.contact_id,
+    st.status_state, st.status_name, st.status_group, st.status_code, st.status_description,
+    s.site_name, s.dno_details_id AS site_dno_details_id, s.site_address_id, s.site_manager_id, s.site_surveyor_id, s.site_agent_id,
+    a.address_line_1, a.address_line_2, a.address_town, a.address_county, a.address_postcode, a.address_country, a.address_region_id
+FROM
+    sn_projects pr
+    LEFT JOIN sn_project_process pp ON pr.project_process_id = pp.project_process_id
+    LEFT JOIN sn_clients c ON pr.client_id = c.client_id
+    LEFT JOIN sn_status st ON pp.approval_status = st.status_id
+    LEFT JOIN sn_sites s ON pr.site_id = s.site_id
+    LEFT JOIN sn_addresses a ON c.client_address_id = a.address_id;
 
 
     -- this view provides the info requires to submit to the MCS api
-    CREATE VIEW sn_mcs_submission_details AS
+    CREATE VIEW sn_vw_mcs_submission_details AS
     SELECT
         ms.mcs_loaded_date AS 'Date Loaded', -- Assuming 'Date Loaded' is the import date of the project
         ms.mcs_submit_status AS 'Approved For Certificate', -- Status indicating whether the project is approved for MCS certificate

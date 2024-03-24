@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS sn_projects (
     client_id CHAR(36) NOT NULL,      -- Links to a client in the sn_clients table.
     instance_id CHAR(36),              -- Instance that the user is attached to.
     pv_number VARCHAR(255) UNIQUE NOT NULL, -- PV number, unique to each project.
-    dno_details_id CHAR(36) NOT NULL, -- Reference to DNO MPAN details.
+    dno_details_id CHAR(36) ,         -- Reference to DNO MPAN details.
     region_id CHAR(36),               -- Identifier linking to a specific region in the sn_region table.
     site_id CHAR(36),                 -- Identifier linking to a specific site in the sn_sites table.
     ref_number VARCHAR(255),          -- Legacy reference number.
