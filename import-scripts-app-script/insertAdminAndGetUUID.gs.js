@@ -32,5 +32,5 @@ function insertInstanceAndGetUuid(client_id, client_name,client_description) {
 
     stmt.execute();
     conn.close();
-    return uuid;
+    return {instanceId: uuid, adminUserId: userId };
 }
