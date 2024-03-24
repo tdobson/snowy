@@ -68,8 +68,8 @@ function importElevationSpecData(conn, instanceId, importId, elevationSpecData) 
     var checkElevationSpecStmt = conn.prepareStatement('SELECT * FROM sn_elevations_spec WHERE instance_id = ? AND plot_id = ? AND pitch = ? AND orientation = ?');
     checkElevationSpecStmt.setString(1, instanceId);
     checkElevationSpecStmt.setString(2, elevationSpecData.plot_id);
-    checkElevationSpecStmt.setString(3, elevationSpecData.pitch);
-    checkElevationSpecStmt.setString(3, elevationSpecData.orientation);
+checkElevationSpecStmt.setFloat(3, sanitizeFloat(elevationSpecData.pitch));
+checkElevationSpecStmt.setString(4, sanitizeFloat(elevationSpecData.orientation));
     var rs = checkElevationSpecStmt.executeQuery();
 
     if (rs.next()) {
@@ -159,4 +159,3 @@ function importElevationSpecData(conn, instanceId, importId, elevationSpecData) 
     rs.close();
     checkElevationSpecStmt.close();
 }
-

@@ -60,11 +60,32 @@ function importPlotData(conn, instanceId, importId, plotData, sheet) {
         updateStmt.setString(3, plotData.plotStatusId);
         updateStmt.setString(4, plotData.projectData.siteId);
         updateStmt.setString(5, plotData.housetype);
-        updateStmt.setBoolean(6, sanitizeBoolean(plotData.g99)); // Sanitize g99
-        updateStmt.setString(7, plotData.mpan);
-        updateStmt.setString(8, plotData.plotAddressId);
-        updateStmt.setBoolean(9, sanitizeBoolean(plotData.plotApproved)); // Sanitize plotApproved
-        updateStmt.setBoolean(10, sanitizeBoolean(plotData.commissioningFormSubmitted)); // Sanitize commissioningFormSubmitted
+// Sanitize and set g99
+var sanitizedG99 = sanitizeBoolean(plotData.g99);
+if (sanitizedG99) {
+    updateStmt.setBoolean(6, plotData.g99);
+} else {
+    updateStmt.setNull(6, 0);
+}
+
+updateStmt.setString(7, plotData.mpan);
+updateStmt.setString(8, plotData.plotAddressId);
+
+// Sanitize and set plot_approved
+var sanitizedPlotApproved = sanitizeBoolean(plotData.plotApproved);
+if (sanitizedPlotApproved) {
+    updateStmt.setBoolean(9, plotData.plotApproved);
+} else {
+    updateStmt.setNull(9, 0);
+}
+
+// Sanitize and set commissioning_form_submitted
+var sanitizedCommissioningFormSubmitted = sanitizeBoolean(plotData.commissioningFormSubmitted);
+if (sanitizedCommissioningFormSubmitted) {
+    updateStmt.setBoolean(10, plotData.commissioningFormSubmitted);
+} else {
+    updateStmt.setNull(10, 0);
+}
         updateStmt.setString(11, importId);
         updateStmt.setString(12, plotData.trackerRef);
         updateStmt.setString(13, instanceId);
@@ -115,11 +136,32 @@ function importPlotData(conn, instanceId, importId, plotData, sheet) {
         insertStmt.setString(5, plotData.plotStatusId);
         insertStmt.setString(6, plotData.projectData.siteId);
         insertStmt.setString(7, plotData.housetype);
-        insertStmt.setBoolean(8, sanitizeBoolean(plotData.g99)); // Sanitize g99
-        insertStmt.setString(9, plotData.mpan);
-        insertStmt.setString(10, plotData.plotAddressId);
-        insertStmt.setBoolean(11, sanitizeBoolean(plotData.plotApproved)); // Sanitize plotApproved
-        insertStmt.setBoolean(12, sanitizeBoolean(plotData.commissioningFormSubmitted)); // Sanitize commissioningFormSubmitted
+// Sanitize and set g99
+var sanitizedG99 = sanitizeBoolean(plotData.g99);
+if (sanitizedG99) {
+    insertStmt.setBoolean(8, plotData.g99);
+} else {
+    insertStmt.setNull(8, 0);
+}
+
+insertStmt.setString(9, plotData.mpan);
+insertStmt.setString(10, plotData.plotAddressId);
+
+// Sanitize and set plot_approved
+var sanitizedPlotApproved = sanitizeBoolean(plotData.plotApproved);
+if (sanitizedPlotApproved) {
+    insertStmt.setBoolean(11, plotData.plotApproved);
+} else {
+    insertStmt.setNull(11, 0);
+}
+
+// Sanitize and set commissioning_form_submitted
+var sanitizedCommissioningFormSubmitted = sanitizeBoolean(plotData.commissioningFormSubmitted);
+if (sanitizedCommissioningFormSubmitted) {
+    insertStmt.setBoolean(12, plotData.commissioningFormSubmitted);
+} else {
+    insertStmt.setNull(12, 0);
+}
         insertStmt.setString(13, importId);
         insertStmt.setString(14, plotData.trackerRef);
 

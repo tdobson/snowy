@@ -105,8 +105,13 @@ checkPlotInstallStmt.setString(2, plotInstallData.plotId);
         updateStmt.setFloat(12, sanitizeFloat(plotInstallData.annualYield));
         updateStmt.setFloat(13, sanitizeFloat(plotInstallData.kwp));
         updateStmt.setFloat(14, sanitizeFloat(plotInstallData.kwpWithLimitation));
-        updateStmt.setBoolean(15, plotInstallData.limiterRequired);
-        updateStmt.setFloat(16, sanitizeFloat(plotInstallData.limiterValueIfNotZero));
+// Sanitize and set limiter_required.
+var updateSanitizedLimiterRequired = sanitizeBoolean(plotInstallData.limiterRequired);
+if (updateSanitizedLimiterRequired) {
+    updateStmt.setBoolean(15, plotInstallData.limiterRequired);
+} else {
+    updateStmt.setNull(15, 0);
+}        updateStmt.setFloat(16, sanitizeFloat(plotInstallData.limiterValueIfNotZero));
         updateStmt.setFloat(17, sanitizeFloat(plotInstallData.labourCost));
         updateStmt.setString(18, meterProductId); // Assuming you have a way to get the meterProductId from plotInstallData.meter
         updateStmt.setFloat(19, sanitizeFloat(plotInstallData.meterCost));
@@ -130,7 +135,7 @@ checkPlotInstallStmt.setString(2, plotInstallData.plotId);
         }
     } else {
         // Insert new record
-        var insertStmt = conn.prepareStatement('INSERT INTO sn_plot_install (instance_id, plot_install_id, plot_id, date_install, date_checked, install_by, checked_by, plot_install_status, phase, p1, p2, p3, annual_yield, kwp, kwp_with_limitation, limiter_required, limiter_value_if_not_zero, labour_cost, meter, meter_cost, battery, battery_cost, overall_cost, mcs_submission_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        var insertStmt = conn.prepareStatement('INSERT INTO sn_plot_install (instance_id, plot_install_id, plot_id, date_install, date_checked, install_by, checked_by, plot_install_status, phase, p1, p2, p3, annual_yield, kwp, kwp_with_limitation, limiter_required, limiter_value_if_not_zero, labour_cost, meter, meter_cost, battery, battery_cost, overall_cost, mcs_submission_id, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)');
         plotInstallData.plotInstallId = Utilities.getUuid();
 
         insertStmt.setString(1, instanceId);
@@ -161,7 +166,13 @@ checkPlotInstallStmt.setString(2, plotInstallData.plotId);
         insertStmt.setFloat(13, sanitizeFloat(plotInstallData.annualYield)); // Sanitize annualYield
         insertStmt.setFloat(14, sanitizeFloat(plotInstallData.kwp)); // Sanitize kwp
         insertStmt.setFloat(15, sanitizeFloat(plotInstallData.kwpWithLimitation)); // Sanitize kwpWithLimitation
-        insertStmt.setBoolean(16, plotInstallData.limiterRequired);
+// Sanitize and set limiter_required.
+var updateSanitizedLimiterRequired = sanitizeBoolean(plotInstallData.limiterRequired);
+if (updateSanitizedLimiterRequired) {
+    insertStmt.setBoolean(16, plotInstallData.limiterRequired);
+} else {
+    insertStmt.setNull(16, 0);
+}
         insertStmt.setFloat(17, sanitizeFloat(plotInstallData.limiterValueIfNotZero)); // Sanitize limiterValueIfNotZero
         insertStmt.setFloat(18, sanitizeFloat(plotInstallData.labourCost)); // Sanitize labourCost
         insertStmt.setString(19, meterProductId);

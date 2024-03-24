@@ -1,3 +1,6 @@
+function myFunction() {
+
+}
 /**
  * Imports or updates plot specification data into the sn_plot_spec table in the database. This function
  * is designed to handle the insertion of new plot specification records or the updating of existing ones.
@@ -95,16 +98,26 @@ checkPlotSpecStmt.setString(2, plotSpecData.plotId);
         updateStmt.setFloat(10, sanitizeFloat(plotSpecData.annualYield));
         updateStmt.setFloat(11, sanitizeFloat(plotSpecData.kwp));
         updateStmt.setFloat(12, sanitizeFloat(plotSpecData.kwpWithLimitation));
-        updateStmt.setBoolean(13, plotSpecData.limiterRequired);
-        updateStmt.setFloat(14, sanitizeFloat(plotSpecData.limiterValueIfNotZero));
+// Sanitize and set limiter_required.
+var updateSanitizedLimiterRequired = sanitizeBoolean(plotSpecData.limiterRequired);
+if (updateSanitizedLimiterRequired) {
+    insertStmt.setBoolean(13, plotSpecData.limiterRequired);
+} else {
+    insertStmt.setNull(13, 0);
+}        updateStmt.setFloat(14, sanitizeFloat(plotSpecData.limiterValueIfNotZero));
         updateStmt.setFloat(15, sanitizeFloat(plotSpecData.labourCost));
         updateStmt.setString(16, meterProductId); // Ensure you have a way to map plotSpecData.meter to a valid meter ID or value
         updateStmt.setFloat(17, sanitizeFloat(plotSpecData.meterCost));
         updateStmt.setString(18, batteryProductId); // Ensure you have a way to map plotSpecData.battery to a valid battery ID or value
         updateStmt.setFloat(19, sanitizeFloat(plotSpecData.batteryCost));
         updateStmt.setFloat(20, sanitizeFloat(plotSpecData.overallCost));
-        updateStmt.setBoolean(21, plotSpecData.landlordSupply);
-        updateStmt.setString(22, importId);
+// Sanitize and set landlord_supply.
+var updateSanitizedLandlordSupply = sanitizeBoolean(plotSpecData.landlordSupply);
+if (updateSanitizedLandlordSupply) {
+    updateStmt.setBoolean(21, plotSpecData.landlordSupply);
+} else {
+    updateStmt.setNull(21, 0);
+}        updateStmt.setString(22, importId);
         updateStmt.setString(23, plotSpecData.plotSpecId);
 
         updateStmt.execute();
@@ -143,7 +156,14 @@ checkPlotSpecStmt.setString(2, plotSpecData.plotId);
         insertStmt.setFloat(11, sanitizeFloat(plotSpecData.annualYield));
         insertStmt.setFloat(12, sanitizeFloat(plotSpecData.kwp));
         insertStmt.setFloat(13, sanitizeFloat(plotSpecData.kwpWithLimitation));
-        insertStmt.setBoolean(14, plotSpecData.limiterRequired);
+
+// Sanitize and set limiter_required.
+var updateSanitizedLimiterRequired = sanitizeBoolean(plotSpecData.limiterRequired);
+if (updateSanitizedLimiterRequired) {
+    insertStmt.setBoolean(14, plotSpecData.limiterRequired);
+} else {
+    insertStmt.setNull(14, 0);
+}
         insertStmt.setFloat(15, sanitizeFloat(plotSpecData.limiterValueIfNotZero));
         insertStmt.setFloat(16, sanitizeFloat(plotSpecData.labourCost));
         insertStmt.setString(17, meterProductId); // Ensure this matches your data model
@@ -151,8 +171,13 @@ checkPlotSpecStmt.setString(2, plotSpecData.plotId);
         insertStmt.setString(19, batteryProductId); // Ensure this matches your data model
         insertStmt.setFloat(20, sanitizeFloat(plotSpecData.batteryCost));
         insertStmt.setFloat(21, sanitizeFloat(plotSpecData.overallCost));
-        insertStmt.setBoolean(22, plotSpecData.landlordSupply);
-        insertStmt.setString(23, importId);
+// Sanitize and set landlord_supply.
+var updateSanitizedLandlordSupply = sanitizeBoolean(plotSpecData.landlordSupply);
+if (updateSanitizedLandlordSupply) {
+    insertStmt.setBoolean(22, plotSpecData.landlordSupply);
+} else {
+    insertStmt.setNull(22, 0);
+}        insertStmt.setString(23, importId);
 
         insertStmt.execute();
 
