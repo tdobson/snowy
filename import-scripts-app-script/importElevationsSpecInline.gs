@@ -160,11 +160,3 @@ function importElevationSpecData(conn, instanceId, importId, elevationSpecData) 
     checkElevationSpecStmt.close();
 }
 
-/**
- * Imports or updates custom fields for a specific entity in the sn_custom_fields table.
- *
- * Custom fields allow for the extension of the standard schema by adding additional attributes to entities
- * without modifying the core tables. This enables flexibility and customization for different customers or
- * instances of the application. Custom fields are stored in the sn_custom_fields table, which associates
- * the fields with specific entities using the entity_type and entity_id columns. The field_name and
- * field_

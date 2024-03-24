@@ -55,7 +55,7 @@
  *     comments: "Urgent installation required",
  *     dnoZone: "Zone 3"
  *   },
- *   customFields: { /* custom fields data */ }
+ *   customFields: { custom fields data  }
  * };
  *
  * // Example usage:

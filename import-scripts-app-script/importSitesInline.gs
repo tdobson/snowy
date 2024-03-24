@@ -94,7 +94,7 @@
 *   siteName: "Main Site",
 *   mpanId: "123456789",
 *   pvNumber: "98765",
-*   customFields: { /* custom fields data */ }
+*   customFields: {  custom fields data  }
 * };
 * var conn = Jdbc.getConnection("jdbc:mysql://<database_url>", "<user>", "<password>");
 * var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Sheet1");
