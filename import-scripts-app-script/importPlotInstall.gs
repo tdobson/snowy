@@ -56,10 +56,9 @@
  * var plotInstallId = importPlotInstallData(conn, instanceId, importId, plotInstallData);
  */
 function importPlotInstallData(conn, instanceId, importId, plotInstallData) {
-    var checkPlotInstallStmt = conn.prepareStatement('SELECT * FROM sn_plot_install WHERE instance_id = ? AND (plot_install_id = ? OR plot_id = ?)');
-    checkPlotInstallStmt.setString(1, instanceId);
-    checkPlotInstallStmt.setString(2, plotInstallData.plotInstallId);
-    checkPlotInstallStmt.setString(3, plotInstallData.plotId);
+var checkPlotInstallStmt = conn.prepareStatement('SELECT * FROM sn_plot_install WHERE instance_id = ? AND plot_id = ?');
+checkPlotInstallStmt.setString(1, instanceId);
+checkPlotInstallStmt.setString(2, plotInstallData.plotId);
 
     var rs = checkPlotInstallStmt.executeQuery();
 

@@ -54,10 +54,9 @@
  * var plotSpecId = importPlotSpecData(conn, instanceId, importId, plotSpecData);
  */
 function importPlotSpecData(conn, instanceId, importId, plotSpecData) {
-    var checkPlotSpecStmt = conn.prepareStatement('SELECT * FROM sn_plot_spec WHERE instance_id = ? AND (plot_spec_id = ? OR plot_id = ?)');
-    checkPlotSpecStmt.setString(1, instanceId);
-    checkPlotSpecStmt.setString(2, plotSpecData.plotSpecId);
-    checkPlotSpecStmt.setString(3, plotSpecData.plotId);
+var checkPlotSpecStmt = conn.prepareStatement('SELECT * FROM sn_plot_spec WHERE instance_id = ? AND plot_id = ?');
+checkPlotSpecStmt.setString(1, instanceId);
+checkPlotSpecStmt.setString(2, plotSpecData.plotId);
 
     var rs = checkPlotSpecStmt.executeQuery();
 

@@ -65,10 +65,11 @@ function importElevationSpecData(conn, instanceId, importId, elevationSpecData) 
     }
 
     // Check if elevation spec data already exists
-    var checkElevationSpecStmt = conn.prepareStatement('SELECT * FROM sn_elevations_spec WHERE instance_id = ? AND plot_spec_id = ? AND plot_id = ?');
+    var checkElevationSpecStmt = conn.prepareStatement('SELECT * FROM sn_elevations_spec WHERE instance_id = ? AND plot_id = ? AND pitch = ? AND orientation = ?');
     checkElevationSpecStmt.setString(1, instanceId);
-    checkElevationSpecStmt.setString(2, elevationSpecData.plot_spec_id);
-    checkElevationSpecStmt.setString(3, elevationSpecData.plot_id);
+    checkElevationSpecStmt.setString(2, elevationSpecData.plot_id);
+    checkElevationSpecStmt.setString(3, elevationSpecData.pitch);
+    checkElevationSpecStmt.setString(3, elevationSpecData.orientation);
     var rs = checkElevationSpecStmt.executeQuery();
 
     if (rs.next()) {

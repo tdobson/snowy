@@ -65,12 +65,12 @@ function importElevationInstallData(conn, instanceId, importId, elevationData) {
         importProductData(conn, instanceId, importId, { productName: elevationData.panel, productType: 'Panel', costToday: elevationData.panel_cost });
     }
 
-    // Check if elevation data already exists
-    var checkElevationStmt = conn.prepareStatement('SELECT * FROM sn_elevations_install WHERE instance_id = ? AND (plot_install_id = ? OR plot_id = ?)');
-    checkElevationStmt.setString(1, instanceId);
-    checkElevationStmt.setString(2, elevationData.plot_install_id);
-    checkElevationStmt.setString(3, elevationData.plot_id);
-    var rs = checkElevationStmt.executeQuery();
+var checkElevationStmt = conn.prepareStatement('SELECT * FROM sn_elevations_install WHERE instance_id = ? AND plot_id = ? AND pitch = ? AND orientation = ?');
+checkElevationStmt.setString(1, instanceId);
+checkElevationStmt.setString(2, elevationData.plot_id);
+checkElevationStmt.setFloat(3, elevationData.pitch);
+checkElevationStmt.setString(4, elevationData.orientation);
+var rs = checkElevationStmt.executeQuery();
 
     if (rs.next()) {
         var existingUuid = rs.getString('elevation_install_id');
