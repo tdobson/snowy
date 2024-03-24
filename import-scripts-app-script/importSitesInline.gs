@@ -105,7 +105,7 @@ function importSiteData(conn, instanceId, importId, siteData, sheet) {
   var addressId = importAddress(conn, instanceId, importId, siteData.addressData, sheet, siteData.pvNumber);
 
   // Import User
-  var siteManagerId = importUserData(conn, instanceId, importId, siteData.userData);
+  var siteManagerId = importUserData(conn, instanceId, importId, siteData.siteManagerData);
   var siteSurveyorId = importUserData(conn, instanceId, importId, siteData.surveyorData);
   var siteAgentId = importUserData(conn, instanceId, importId, siteData.agentData);
 

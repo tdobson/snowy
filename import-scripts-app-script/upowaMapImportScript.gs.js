@@ -310,7 +310,7 @@ function prepareImportObject(importSheetData){
                     "address_region_id": "",
                     "address_region_number": ""
                 },
-                userData: {
+                siteManagerData: {
                     "sso_id": "", // not defined
                     "name": "",
                     "email": "",
@@ -322,17 +322,36 @@ function prepareImportObject(importSheetData){
                     "company_role": "",
                     "category": ""
                 },
+                surveyorData: {
+                    "sso_id": "", // not defined
+                    "name": importSheetData.Site_Data.Surveyor,
+                    "email": importSheetData.Site_Data.Surveyor_email,
+                    "phone": importSheetData.Site_Data.Surveyor_phone,
+                    "employer": "",
+                    "team": "", // No direct mapping available; needs clarification
+                    "dispatch_id": "", // unlikely to be used
+                    "snowy_role": "Surveyor", // they're a site manager
+                    "company_role": "Surveyor",
+                    "category": "Human"
+                },
+                agentData: {
+                    "sso_id": "", // not defined
+                    "name": importSheetData.Site_Data.SiteAgent,
+                    "email": importSheetData.Site_Data.SiteAgent_email,
+                    "phone": importSheetData.Site_Data.SiteAgent_phone,
+                    "employer": "",
+                    "team": "", // No direct mapping available; needs clarification
+                    "dispatch_id": "", // unlikely to be used
+                    "snowy_role": "Site Agent", // they're a site manager
+                    "company_role": "Site Agent",
+                    "category": "Human"
+                },
+                //
                 "mpanId": "",
                 "pvNumber": importSheetData.Site_Data.Job_code,
                 customFields: {
                     entityType: "site",
                     fields: {
-                        Surveyor: importSheetData.Site_Data.Surveyor,
-                        Surveyor_email: importSheetData.Site_Data.Surveyor_email,
-                        Surveyor_phone: importSheetData.Site_Data.Surveyor_phone,
-                        SiteAgent: importSheetData.Site_Data.SiteAgent,
-                        SiteAgent_phone: importSheetData.Site_Data.SiteAgent_phone,
-                        SiteAgent_email: importSheetData.Site_Data.SiteAgent_email,
                     }
                 }
             },
@@ -491,24 +510,27 @@ const clientObject = {
     }
 };
 
-// This script will try to import everything possible from the eco2 tracker
+// This script will try to import everything possible from the upowa map file
 function main() {
     var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
-    var instanceId = insertInstanceAndGetUuid(conn, clientObject)
-    var importId = insertImportEvent(conn, instanceId , '', 'Site Log Import', 'Test Import', '4df57691-4d43-4cfb-9338-00e4cfafa63d');
+    var details = insertInstanceAndGetUuid(conn, clientObject)
+
+    var importId = insertImportEvent(conn, details.instanceId , '', 'Site Log Import', 'Test Import', details.adminUserId);
 
     let rowObject = querySheetsByIndexWithSpecialSheet(queryConfigByIndex); //15-20seconds
     Logger.log(JSON.stringify(rowObject));
 
     if (rowObject.matched === false) {
         console.log("No matching data found in the 'Total Costing' sheet for the specified row index in the 'MAP' sheet.");
+        console.log("exiting")
+        return 0
     }
 
     let importObject = prepareImportObject(rowObject);
     Logger.log(JSON.stringify(importObject));
 
-    // let result = importPlotData(conn, importId, importObject.plotData);
-    // console.log(result);
+    let result = importPlotData(conn, details.instanceId, importId, importObject.plotData);
+    console.log(result);
 }
 
 
