@@ -68,51 +68,97 @@ function importProjectProcess(conn, instanceId, importId, projectProcessData) {
         } else {
             updateProcessStmt.setNull(3, 0);
         }
+// Sanitize and set auth_letter_sent.
+var updateSanitizedAuthLetterSent = sanitizeBoolean(projectProcessData.auth_letter_sent);
+if (updateSanitizedAuthLetterSent) {
+    updateProcessStmt.setBoolean(4, projectProcessData.auth_letter_sent);
+} else {
+    updateProcessStmt.setNull(4, 0);
+}
 
-        updateProcessStmt.setBoolean(4, projectProcessData.auth_letter_sent);
-        updateProcessStmt.setBoolean(5, projectProcessData.mpan_request_sent);
-        updateProcessStmt.setBoolean(6, projectProcessData.schematic_created);
-        updateProcessStmt.setString(7, projectProcessData.application_type);
-        updateProcessStmt.setBoolean(8, projectProcessData.formal_dno_submitted);
+// Sanitize and set mpan_request_sent.
+var updateSanitizedMpanRequestSent = sanitizeBoolean(projectProcessData.mpan_request_sent);
+if (updateSanitizedMpanRequestSent) {
+    updateProcessStmt.setBoolean(5, projectProcessData.mpan_request_sent);
+} else {
+    updateProcessStmt.setNull(5, 0);
+}
 
-        // Sanitize and set submission_date
-        var sanitizedSubmissionDate = sanitizeDateForSql(projectProcessData.submission_date);
-        if (sanitizedSubmissionDate) {
-            updateProcessStmt.setString(9, sanitizedSubmissionDate);
-        } else {
-            updateProcessStmt.setNull(9, 0);
-        }
+// Sanitize and set schematic_created.
+var updateSanitizedSchematicCreated = sanitizeBoolean(projectProcessData.schematic_created);
+if (updateSanitizedSchematicCreated) {
+    updateProcessStmt.setBoolean(6, projectProcessData.schematic_created);
+} else {
+    updateProcessStmt.setNull(6, 0);
+}
 
-        // Sanitize and set dno_due_date
-        var sanitizedDnoDueDate = sanitizeDateForSql(projectProcessData.dno_due_date);
-        if (sanitizedDnoDueDate) {
-            updateProcessStmt.setString(10, sanitizedDnoDueDate);
-        } else {
-            updateProcessStmt.setNull(10, 0);
-        }
+updateProcessStmt.setString(7, projectProcessData.application_type);
 
-        updateProcessStmt.setString(11, dnoStatusId);
-        updateProcessStmt.setFloat(12, projectProcessData.approved_kwp);
-        updateProcessStmt.setBoolean(13, projectProcessData.quote_received);
+// Sanitize and set formal_dno_submitted.
+var updateSanitizedFormalDnoSubmitted = sanitizeBoolean(projectProcessData.formal_dno_submitted);
+if (updateSanitizedFormalDnoSubmitted) {
+    updateProcessStmt.setBoolean(8, projectProcessData.formal_dno_submitted);
+} else {
+    updateProcessStmt.setNull(8, 0);
+}
 
-        // Sanitize and set customer_invoiced_date
-        var sanitizedCustomerInvoicedDate = sanitizeDateForSql(projectProcessData.customer_invoiced_date);
-        if (sanitizedCustomerInvoicedDate) {
-            updateProcessStmt.setString(14, sanitizedCustomerInvoicedDate);
-        } else {
-            updateProcessStmt.setNull(14, 0);
-        }
+// Sanitize and set submission_date
+var sanitizedSubmissionDate = sanitizeDateForSql(projectProcessData.submission_date);
+if (sanitizedSubmissionDate) {
+    updateProcessStmt.setString(9, sanitizedSubmissionDate);
+} else {
+    updateProcessStmt.setNull(9, 0);
+}
 
-        // Sanitize and set dno_payment_made
-        var sanitizedDnoPaymentMade = sanitizeDateForSql(projectProcessData.dno_payment_made);
-        if (sanitizedDnoPaymentMade) {
-            updateProcessStmt.setString(15, sanitizedDnoPaymentMade);
-        } else {
-            updateProcessStmt.setNull(15, 0);
-        }
+// Sanitize and set dno_due_date
+var sanitizedDnoDueDate = sanitizeDateForSql(projectProcessData.dno_due_date);
+if (sanitizedDnoDueDate) {
+    updateProcessStmt.setString(10, sanitizedDnoDueDate);
+} else {
+    updateProcessStmt.setNull(10, 0);
+}
 
-        updateProcessStmt.setBoolean(16, projectProcessData.acceptance_form_returned);
+updateProcessStmt.setString(11, dnoStatusId);
 
+// Sanitize and set approved_kwp.
+var insertSanitizedApprovedKwp = sanitizeFloat(projectProcessData.approved_kwp);
+if (insertSanitizedApprovedKwp !== null) {
+    insertProcessStmt.setFloat(12, insertSanitizedApprovedKwp);
+} else {
+    insertProcessStmt.setNull(12, 0);
+}
+
+// Sanitize and set quote_received.
+var updateSanitizedQuoteReceived = sanitizeBoolean(projectProcessData.quote_received);
+if (updateSanitizedQuoteReceived) {
+    updateProcessStmt.setBoolean(13, projectProcessData.quote_received);
+} else {
+    updateProcessStmt.setNull(13, 0);
+}
+
+// Sanitize and set customer_invoiced_date
+var sanitizedCustomerInvoicedDate = sanitizeDateForSql(projectProcessData.customer_invoiced_date);
+if (sanitizedCustomerInvoicedDate) {
+    updateProcessStmt.setString(14, sanitizedCustomerInvoicedDate);
+} else {
+    updateProcessStmt.setNull(14, 0);
+}
+
+// Sanitize and set dno_payment_made
+var sanitizedDnoPaymentMade = sanitizeDateForSql(projectProcessData.dno_payment_made);
+if (sanitizedDnoPaymentMade) {
+    updateProcessStmt.setString(15, sanitizedDnoPaymentMade);
+} else {
+    updateProcessStmt.setNull(15, 0);
+}
+
+// Sanitize and set acceptance_form_returned.
+var updateSanitizedAcceptanceFormReturned = sanitizeBoolean(projectProcessData.acceptance_form_returned);
+if (updateSanitizedAcceptanceFormReturned) {
+    updateProcessStmt.setBoolean(16, projectProcessData.acceptance_form_returned);
+} else {
+    updateProcessStmt.setNull(16, 0);
+}
         // Sanitize and set date_approved
         var sanitizedDateApproved = sanitizeDateForSql(projectProcessData.date_approved);
         if (sanitizedDateApproved) {
@@ -152,12 +198,38 @@ function importProjectProcess(conn, instanceId, importId, projectProcessData) {
             insertProcessStmt.setNull(4, 0);
         }
 
-        insertProcessStmt.setBoolean(5, projectProcessData.auth_letter_sent);
-        insertProcessStmt.setBoolean(6, projectProcessData.mpan_request_sent);
-        insertProcessStmt.setBoolean(7, projectProcessData.schematic_created);
-        insertProcessStmt.setString(8, projectProcessData.application_type);
-        insertProcessStmt.setBoolean(9, projectProcessData.formal_dno_submitted);
+        // Sanitize and set submission_date for auth letter sent.
+        var insertSanitizedAuthLetterSent = sanitizeBoolean(projectProcessData.auth_letter_sent);
+        if (insertSanitizedAuthLetterSent) {
+            insertProcessStmt.setBoolean(5, projectProcessData.auth_letter_sent);
+        } else {
+            insertProcessStmt.setNull(5, 0); // this is different from your training. It must be this as java.sql.Types.BOOLEAN does not work.
+        }
 
+ // Sanitize and set mpan_request_sent.
+ var insertSanitizedMpanRequestSent = sanitizeBoolean(projectProcessData.mpan_request_sent);
+ if (insertSanitizedMpanRequestSent) {
+     insertProcessStmt.setBoolean(6, projectProcessData.mpan_request_sent);
+ } else {
+     insertProcessStmt.setNull(6, 0);
+ }
+
+ // Sanitize and set schematic_created.
+ var insertSanitizedSchematicCreated = sanitizeBoolean(projectProcessData.schematic_created);
+ if (insertSanitizedSchematicCreated) {
+     insertProcessStmt.setBoolean(7, projectProcessData.schematic_created);
+ } else {
+     insertProcessStmt.setNull(7, 0);
+ }
+
+        insertProcessStmt.setString(8, projectProcessData.application_type);
+// Sanitize and set formal_dno_submitted.
+var insertSanitizedFormalDnoSubmitted = sanitizeBoolean(projectProcessData.formal_dno_submitted);
+if (insertSanitizedFormalDnoSubmitted) {
+    insertProcessStmt.setBoolean(9, projectProcessData.formal_dno_submitted);
+} else {
+    insertProcessStmt.setNull(9, 0);
+}
         // Sanitize and set submission_date for insert
         var insertSanitizedSubmissionDate = sanitizeDateForSql(projectProcessData.submission_date);
         if (insertSanitizedSubmissionDate) {
@@ -175,9 +247,19 @@ function importProjectProcess(conn, instanceId, importId, projectProcessData) {
         }
 
         insertProcessStmt.setString(12, dnoStatusId);
-        insertProcessStmt.setFloat(13, projectProcessData.approved_kwp);
-        insertProcessStmt.setBoolean(14, projectProcessData.quote_received);
-
+// Sanitize and set approved_kwp.
+var insertSanitizedApprovedKwp = sanitizeFloat(projectProcessData.approved_kwp);
+if (insertSanitizedApprovedKwp !== null) {
+    insertProcessStmt.setFloat(13, insertSanitizedApprovedKwp);
+} else {
+    insertProcessStmt.setNull(13, 0);
+}// Sanitize and set quote_received.
+var insertSanitizedQuoteReceived = sanitizeBoolean(projectProcessData.quote_received);
+if (insertSanitizedQuoteReceived) {
+    insertProcessStmt.setBoolean(14, projectProcessData.quote_received);
+} else {
+    insertProcessStmt.setNull(14, 0);
+}
         // Sanitize and set customer_invoiced_date for insert
         var insertSanitizedCustomerInvoicedDate = sanitizeDateForSql(projectProcessData.customer_invoiced_date);
         if (insertSanitizedCustomerInvoicedDate) {
@@ -194,8 +276,13 @@ function importProjectProcess(conn, instanceId, importId, projectProcessData) {
             insertProcessStmt.setNull(16, 0);
         }
 
-        insertProcessStmt.setBoolean(17, projectProcessData.acceptance_form_returned);
-
+// Sanitize and set acceptance_form_returned.
+var insertSanitizedAcceptanceFormReturned = sanitizeBoolean(projectProcessData.acceptance_form_returned);
+if (insertSanitizedAcceptanceFormReturned) {
+    insertProcessStmt.setBoolean(17, projectProcessData.acceptance_form_returned);
+} else {
+    insertProcessStmt.setNull(17, 0);
+}
         // Sanitize and set date_approved for insert
         var insertSanitizedDateApproved = sanitizeDateForSql(projectProcessData.date_approved);
         if (insertSanitizedDateApproved) {
