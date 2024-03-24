@@ -948,9 +948,26 @@ function determineInstallStatus(dateInstall, dateChecked) {
 }
 
 function sanitizeBoolean(value) {
-    const trueValues = ['yes', 'true', '1'];
-    return trueValues.includes(value.toString().toLowerCase());
+  // Define arrays for true and false values
+  const trueValues = ['yes', 'true', '1', 'one'];
+  const falseValues = ['no', 'false', '0', 'zero'];
+
+  // Convert value to lowercase string if it's not null or undefined
+  const valueStr = value == null ? value : value.toString().toLowerCase();
+
+  // Check and return the corresponding boolean or null
+  if (trueValues.includes(valueStr)) {
+    return true;
+  } else if (falseValues.includes(valueStr)) {
+    return false;
+  } else if (valueStr === '' || value == null) { // Checks for empty string, null, or undefined
+    return null;
+  }
+
+  // Return null for any other unexpected value
+  return null;
 }
+
 
 
 /**
