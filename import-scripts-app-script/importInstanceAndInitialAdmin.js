@@ -57,7 +57,8 @@ function insertInstanceAndGetUuid(conn, clientObject) {
 
     if (rs.next()) {
         var existingInstanceId = rs.getString('instance_id');
-        return { instanceId: existingInstanceId };
+        var userId = insertUserAndGetUuid(conn, existingInstanceId, clientObject.userObject);
+        return { instanceId: existingInstanceId, adminUserId: userId };
     } else {
         var uuid = Utilities.getUuid();
         var userId = insertUserAndGetUuid(conn, uuid, clientObject.userObject);
