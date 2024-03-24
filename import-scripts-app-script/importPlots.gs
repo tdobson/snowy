@@ -43,11 +43,13 @@
  * var plotId = importPlotData(conn, instanceId, importId, plotData, sheet);
  */
 function importPlotData(conn, instanceId, importId, plotData, sheet) {
-    var checkPlotStmt = conn.prepareStatement('SELECT * FROM sn_plots WHERE instance_id = ? AND (plot_id = ? OR plot_number = ? AND tracker_ref = ?)');
+    var checkPlotStmt = conn.prepareStatement('SELECT * FROM sn_plots p JOIN sn_elevations_spec es ON p.plot_id=es.plot_id WHERE p.instance_id = ? AND (p.plot_id = ? OR plot_number = ? AND tracker_ref = ? AND pitch = ? AND orientation = ?)');
     checkPlotStmt.setString(1, instanceId);
     checkPlotStmt.setString(2, plotData.plotId);
     checkPlotStmt.setString(3, plotData.plotNumber);
     checkPlotStmt.setString(4, plotData.trackerRef);
+    checkPlotStmt.setString(5, plotData.elevationSpecData.pitch);
+    checkPlotStmt.setString(6, plotData.elevationSpecData.orientation);
 
     var rs = checkPlotStmt.executeQuery();
 
