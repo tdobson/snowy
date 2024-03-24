@@ -478,11 +478,24 @@ const queryConfigByIndex = {
     }
 };
 
+const clientObject = {
+    instanceNameKey: "upowa", // A unique identifier or key for the instance, used to prevent duplicate entries.
+    instanceName: "Upowa", // The human-readable name of the instance.
+    instanceDescription: "Upowa installs Solar PV", // A brief description of the instance or client.
+    userObject: { // Details about the initial admin user for this instance.
+        name: "Tim Dobson", // Full name of the user.
+        email: "tim@migratingdragons.com", // Email address of the user, used to check for existing users.
+        employer: "Migrating Dragons", // Name of the user's employer, which in this case is the same as the instance name.
+        companyRole: "CEO", // The user's role within their company.
+        snowyRole: "Administrator" // The user's role within the Snowy application.
+    }
+};
 
 // This script will try to import everything possible from the eco2 tracker
 function main() {
     var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
-    var importId = insertImportEvent(conn, GLOBAL_INSTANCE_ID , '', 'Site Log Import', 'Test Import', '4df57691-4d43-4cfb-9338-00e4cfafa63d');
+    var instanceId = insertInstanceAndGetUuid(conn, clientObject)
+    var importId = insertImportEvent(conn, instanceId , '', 'Site Log Import', 'Test Import', '4df57691-4d43-4cfb-9338-00e4cfafa63d');
 
     let rowObject = querySheetsByIndexWithSpecialSheet(queryConfigByIndex); //15-20seconds
     Logger.log(JSON.stringify(rowObject));
