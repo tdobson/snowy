@@ -41,6 +41,101 @@ FROM
     LEFT JOIN sn_sites s ON pr.site_id = s.site_id
     LEFT JOIN sn_addresses a ON c.client_address_id = a.address_id;
 
+CREATE VIEW sn_vw_project_info_for_tracker AS
+SELECT
+    p.project_id,
+    p.pv_number AS projectNo,
+    s.site_name AS site,
+    c.client_name AS clientName,
+    a.address_line_1 AS siteAddress,
+    a.address_postcode AS sitePostcode,
+    cf.field_value AS sitew3w,
+    u1.name AS surveyorName,
+    u1.phone AS surveyorTel,
+    u1.email AS surveyorEmail,
+    u2.name AS siteAgentName,
+    u2.phone AS siteAgentTel,
+    u2.email AS siteAgentEmail
+FROM sn_projects p
+JOIN sn_sites s ON p.site_id = s.site_id
+JOIN sn_clients c ON p.client_id = c.client_id
+JOIN sn_addresses a ON s.site_address_id = a.address_id
+LEFT JOIN sn_custom_fields cf ON s.site_id = cf.entity_id AND cf.field_name = 'sitew3w'
+LEFT JOIN sn_users u1 ON s.site_surveyor_id = u1.user_id
+LEFT JOIN sn_users u2 ON s.site_agent_id = u2.user_id
+WHERE p.instance_id = (SELECT instance_id FROM sn_instances LIMIT 1);
+
+CREATE VIEW sn_vw_plot_details_for_tracker AS
+SELECT
+    p.plot_id,
+    pr.pv_number,
+    p.plot_number,
+    p.housetype,
+    a.address_line_1 AS house_no,
+    a.address_line_2 AS street,
+    a.address_town AS town,
+    a.address_postcode AS postcode,
+    p.mpan,
+    es.panel,
+    es.panel_cost AS panelkwp,
+    es.type_test_ref AS mcscode,
+    es.orientation,
+    es.strings AS columns,
+    es.module_qty AS `rows`,
+    ps.phase,
+    es.strings AS totalstrings,
+    ef1.field_value AS string1,
+    ef2.field_value AS string2,
+    ef3.field_value AS string3,
+    ef4.field_value AS string4,
+    es.inverter,
+    ef5.field_value AS trackerstringno,
+    ef6.field_value AS inverterhybrid,
+    es.type_test_ref AS typetestno,
+    ef7.field_value AS ratedoutputpower,
+    ps.battery,
+    es.roof_kit AS mountingkit,
+    ef8.field_value AS tiletype,
+    es.pitch AS roofincline,
+    ef9.field_value AS variationfromsouth,
+    ef10.field_value AS kwhperkwp,
+    ef6.field_value AS inaboveroof,
+    ef11.field_value AS overshadingfactor,
+    es.module_qty AS nopanels,
+    ef12.field_value AS arraym2,
+    es.kwp,
+    ef13.field_value AS kwh,
+    ef14.field_value AS co2equivalent,
+    ef15.field_value AS netkwp,
+    ps.meter AS metermake,
+    pcf.field_value AS metermodel,
+    ps.overall_cost AS totalcost,
+    pcf2.field_value AS totalprice,
+    pcf3.field_value AS givenergy
+FROM
+    sn_plots p
+    LEFT JOIN sn_projects pr ON p.project_id = pr.project_id
+    LEFT JOIN sn_plot_spec ps ON p.plot_id = ps.plot_id
+    LEFT JOIN sn_elevations_spec es ON p.plot_id = es.plot_id
+    LEFT JOIN sn_addresses a ON p.plot_address_id = a.address_id
+    LEFT JOIN sn_custom_fields ef1 ON ps.plot_spec_id = ef1.entity_id AND ef1.entity_type = 'plotSpec' AND ef1.field_name = 'String_one'
+    LEFT JOIN sn_custom_fields ef2 ON ps.plot_spec_id = ef2.entity_id AND ef2.entity_type = 'plotSpec' AND ef2.field_name = 'String_two'
+    LEFT JOIN sn_custom_fields ef3 ON ps.plot_spec_id = ef3.entity_id AND ef3.entity_type = 'plotSpec' AND ef3.field_name = 'String_three'
+    LEFT JOIN sn_custom_fields ef4 ON ps.plot_spec_id = ef4.entity_id AND ef4.entity_type = 'plotSpec' AND ef4.field_name = 'String_four'
+    LEFT JOIN sn_custom_fields ef5 ON es.elevation_spec_id = ef5.entity_id AND ef5.entity_type = 'elevationSpec' AND ef5.field_name = 'NO_Trackers'
+    LEFT JOIN sn_custom_fields ef6 ON es.elevation_spec_id = ef6.entity_id AND ef6.entity_type = 'elevationSpec' AND ef6.field_name = 'IN___ABOVE_ROOF'
+    LEFT JOIN sn_custom_fields ef7 ON es.elevation_spec_id = ef7.entity_id AND ef7.entity_type = 'elevationSpec' AND ef7.field_name = 'Rated_Output__W_'
+    LEFT JOIN sn_custom_fields ef8 ON es.elevation_spec_id = ef8.entity_id AND ef8.entity_type = 'elevationSpec' AND ef8.field_name = 'Tile_Type'
+    LEFT JOIN sn_custom_fields ef9 ON es.elevation_spec_id = ef9.entity_id AND ef9.entity_type = 'elevationSpec' AND ef9.field_name = 'Input_Variation_from_South'
+    LEFT JOIN sn_custom_fields ef10 ON es.elevation_spec_id = ef10.entity_id AND ef10.entity_type = 'elevationSpec' AND ef10.field_name = 'kWh_KWp'
+    LEFT JOIN sn_custom_fields ef11 ON es.elevation_spec_id = ef11.entity_id AND ef11.entity_type = 'elevationSpec' AND ef11.field_name = 'OVERSHADING_FACTOR'
+    LEFT JOIN sn_custom_fields ef12 ON es.elevation_spec_id = ef12.entity_id AND ef12.entity_type = 'elevationSpec' AND ef12.field_name = 'ARRAY_Mtwo'
+    LEFT JOIN sn_custom_fields ef13 ON es.elevation_spec_id = ef13.entity_id AND ef13.entity_type = 'elevationSpec' AND ef13.field_name = 'kWh'
+    LEFT JOIN sn_custom_fields ef14 ON es.elevation_spec_id = ef14.entity_id AND ef14.entity_type = 'elevationSpec' AND ef14.field_name = 'COtwo_EQUIVALENT'
+    LEFT JOIN sn_custom_fields ef15 ON es.elevation_spec_id = ef15.entity_id AND ef15.entity_type = 'elevationSpec' AND ef15.field_name = 'Net_kWp'
+    LEFT JOIN sn_custom_fields pcf ON ps.plot_spec_id = pcf.entity_id AND pcf.entity_type = 'plotSpec' AND pcf.field_name = 'Model_Number'
+    LEFT JOIN sn_custom_fields pcf2 ON ps.plot_spec_id = pcf2.entity_id AND pcf2.entity_type = 'plotSpec' AND pcf2.field_name = 'Plot_Total__Quoted_'
+    LEFT JOIN sn_custom_fields pcf3 ON ps.plot_spec_id = pcf3.entity_id AND pcf3.entity_type = 'plotSpec' AND pcf3.field_name = 'GIVENERGY';
 
     -- this view provides the info requires to submit to the MCS api
     CREATE VIEW sn_vw_mcs_submission_details AS
