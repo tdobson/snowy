@@ -205,12 +205,12 @@ CREATE TABLE IF NOT EXISTS sn_elevations_spec (
     kwp FLOAT,                         -- Kilowatt-peak at this elevation.
     strings INT,                       -- Number of strings in the solar setup.
     module_qty INT,                    -- Quantity of modules in the setup.
-    inverter VARCHAR(255),             -- Identifier for the inverter used.
+    inverter CHAR(36),             -- Identifier for the inverter used.
     inverter_cost FLOAT,               -- Cost of the inverter.
-    panel VARCHAR(255),                -- Identifier for the solar panel type.
+    panel CHAR(36),                -- Identifier for the solar panel type.
     panel_cost FLOAT,                  -- Cost of the solar panels.
     panels_total_cost FLOAT,           -- Total cost of all panels used.
-    roof_kit VARCHAR(255),             -- Identifier for the roof mounting kit.
+    roof_kit CHAR(36),             -- Identifier for the roof mounting kit.
     roof_kit_cost FLOAT,               -- Cost of the roof mounting kit.
     annual_yield FLOAT,                -- Expected annual energy yield.
     import_id CHAR(36),                -- Import event ID.
@@ -232,12 +232,12 @@ CREATE TABLE IF NOT EXISTS sn_elevations_install (
     kwp FLOAT,                         -- Kilowatt-peak at this elevation.
     strings INT,                       -- Number of strings in the solar setup.
     module_qty INT,                    -- Quantity of modules in the setup.
-    inverter VARCHAR(255),             -- Identifier for the inverter used.
+    inverter CHAR(36),             -- Identifier for the inverter used.
     inverter_cost FLOAT,               -- Cost of the inverter.
-    panel VARCHAR(255),                -- Identifier for the solar panel type.
+    panel CHAR(36),                -- Identifier for the solar panel type.
     panel_cost FLOAT,                  -- Cost of the solar panels.
     panels_total_cost FLOAT,           -- Total cost of all panels used.
-    roof_kit VARCHAR(255),             -- Identifier for the roof mounting kit.
+    roof_kit CHAR(36),             -- Identifier for the roof mounting kit.
     roof_kit_cost FLOAT,               -- Cost of the roof mounting kit.
     annual_yield FLOAT,                -- Expected annual energy yield.
     import_id CHAR(36),                -- Import event ID.

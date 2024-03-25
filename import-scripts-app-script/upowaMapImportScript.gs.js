@@ -81,11 +81,10 @@ function prepareImportObject(importSheetData){
                         Net_kWp: importSheetData.MAP.Net_kWp,
                         FF_Material: importSheetData.MAP.FF_Material,
                         PARCEL: importSheetData.MAP.PARCEL,
+                        Roof_Incline: importSheetData.Total_Costing.Roof_Incline,
                         Plot_Requirement: importSheetData.Total_Costing.Plot_Requirement,
                         Block___House: importSheetData.Total_Costing.Block___House,
                         PV_Diverter: importSheetData.Total_Costing.PV_Diverter,
-                        Model_Number: importSheetData.Total_Costing.Model_Number,
-                        Rated_Output__W_: importSheetData.Total_Costing.Rated_Output__W_,
                         Protective_Device: importSheetData.Total_Costing.Protective_Device,
                         Finished_Drawing: importSheetData.Total_Costing.Finished_Drawing,
                         Commissioning_Info_In: importSheetData.Total_Costing.Commissioning_Info_In,
@@ -250,9 +249,9 @@ function prepareImportObject(importSheetData){
             elevationSpecData: {
                 "plot_spec_id": "", // Needs a UUID or a unique identifier; no direct mapping
                 "plot_id": "",
-                "type_test_ref": "",
+                "type_test_ref": importSheetData.Total_Costing.Model_Number,
                 "pitch": importSheetData.MAP.Roof_Incline,
-                "orientation": importSheetData.MAP.CARDINAL_DIRECTION,
+                "orientation": importSheetData.MAP.Orientation,
                 "kk_figure": importSheetData.MAP.KWh_KWp,
                 "kwp": importSheetData.MAP.KWp,
                 "strings": importSheetData.MAP.Total_Strings,
@@ -268,12 +267,18 @@ function prepareImportObject(importSheetData){
                 customFields: {
                     entityType: 'elevationSpec',
                     fields: {
+                        Inverter_Model_Number: importSheetData.Total_Costing.Model_Number,
+                        Inverter_Rated_Output__W_: importSheetData.Total_Costing.Rated_Output__W_,
+                        Columns: importSheetData.MAP.Columns,
+                        Rows: importSheetData.MAP.Rows,
                         Mounting: importSheetData.MAP.Mounting,
                         Tile_Type: importSheetData.MAP.Tile_Type,
                         Elevation_No: importSheetData.MAP.Elevation_No,
                         Building_Side: importSheetData.MAP.Building_Side,
                         Input_Roof_Incline: importSheetData.MAP.Input_Roof_Incline,
-                        Input_Variation_from_South: importSheetData.MAP.Input_Variation_from_South
+                        Input_Variation_from_South: importSheetData.MAP.Input_Variation_from_South,
+                        Inverter_Manufacturer: importSheetData.Total_Costing.Inverter_Manufacturer,
+                        CARDINAL_DIRECTION: importSheetData.MAP.CARDINAL_DIRECTION
                     }
                 }
             },
@@ -428,6 +433,13 @@ function main() {
         if (rowObject.matched === false) {
             // console.log("No matching data found in the 'Total Costing' sheet for the specified row index in the 'MAP' sheet.");
             queryConfigByIndex.sheets.MAP.searchIndex++;
+            const currentTime = new Date().getTime();
+            const elapsedTime = currentTime - startTime;
+            if (elapsedTime >= 20 * 60 * 1000) { // 20 minutes in milliseconds
+                // Store the current searchIndex in a persistent script variable
+                scriptProperties.setProperty(persistentScriptVariableName, queryConfigByIndex.sheets.MAP.searchIndex.toString());
+                break;
+            }
             continue;
         }
 
@@ -446,6 +458,5 @@ function main() {
         }
     }
 }
-
 
 
