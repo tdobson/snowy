@@ -1091,6 +1091,11 @@ function querySheetsByIndexWithSpecialSheet(config) {
   const baseRowIndex = config.sheets[baseSheetName].searchIndex;
   const baseRowData = sheetData[formattedBaseSheetName][baseRowIndex];
 
+  // Check if the row at the search index is completely blank
+  if (!baseRowData || !Object.values(baseRowData).some(value => value !== "")) {
+    return { "matched": false };
+  }
+
   // Join data based on the common join key and base row data
   const joinedData = {};
   const joinKey = baseRowData[formatColumnName(config.sheets[baseSheetName].joinOn)];
