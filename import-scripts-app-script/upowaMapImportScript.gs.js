@@ -7,133 +7,6 @@
 * schedule
 * devicemagic form return details
 */
-
-//var testImportSheetData2 = {"plotData":{"plotId":"","projectId":"","plotNumber":"84","plotStatus":"","siteId":"","housetype":"","g99":"","mpan":"","plotAddressId":"","plotApproved":false,"commissioningFormSubmitted":"","trackerRef":124,"legacyPlotID":4710,"plotSpecData":{"plotSpecId":"","plotId":"","dateSpecified":"","specifiedBy":"","plotSpecStatus":"Specified","phase":"Single Phase","p1":0.7,"p2":0,"p3":0,"annualYield":648.81,"kwp":0.7,"kwpWithLimitation":0.7,"limiterRequired":false,"limiterValueIfNotZero":"","labourCost":"","meter":"","meterCost":"","battery":"","batteryCost":"","overallCost":1099,"landlordSupply":false},"plotInstallData":{"plotInstallId":"","plotId":"","dateInstall":"","dateChecked":"","installBy":"","checkedBy":"","plotInstallStatus":"","phase":"Single Phase","p1":0.7,"p2":0,"p3":0,"annualYield":648.81,"kwp":0.7,"kwpWithLimitation":0.7,"limiterRequired":false,"limiterValueIfNotZero":"","labourCost":"","meter":"","meterCost":"","battery":"","batteryCost":"","overallCost":1099,"mcsSubmissionId":""},"siteData":{"siteName":"St Andrews Park,Lutterworth Road, Franklyn Fields","addressData":{"address_line_1":"Gate 4, Rugby Radio Station","address_line_2":"Houlton","address_town":"Rugby","address_county":"Warwickshire","address_postcode":"CV23 0AB","address_country":"UK","address_region_id":"","address_region_number":3},"userData":{"sso_id":"","name":"","email":"Stephen.Newell@lovell.co.uk","phone":"","employer":"Lovell Partnerships west Midlands","team":"","dispatch_id":"","snowy_role":"Site Manager","company_role":"Site Manager","category":"Humans"},"mpanId":"","pvNumber":"02501PV"},"elevationData":{"plot_install_id":"","plot_id":"","type_test_ref":"SOLIS/03638/V1","pitch":34,"orientation":75,"kk_figure":999,"kwp":0.7,"strings":1,"module_qty":3,"inverter":"Solis-mini-700-S5","inverter_cost":"","panel":"270w Viridian Poly Black","panel_cost":"","panels_total_cost":"","roof_kit":"GSE-test-item","roof_kit_cost":"","annual_yield":648.81},"elevationSpecData":{"plot_spec_id":"","plot_id":"","type_test_ref":"SOLIS/03638/V1","pitch":34,"orientation":75,"kk_figure":999,"kwp":0.7,"strings":1,"module_qty":3,"inverter":"Solis-mini-700-S5","inverter_cost":"","panel":"270w Viridian Poly Black","panel_cost":"","panels_total_cost":"","roof_kit":"GSE-test-item","roof_kit_cost":"","annual_yield":648.81},"projectData":{"pvNumber":"06798PV","clientData":{"email":"","name":"Lovell Partnerships west Midlands","addressData":{"address_line_1":"Lovell Partnerships west Midlands","address_line_2":"Building 7","address_town":"Quinton Business Park","address_county":"Birmingham","address_postcode":"B32 1AF","address_country":"UK"}},"dnoDetails":{"mpanId":"","dnoName":"GTC","refNumber":24,"dnoZone":6},"projectProcessData":{"project_process_id":"","approval_status":"6-Full Approval","deadline_to_connect":"","auth_letter_sent":true,"mpan_request_sent":true,"schematic_created":true,"application_type":"G98","formal_dno_submitted":true,"submission_date":"2022-05-10T23:00:00.000Z","dno_due_date":"2022-07-10T23:00:00.000Z","dno_status":"6-Full Approval","approved_kwp":281,"quote_received":true,"customer_invoiced_date":null,"dno_payment_made":null,"acceptance_form_returned":true,"date_approved":"2022-06-29T23:00:00.000Z"},"additionalDetails":{"refNumber":"N0016614-1","projectName":"Rugby Radio Station (Lovell)","jobCode":"06798PV","comments":"","dnoZone":6}}}}
-
-
-/* var testImportSheetData = {
-    "Plots": {
-        "Plot_ID": 4709,
-        "Tracker_Ref": 124,
-        "Project_Number": "02501PV",
-        "Plot_Number": "83",
-        "Site": "St Andrews Park,Lutterworth Road, Franklyn Fields",
-        "Client": "Morris Homes Midlands",
-        "Region": "",
-        "Gninenine": "",
-        "Mpan": "",
-        "Postal_Name___Number": "",
-        "Postal_Street": "",
-        "POSTAL_POSTCODE": "",
-        "KWP": 0.7,
-        "MODULE_SIZE": 0.27,
-        "MODULE_QTY": 2,
-        "INVERTER": "Solis-mini-700-S5",
-        "PANEL_SPECIFIED": "270w Viridian Poly Black",
-        "Strings": 1,
-        "Phase": "Single Phase",
-        "Pone": 0.7,
-        "Ptwo": 0,
-        "Pthree": 0,
-        "DUAL_ELEVATION": "",
-        "STATUS": "",
-        "TYPE_TEST_Ref": "SOLIS/03638/V1",
-        "Project_Plot": "02501PV-83",
-        "Site_Ref": 2501,
-        "Pitch": 30,
-        "Orientation": 95,
-        "DNO_Zone": 6,
-        "Annual_Yield": 401.76,
-        "kWp_with_limitation": 0.7,
-        "Limiter_Required": false,
-        "Limiter_Value_If_not_Zero": "",
-        "Plot_Approved": false,
-        "Landlord_Supply": false,
-        "onest_fix_completion_date": "",
-        "onest_fix_Installed_Roof_Kit": "",
-        "onest_fix_Installed_Panel": "",
-        "onest_fix_Installed_Total_Panels": "",
-        "twond_fix_completion_date": "",
-        "twond_fix_Installed_Panel": "",
-        "twond_fix_Installed_Capacity": "",
-        "twond_fix_Installed_Inverter": "",
-        "RoofKit": "GSE-test-item",
-        "Overall_Cost": 1099,
-        "KK_figure": 999,
-        "": "",
-        "Inverter_manufacturer": ""
-    },
-    "Tracker": {
-        "": 59,
-        "Submission_ref": "",
-        "Client": "Lovell Partnerships west Midlands",
-        "PV_NO": "06798PV",
-        "REGION": 3,
-        "PROJECT_NAME": "Rugby Radio Station (Lovell)",
-        "DNO_MPAN_ref": 24,
-        "DNO_NAME": "GTC",
-        "REF_NUMBER": "N0016614-1",
-        "SITE_LIVE": "",
-        "Application_Type": "G98",
-        "FORMAL_DNO_SUBMITTED": true,
-        "SUBMISSION_DATE": "2022-05-10T23:00:00.000Z",
-        "DNO_DUE_DATE": "2022-07-10T23:00:00.000Z",
-        "DNO_Status": "6-Full Approval",
-        "QUOTE_RECEIVED": "2022-06-23T23:00:00.000Z",
-        "Customer_Invoiced_Date": "N/A",
-        "DNO_Payment_Made": "N/A",
-        "Acceptance_Form_returned": "2022-06-26T23:00:00.000Z",
-        "DATE_APPROVED": "2022-06-29T23:00:00.000Z",
-        "Comments": "",
-        "Deadline_to_Connect": "",
-        "twond_Fix_Date": "",
-        "Commissioning_Form_Submitted": "",
-        "Number_of_Plots_Loaded": 169,
-        "Current_Project_Plots": 169,
-        "Plots_approved": 0,
-        "Approval_Progress____": 0,
-        "Plots_With_Limiter_required": 0,
-        "Plots_With_MPAN": 0,
-        "Plots_With_Address": 0,
-        "Auth_Letter_Sent": true,
-        "Mpan_request_Sent": true,
-        "Schematic_created": true,
-        "Gnineeight_Application_created": true,
-        "Gnineeightnine_Application_created": false,
-        "Current_Total_kWp": 281,
-        "Total_kWp_with_Limitation": 281,
-        "Approved_kWp": "281kW",
-        "kWp_from_Oscar": ""
-    },
-    "Site log": {
-        "Internal_Ref": 59,
-        "Project_Number": "06798PV",
-        "client": "Lovell Partnerships west Midlands",
-        "project_name": "Rugby Radio Station (Lovell)",
-        "Region": "",
-        "SITE_ADDRESS_LINE_one": "Gate 4, Rugby Radio Station",
-        "SITE_ADDRESS_LINE_two": "Houlton",
-        "SITE_TOWN": "Rugby",
-        "SITE_COUNTY": "Warwickshire",
-        "SITE_POSTCODE": "CV23 0AB",
-        "DNo_responsible_name": "",
-        "dno_responsible_email": "",
-        "Site_manager_name": "",
-        "Site_manager_email": "Stephen.Newell@lovell.co.uk",
-        "site_manager_phone": "",
-        "Client_address_one": "Lovell Partnerships west Midlands",
-        "client_address_two_": "Building 7",
-        "client_address_three": "18 Ridgeway",
-        "Town": "Quinton Business Park",
-        "County": "Birmingham",
-        "Post_Code": "B32 1AF",
-        "Contact_name": "",
-        "Contact_Email": "",
-        "File_name": "DNO Document Master.csv",
-        "Load_Date": "2022-03-31T09:32:14.280Z"
-    }
-}
-*/
 function prepareImportObject(importSheetData){
 
     var sheetData = {
@@ -487,7 +360,7 @@ const queryConfigByIndex = {
     sheets: {
         MAP: {
             joinOn: "PLOT NO",
-            searchIndex: 3
+            searchIndex: 0
         },
         "Total Costing": {
             joinOn: "PLOT NO"
@@ -510,33 +383,69 @@ const clientObject = {
     }
 };
 
-// This script will try to import everything possible from the upowa map file
+/**
+ * This function imports plot data from a spreadsheet into a database.
+ *
+ * It establishes a database connection using the provided credentials and creates an import event.
+ * Then, it enters a loop where it retrieves row data from the "Total Costing" sheet based on the
+ * index specified in the "MAP" sheet. If the row data matches, it prepares an import object and
+ * imports the plot data into the database using the `importPlotData` function. After each iteration,
+ * the `searchIndex` in the "MAP" sheet is incremented.
+ *
+ * The loop continues until 20 minutes have elapsed since the start time.
+ * Before the loop terminates, it stores the current `searchIndex` in a persistent script variable
+ * associated with the `queryConfigByIndex.sheetId`.
+ *
+ * If a persistent script variable exists for the current `queryConfigByIndex.sheetId`, the function
+ * sets the `queryConfigByIndex.sheets.MAP.searchIndex` to the value of the persistent script variable
+ * before starting the loop.
+ *
+ * @function
+ * @returns {undefined} This function does not return anything.
+ */
 function main() {
     var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
-    var details = insertInstanceAndGetUuid(conn, clientObject)
+    var details = insertInstanceAndGetUuid(conn, clientObject);
+    var importId = insertImportEvent(conn, details.instanceId, '', 'Site Log Import', 'Test Import', details.adminUserId);
 
-    var importId = insertImportEvent(conn, details.instanceId , '', 'Site Log Import', 'Test Import', details.adminUserId);
+// Check if a persistent script variable exists for the current queryConfigByIndex.sheetId
+    const persistentScriptVariableName = `searchIndex_${queryConfigByIndex.sheetId}`;
 
-    let rowObject = querySheetsByIndexWithSpecialSheet(queryConfigByIndex); //15-20seconds
-    Logger.log(JSON.stringify(rowObject));
+// Get the script properties service
+    var scriptProperties = PropertiesService.getScriptProperties();
 
-    if (rowObject.matched === false) {
-        console.log("No matching data found in the 'Total Costing' sheet for the specified row index in the 'MAP' sheet.");
-        console.log("exiting")
-        return 0
+// Get the persistent script variable
+    var persistentScriptVariable = scriptProperties.getProperty(persistentScriptVariableName);
+    if (persistentScriptVariable) {
+        queryConfigByIndex.sheets.MAP.searchIndex = parseInt(persistentScriptVariable, 10);
     }
 
-    let importObject = prepareImportObject(rowObject);
-    Logger.log(JSON.stringify(importObject));
+    const startTime = new Date().getTime();
 
-    let result = importPlotData(conn, details.instanceId, importId, importObject.plotData);
-    console.log(result);
+    while (true) {
+        let rowObject = querySheetsByIndexWithSpecialSheet(queryConfigByIndex);
+        console.log(rowObject)
+        if (rowObject.matched === false) {
+            // console.log("No matching data found in the 'Total Costing' sheet for the specified row index in the 'MAP' sheet.");
+            queryConfigByIndex.sheets.MAP.searchIndex++;
+            continue;
+        }
+
+        let importObject = prepareImportObject(rowObject);
+        let result = importPlotData(conn, details.instanceId, importId, importObject.plotData);
+        console.log("plot ID", result);
+
+        queryConfigByIndex.sheets.MAP.searchIndex++;
+
+        const currentTime = new Date().getTime();
+        const elapsedTime = currentTime - startTime;
+        if (elapsedTime >= 20 * 60 * 1000) { // 20 minutes in milliseconds
+            // Store the current searchIndex in a persistent script variable
+            scriptProperties.setProperty(persistentScriptVariableName, queryConfigByIndex.sheets.MAP.searchIndex.toString());
+            break;
+        }
+    }
 }
 
 
 
-function testFunction() {
-
-
-    Logger.log(JSON.stringify(rowObject))
-}
