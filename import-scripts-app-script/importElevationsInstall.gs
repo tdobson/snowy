@@ -58,11 +58,25 @@ function importElevationInstallData(conn, instanceId, importId, elevationData) {
 
     // Insert or update inverter and panel details in product table
     if (elevationData.inverter) {
-        importProductData(conn, instanceId,importId, { productName: elevationData.inverter, productType: 'Inverter', costToday: elevationData.inverter_cost });
+      elevationData.inverter_id =   importProductData(conn, instanceId,importId, { productName: elevationData.inverter, productType: 'Inverter', costToday: elevationData.inverter_cost, manufacturer: elevationSpecData.inverter_manufacturer });
     }
 
     if (elevationData.panel) {
-        importProductData(conn, instanceId, importId, { productName: elevationData.panel, productType: 'Panel', costToday: elevationData.panel_cost });
+      elevationData.panel_id =   importProductData(conn, instanceId, importId, { productName: elevationData.panel, productType: 'Panel', costToday: elevationData.panel_cost });
+    }
+
+            if (elevationData.roofkit) {
+              elevationData.roofkit_id =   importProductData(conn,instanceId, importId, { productName: elevationData.roof_kit, productType: 'Roof Kit' });
+            }
+
+    // Determine the elevation number for the current elevation specification
+    elevationData.customFields.fields.elevationNumber = 1;
+    var countElevationsStmt = conn.prepareStatement('SELECT COUNT(*) AS count FROM sn_elevations_spec WHERE instance_id = ? AND plot_id = ?');
+    countElevationsStmt.setString(1, instanceId);
+    countElevationsStmt.setString(2, elevationData.plot_id);
+    var countRs = countElevationsStmt.executeQuery();
+    if (countRs.next()) {
+        elevationData.customFields.fields.elevationNumber = countRs.getInt('count') + 1;
     }
 
 var checkElevationStmt = conn.prepareStatement('SELECT * FROM sn_elevations_install WHERE instance_id = ? AND plot_id = ? AND pitch = ? AND orientation = ?');
@@ -86,9 +100,9 @@ var rs = checkElevationStmt.executeQuery();
         updateStmt.setFloat(5, sanitizeFloat(elevationData.kwp !== undefined ? elevationData.kwp : rs.getFloat('kwp'))); // Sanitized kwp
         updateStmt.setInt(6, sanitizeInt(elevationData.strings !== undefined ? elevationData.strings : rs.getInt('strings')));
         updateStmt.setInt(7, sanitizeInt((elevationData.module_qty !== undefined ? elevationData.module_qty : rs.getInt('module_qty'))));
-        updateStmt.setString(8, elevationData.inverter || rs.getString('inverter'));
+        updateStmt.setString(8, elevationData.inverter_id || rs.getString('inverter'));
         updateStmt.setFloat(9, sanitizeFloat(elevationData.inverter_cost !== undefined ? elevationData.inverter_cost : rs.getFloat('inverter_cost'))); // Sanitized inverter_cost
-        updateStmt.setString(10, elevationData.panel || rs.getString('panel'));
+        updateStmt.setString(10, elevationData.panel_id || rs.getString('panel'));
         updateStmt.setFloat(11, sanitizeFloat(elevationData.panel_cost !== undefined ? elevationData.panel_cost : rs.getFloat('panel_cost'))); // Sanitized panel_cost
         updateStmt.setFloat(12, sanitizeFloat(elevationData.panels_total_cost !== undefined ? elevationData.panels_total_cost : rs.getFloat('panels_total_cost'))); // Sanitized panels_total_cost
         updateStmt.setString(13, elevationData.roof_kit || rs.getString('roof_kit'));
@@ -127,9 +141,9 @@ var rs = checkElevationStmt.executeQuery();
         insertStmt.setFloat(9, sanitizeFloat(elevationData.kwp)); // Sanitized kwp
         insertStmt.setInt(10, sanitizeInt(elevationData.strings));
         insertStmt.setInt(11, sanitizeInt(elevationData.module_qty));
-        insertStmt.setString(12, elevationData.inverter);
+        insertStmt.setString(12, elevationData.inverter_id);
         insertStmt.setFloat(13, sanitizeFloat(elevationData.inverter_cost)); // Sanitized inverter_cost
-        insertStmt.setString(14, elevationData.panel);
+        insertStmt.setString(14, elevationData.panel_id);
         insertStmt.setFloat(15, sanitizeFloat(elevationData.panel_cost)); // Sanitized panel_cost
         insertStmt.setFloat(16, sanitizeFloat(elevationData.panels_total_cost)); // Sanitized panels_total_cost
         insertStmt.setString(17, elevationData.roof_kit);

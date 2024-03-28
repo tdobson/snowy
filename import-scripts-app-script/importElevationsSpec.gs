@@ -57,20 +57,40 @@ function importElevationSpecData(conn, instanceId, importId, elevationSpecData) 
 
     // Insert or update inverter and panel details in product table
     if (elevationSpecData.inverter) {
-        importProductData(conn, instanceId, importId, { productName: elevationSpecData.inverter, productType: 'Inverter', costToday: elevationSpecData.inverter_cost }); //todo send a product object to this function
+       elevationSpecData.inverter_id = importProductData(conn, instanceId, importId, { productName: elevationSpecData.inverter, productType: 'Inverter', costToday: elevationSpecData.inverter_cost, manufacturer: elevationSpecData.inverter_manufacturer }); //todo send a product object to this function
     }
 
     if (elevationSpecData.panel) {
-        importProductData(conn,instanceId, importId, { productName: elevationSpecData.panel, productType: 'Panel', costToday: elevationSpecData.panel_cost });
+      elevationSpecData.panel_id =  importProductData(conn,instanceId, importId, { productName: elevationSpecData.panel, productType: 'Panel', costToday: elevationSpecData.panel_cost });
     }
 
+        if (elevationSpecData.roofkit) {
+          elevationSpecData.roofkit_id =   importProductData(conn,instanceId, importId, { productName: elevationSpecData.roof_kit, productType: 'Roof Kit' });
+        }
+
+    // Determine the elevation number for the current elevation specification
+    elevationSpecData.customFields.fields.elevationNumber = 1;
+    var countElevationsStmt = conn.prepareStatement('SELECT COUNT(*) AS count FROM sn_elevations_spec WHERE instance_id = ? AND plot_id = ?');
+    countElevationsStmt.setString(1, instanceId);
+    countElevationsStmt.setString(2, elevationSpecData.plot_id);
+    var countRs = countElevationsStmt.executeQuery();
+    if (countRs.next()) {
+        elevationSpecData.customFields.fields.elevationNumber = countRs.getInt('count') + 1;
+    }
+
+
     // Check if elevation spec data already exists
-    var checkElevationSpecStmt = conn.prepareStatement('SELECT * FROM sn_elevations_spec WHERE instance_id = ? AND plot_id = ? AND pitch = ? AND orientation = ?');
-    checkElevationSpecStmt.setString(1, instanceId);
-    checkElevationSpecStmt.setString(2, elevationSpecData.plot_id);
-checkElevationSpecStmt.setFloat(3, sanitizeFloat(elevationSpecData.pitch));
-checkElevationSpecStmt.setString(4, sanitizeFloat(elevationSpecData.orientation));
-    var rs = checkElevationSpecStmt.executeQuery();
+    var checkElevationSpecStmt = conn.prepareStatement("SELECT * FROM sn_plots p JOIN sn_elevations_spec es ON p.plot_id=es.plot_id JOIN sn_custom_fields elevationno ON es.elevation_spec_id = elevationno.entity_id AND elevationno.entity_type = 'elevationSpec' AND elevationno.field_name = 'Elevation_No' JOIN sn_custom_fields variationfromsouth ON es.elevation_spec_id = variationfromsouth.entity_id AND variationfromsouth.entity_type = 'elevationSpec' AND variationfromsouth.field_name = 'Input_Variation_from_South' WHERE p.instance_id = ? AND p.plot_id = ? AND pitch = ? AND orientation = ? AND elevationno.field_value = ? AND type_test_ref = ? AND module_qty = ? AND variationfromsouth.field_value = ?");
+       checkElevationSpecStmt.setString(1, instanceId); // todo - this check isn't very good and probably means we don't import stuff we should
+       checkElevationSpecStmt.setString(2, elevationSpecData.plot_id);
+       checkElevationSpecStmt.setString(3, elevationSpecData.pitch);
+       checkElevationSpecStmt.setString(4, elevationSpecData.orientation);
+       checkElevationSpecStmt.setString(5, elevationSpecData.customFields.fields.Elevation_No);
+       checkElevationSpecStmt.setString(6, elevationSpecData.type_test_ref);
+       checkElevationSpecStmt.setString(7, elevationSpecData.module_qty);
+       checkElevationSpecStmt.setString(8, elevationSpecData.customFields.fields.Input_Variation_from_South);
+var rs = checkElevationSpecStmt.executeQuery();
+
 
     if (rs.next()) {
         var existingUuid = rs.getString('elevation_spec_id');
@@ -86,12 +106,12 @@ checkElevationSpecStmt.setString(4, sanitizeFloat(elevationSpecData.orientation)
         updateStmt.setFloat(5, sanitizeFloat(elevationSpecData.kwp !== undefined ? elevationSpecData.kwp : rs.getFloat('kwp'))); // Sanitized kwp
         updateStmt.setInt(6, sanitizeInt(elevationSpecData.strings !== undefined ? elevationSpecData.strings : rs.getInt('strings')));
         updateStmt.setInt(7, sanitizeInt(elevationSpecData.module_qty !== undefined ? elevationSpecData.module_qty : rs.getInt('module_qty')));
-        updateStmt.setString(8, elevationSpecData.inverter || rs.getString('inverter'));
+        updateStmt.setString(8, elevationSpecData.inverter_id || rs.getString('inverter'));
         updateStmt.setFloat(9, sanitizeFloat(elevationSpecData.inverter_cost !== undefined ? elevationSpecData.inverter_cost : rs.getFloat('inverter_cost'))); // Sanitized inverter_cost
-        updateStmt.setString(10, elevationSpecData.panel || rs.getString('panel'));
+        updateStmt.setString(10, elevationSpecData.panel_id || rs.getString('panel'));
         updateStmt.setFloat(11, sanitizeFloat(elevationSpecData.panel_cost !== undefined ? elevationSpecData.panel_cost : rs.getFloat('panel_cost'))); // Sanitized panel_cost
         updateStmt.setFloat(12, sanitizeFloat(elevationSpecData.panels_total_cost !== undefined ? elevationSpecData.panels_total_cost : rs.getFloat('panels_total_cost'))); // Sanitized panels_total_cost
-        updateStmt.setString(13, elevationSpecData.roof_kit || rs.getString('roof_kit'));
+        updateStmt.setString(13, elevationSpecData.roof_kit_id || rs.getString('roof_kit'));
         updateStmt.setFloat(14, sanitizeFloat(elevationSpecData.roof_kit_cost !== undefined ? elevationSpecData.roof_kit_cost : rs.getFloat('roof_kit_cost'))); // Sanitized roof_kit_cost
         updateStmt.setFloat(15, sanitizeFloat(elevationSpecData.annual_yield !== undefined ? elevationSpecData.annual_yield : rs.getFloat('annual_yield'))); // Sanitized annual_yield
         updateStmt.setString(16, importId);
@@ -129,12 +149,12 @@ checkElevationSpecStmt.setString(4, sanitizeFloat(elevationSpecData.orientation)
         insertStmt.setFloat(9, sanitizeFloat(elevationSpecData.kwp)); // Sanitize kwp
         insertStmt.setInt(10, sanitizeInt(elevationSpecData.strings));
         insertStmt.setInt(11, sanitizeInt(elevationSpecData.module_qty));
-        insertStmt.setString(12, elevationSpecData.inverter);
+        insertStmt.setString(12, elevationSpecData.inverter_id);
         insertStmt.setFloat(13, sanitizeFloat(elevationSpecData.inverter_cost)); // Sanitize inverter_cost
-        insertStmt.setString(14, elevationSpecData.panel);
+        insertStmt.setString(14, elevationSpecData.panel_id);
         insertStmt.setFloat(15, sanitizeFloat(elevationSpecData.panel_cost)); // Sanitize panel_cost
         insertStmt.setFloat(16, sanitizeFloat(elevationSpecData.panels_total_cost)); // Sanitize panels_total_cost
-        insertStmt.setString(17, elevationSpecData.roof_kit);
+        insertStmt.setString(17, elevationSpecData.roof_kit_id);
         insertStmt.setFloat(18, sanitizeFloat(elevationSpecData.roof_kit_cost)); // Sanitize roof_kit_cost
         insertStmt.setFloat(19, sanitizeFloat(elevationSpecData.annual_yield)); // Sanitize annual_yield
         insertStmt.setString(20, importId);

@@ -1,57 +1,63 @@
 /**
- * Imports or updates custom fields for a specific entity in the sn_custom_fields table.
+ * Imports or updates custom fields for a specific entity in the `sn_custom_fields` table.
  *
  * Custom fields allow for the extension of the standard schema by adding additional attributes to entities
  * without modifying the core tables. This enables flexibility and customization for different customers or
- * instances of the application. Custom fields are stored in the sn_custom_fields table, which associates
- * the fields with specific entities using the entity_type and entity_id columns. The field_name and
- * field_value columns store the actual custom field data.
- *
- * The sn_custom_fields table has the following columns:
- * - custom_field_id (CHAR(36)): Unique identifier for each custom field record.
- * - instance_id (CHAR(36)): Foreign key referencing the instance or customer associated with the custom field.
- * - entity_type (VARCHAR(50)): Type of entity the custom field is associated with (e.g., 'client', 'project', 'site').
- * - entity_id (CHAR(36)): Unique identifier of the specific entity instance the custom field is related to.
- * - field_name (VARCHAR(255)): Name or key of the custom field.
- * - field_ui_name (VARCHAR(255)): User-editable name of the custom field.
- * - field_description (VARCHAR(255)): User-editable description of the custom field.
- * - field_value (TEXT): Actual value of the custom field.
- * - import_id (CHAR(36)): Import event that created or last updated the custom field record.
+ * instances of the application. Custom fields are stored in the `sn_custom_fields` table, which associates
+ * the fields with specific entities using the `entity_type` and `entity_id` columns. The `field_name` and
+ * `field_value` columns store the actual custom field data.
  *
  * @param {JdbcConnection} conn - An active JDBC connection to the database.
- * @param {String} instanceId - The UUID of the instance or customer associated with the custom fields.
- * @param {String} importId - A unique identifier for the import session.
+ * @param {string} instanceId - The UUID of the instance or customer associated with the custom fields.
+ * @param {string} importId - A unique identifier for the import session.
  * @param {Object} customFieldsData - Object containing custom field data.
- *   The customFieldsData object should have the following structure:
+ *   The `customFieldsData` object should have the following structure:
+ *   ```javascript
  *   {
  *     entityType: 'client', // The type of entity the custom fields belong to (e.g., 'client', 'project', 'site')
  *     entityId: 'abc123', // The UUID of the specific entity instance
  *     fields: {
- *       'Field 1': {
- *         value: 'Value 1',
- *         uiName: 'Custom Field 1',
- *         description: 'Description of Custom Field 1'
- *       },
- *       'Field 2': {
- *         value: 'Value 2',
- *         uiName: 'Custom Field 2',
- *         description: 'Description of Custom Field 2'
- *       },
+ *       'Field 1': 'Value 1', // Key-value pairs of custom field names and their corresponding values
+ *       'Field 2': 'Value 2',
  *       // ... more custom fields ...
  *     }
  *   }
- * @returns {boolean} True if the import is successful, false otherwise.
+ *   ```
+ * @returns {boolean} `true` if the import is successful, `false` otherwise.
+ *
+ * @example
+ * const conn = getActiveJdbcConnection(); // Assuming you have a method to get an active JDBC connection
+ * const instanceId = 'my-instance-id';
+ * const importId = 'my-import-session-id';
+ * const customFieldsData = {
+ *   entityType: 'client',
+ *   entityId: 'abc123',
+ *   fields: {
+ *     'Client Email': 'john.doe@example.com',
+ *     'Client Phone': '555-1234',
+ *     'Client Address': '123 Main St, Anytown USA'
+ *   }
+ * };
+ *
+ * const success = importCustomFields(conn, instanceId, importId, customFieldsData);
+ * if (success) {
+ *   console.log('Custom fields imported successfully!');
+ * } else {
+ *   console.error('Error importing custom fields.');
+ * }
  */
 function importCustomFields(conn, instanceId, importId, customFieldsData) {
     var entityType = customFieldsData.entityType;
     var entityId = customFieldsData.entityId;
     var fields = customFieldsData.fields;
 
+    console.log('Importing custom fields for entity: ' + entityType + ' (' + entityId + ')');
+
     for (var fieldName in fields) {
         if (fields.hasOwnProperty(fieldName)) {
-            var fieldValue = fields[fieldName].value;
-            var fieldUiName = fields[fieldName].uiName;
-            var fieldDescription = fields[fieldName].description;
+            var fieldValue = fields[fieldName];
+            var fieldUiName = fieldName;
+            var fieldDescription = '';
 
             try {
                 var checkFieldStmt = conn.prepareStatement('SELECT * FROM sn_custom_fields WHERE instance_id = ? AND entity_type = ? AND entity_id = ? AND field_name = ?');
@@ -62,6 +68,7 @@ function importCustomFields(conn, instanceId, importId, customFieldsData) {
 
                 var rs = checkFieldStmt.executeQuery();
                 if (rs.next()) {
+                    console.log('Updating custom field: ' + fieldName);
                     var updateStmt = conn.prepareStatement('UPDATE sn_custom_fields SET field_value = ?, field_ui_name = ?, field_description = ?, import_id = ? WHERE instance_id = ? AND entity_type = ? AND entity_id = ? AND field_name = ?');
                     updateStmt.setString(1, fieldValue);
                     updateStmt.setString(2, fieldUiName);
@@ -73,6 +80,7 @@ function importCustomFields(conn, instanceId, importId, customFieldsData) {
                     updateStmt.setString(8, fieldName);
                     updateStmt.execute();
                 } else {
+                    console.log('Inserting custom field: ' + fieldName);
                     var insertStmt = conn.prepareStatement('INSERT INTO sn_custom_fields (custom_field_id, instance_id, entity_type, entity_id, field_name, field_ui_name, field_description, field_value, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
                     var newUuid = Utilities.getUuid();
 
@@ -96,5 +104,6 @@ function importCustomFields(conn, instanceId, importId, customFieldsData) {
         }
     }
 
+    console.log('Custom fields imported successfully for entity: ' + entityType + ' (' + entityId + ')');
     return true;
 }

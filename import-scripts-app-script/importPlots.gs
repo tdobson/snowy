@@ -43,19 +43,42 @@
  * var plotId = importPlotData(conn, instanceId, importId, plotData, sheet);
  */
 function importPlotData(conn, instanceId, importId, plotData, sheet) {
-    var checkPlotStmt = conn.prepareStatement('SELECT * FROM sn_plots p JOIN sn_elevations_spec es ON p.plot_id=es.plot_id WHERE p.instance_id = ? AND (p.plot_id = ? OR plot_number = ? AND tracker_ref = ? AND pitch = ? AND orientation = ?)');
-    checkPlotStmt.setString(1, instanceId);
-    checkPlotStmt.setString(2, plotData.plotId);
-    checkPlotStmt.setString(3, plotData.plotNumber);
-    checkPlotStmt.setString(4, plotData.trackerRef);
-    checkPlotStmt.setString(5, plotData.elevationSpecData.pitch);
-    checkPlotStmt.setString(6, plotData.elevationSpecData.orientation);
+var checkPlotStmt = conn.prepareStatement("SELECT * FROM sn_plots p JOIN sn_projects pr ON p.project_id = pr.project_id WHERE p.instance_id = ? AND p.plot_number = ? AND pr.pv_number = ?");
+checkPlotStmt.setString(1, instanceId);
+checkPlotStmt.setString(2, plotData.plotNumber);
+checkPlotStmt.setString(3, plotData.projectData.pvNumber);
+
+
+
 
     var rs = checkPlotStmt.executeQuery();
 
     if (rs.next()) {
         // Update existing record
         var updateStmt = conn.prepareStatement('UPDATE sn_plots SET project_id = ?, plot_number = ?, plot_status = ?, site_id = ?, housetype = ?, g99 = ?, mpan = ?, plot_address_id = ?, plot_approved = ?, commissioning_form_submitted = ?, import_id = ?, tracker_ref = ? WHERE instance_id = ? AND plot_id = ?  ');
+
+let uuid = rs.getString('plot_id')
+        plotData.plotId = uuid;
+        plotData.plotSpecData.plotId = uuid;
+        plotData.plotInstallData.plotId = uuid;
+        plotData.elevationData.plot_id = uuid;
+        plotData.elevationSpecData.plot_id = uuid;
+
+        plotData.projectData.dnoDetailsId = lookupDnoDetailsByMpan(conn, instanceId, importId, plotData.projectData.dnoDetails.refNumber);
+        plotData.projectData.regionId = getRegionIdFromRegionNumber(plotData.siteData.addressData.address_region_number);
+        plotData.projectData.siteId = importSiteData(conn, instanceId, importId, plotData.siteData, sheet);
+        plotData.projectData.clientId = importClient(conn, instanceId, importId, plotData.projectData.clientData, sheet);
+        plotData.projectData.projectProcessId = importProjectProcess(conn, instanceId, importId, plotData.projectData.projectProcessData);
+        plotData.projectId = importProject(conn, instanceId, importId, plotData.projectData);
+
+        plotData.plotAddressId = importAddress(conn, instanceId, importId, plotData.addressData);
+        plotData.plotStatusId = importStatus(conn, instanceId, importId, { status_state: plotData.plotStatus, status_group: "Plot Status Group" });
+
+        plotData.elevationSpecData.plot_spec_id = importPlotSpecData(conn, instanceId, importId, plotData.plotSpecData);
+        plotData.elevationData.plot_install_id = importPlotInstallData(conn, instanceId, importId, plotData.plotInstallData);
+
+        plotData.elevationData.elevation_install_id = importElevationInstallData(conn, instanceId, importId, plotData.elevationData);
+        plotData.elevationSpecData.elevation_spec_id = importElevationSpecData(conn, instanceId, importId, plotData.elevationSpecData);
 
         updateStmt.setString(1, plotData.projectId);
         updateStmt.setString(2, plotData.plotNumber);

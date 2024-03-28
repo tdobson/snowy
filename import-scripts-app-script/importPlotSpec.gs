@@ -78,6 +78,7 @@ checkPlotSpecStmt.setString(2, plotSpecData.plotId);
     if (rs.next()) {
         // Update existing record
         var updateStmt = conn.prepareStatement('UPDATE sn_plot_spec SET instance_id = ?, plot_id = ?, date_specified = ?, specified_by = ?, plot_spec_status = ?, phase = ?, p1 = ?, p2 = ?, p3 = ?, annual_yield = ?, kwp = ?, kwp_with_limitation = ?, limiter_required = ?, limiter_value_if_not_zero = ?, labour_cost = ?, meter = ?, meter_cost = ?, battery = ?, battery_cost = ?, overall_cost = ?, landlord_supply = ?, import_id = ? WHERE plot_spec_id = ?');
+plotSpecData.plotSpecId = rs.getString('plot_spec_id')
 
         updateStmt.setString(1, instanceId);
         updateStmt.setString(2, plotSpecData.plotId);
@@ -101,10 +102,11 @@ checkPlotSpecStmt.setString(2, plotSpecData.plotId);
 // Sanitize and set limiter_required.
 var updateSanitizedLimiterRequired = sanitizeBoolean(plotSpecData.limiterRequired);
 if (updateSanitizedLimiterRequired) {
-    insertStmt.setBoolean(13, plotSpecData.limiterRequired);
+    updateStmt.setBoolean(13, plotSpecData.limiterRequired);
 } else {
-    insertStmt.setNull(13, 0);
-}        updateStmt.setFloat(14, sanitizeFloat(plotSpecData.limiterValueIfNotZero));
+    updateStmt.setNull(13, 0);
+}
+updateStmt.setFloat(14, sanitizeFloat(plotSpecData.limiterValueIfNotZero));
         updateStmt.setFloat(15, sanitizeFloat(plotSpecData.labourCost));
         updateStmt.setString(16, meterProductId); // Ensure you have a way to map plotSpecData.meter to a valid meter ID or value
         updateStmt.setFloat(17, sanitizeFloat(plotSpecData.meterCost));
