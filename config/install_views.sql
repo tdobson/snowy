@@ -137,10 +137,11 @@ FROM
     LEFT JOIN sn_custom_fields pcf2 ON ps.plot_spec_id = pcf2.entity_id AND pcf2.entity_type = 'plotSpec' AND pcf2.field_name = 'Plot_Total__Quoted_'
     LEFT JOIN sn_custom_fields pcf3 ON ps.plot_spec_id = pcf3.entity_id AND pcf3.entity_type = 'plotSpec' AND pcf3.field_name = 'GIVENERGY';
 
-CREATE VIEW sn_vw_plot_elevation_details_for_tracker AS
+alter VIEW sn_vw_plot_elevation_details_for_tracker AS
 SELECT
     es.elevation_spec_id AS `Elevation Spec ID`,
-    , --elevation number
+    elevationnumber.field_value AS "Elevation Number",
+    elevationno.field_value AS "Elevation_No",
     p.plot_id,
     p.plot_number AS `PLOT NO`,
     p.housetype AS Housetype,
@@ -154,8 +155,8 @@ SELECT
     pvoltage.field_value AS `P Voltage`,
     panelmcscode.field_value AS `MCS Code`,
     es.orientation AS Orientation,
-    columns.field_value AS Columns,
-    rows.field_value AS `Rows`,
+    colmns.field_value AS `Columns`,
+    rws.field_value AS `Rows`,
     ps.phase AS Phase,
     notrackers.field_value AS `NO Trackers`,
     es.strings AS `Total Strings`,
@@ -176,16 +177,15 @@ SELECT
     productsbattery.product_name AS Battery,
     productsroofkit.product_name AS `Mounting Kit`,
     tiletype.field_value AS `Tile Type`,
-    roofincline.field_value AS `Roof Incline`,
+    es.pitch AS `Roof Incline`,
     variationfromsouth.field_value AS `Variationo From South`,
     es.kk_figure AS `kWh/kWp`,
     inaboveroof.field_value AS `IN / ABOVE ROOF`,
-
-    es.orientation AS `CARDINAL DIRECTION`,
+    cardianaldirection.field_value AS `CARDINAL DIRECTION`,
     overshadingfactor.field_value AS `OVERSHADING FACTOR`,
     es.module_qty AS `NO# PANELS`,
     arraym2.field_value AS `ARRAY M2`,
-    es.kwp AS kWp,
+    ps.kwp AS kWp,
     kwh.field_value AS kWh,
     co2equivalent.field_value AS `CO2 EQUIVALENT`,
     netkwp.field_value AS `Net kWp`,
@@ -206,11 +206,11 @@ FROM
     LEFT JOIN sn_plot_spec ps ON p.plot_id = ps.plot_id
     LEFT JOIN sn_elevations_spec es ON p.plot_id = es.plot_id
     LEFT JOIN sn_addresses a ON p.plot_address_id = a.address_id
-    LEFT JOIN sn_products productsinverters ON productsinverters.product_id = sn_elevations_spec.inverter
-    LEFT JOIN sn_products productspanel ON productspanel.product_id = sn_elevations_spec.panel
-    LEFT JOIN sn_products productsroofkit ON productsroofkit.product_id = sn_elevations_spec.roof_kit
-    LEFT JOIN sn_products productsbattery ON productsbattery.product_id = sn_plot_spec.battery
-    LEFT JOIN sn_products productsmeter ON productsmeter.product_id = sn_plot_spec.meter
+    LEFT JOIN sn_products productsinverters ON productsinverters.product_id = es.inverter
+    LEFT JOIN sn_products productspanel ON productspanel.product_id = es.panel
+    LEFT JOIN sn_products productsroofkit ON productsroofkit.product_id = es.roof_kit
+    LEFT JOIN sn_products productsbattery ON productsbattery.product_id = ps.battery
+    LEFT JOIN sn_products productsmeter ON productsmeter.product_id = ps.meter
     LEFT JOIN sn_custom_fields pvoltage ON ps.plot_spec_id = pvoltage.entity_id AND pvoltage.entity_type = 'plotSpec' AND pvoltage.field_name = 'Voltage'
     LEFT JOIN sn_custom_fields notrackers ON ps.plot_spec_id = notrackers.entity_id AND notrackers.entity_type = 'plotSpec' AND notrackers.field_name = 'NO_Trackers'
     LEFT JOIN sn_custom_fields string1 ON ps.plot_spec_id = string1.entity_id AND string1.entity_type = 'plotSpec' AND string1.field_name = 'String_one'
@@ -222,35 +222,43 @@ FROM
     LEFT JOIN sn_custom_fields string7 ON ps.plot_spec_id = string7.entity_id AND string7.entity_type = 'plotSpec' AND string7.field_name = 'String_seven'
     LEFT JOIN sn_custom_fields string8 ON ps.plot_spec_id = string8.entity_id AND string8.entity_type = 'plotSpec' AND string8.field_name = 'String_eight'
     LEFT JOIN sn_custom_fields inaboveroof ON ps.plot_spec_id = inaboveroof.entity_id AND inaboveroof.entity_type = 'plotSpec' AND inaboveroof.field_name = 'IN___ABOVE_ROOF'
+    LEFT JOIN sn_custom_fields cardianaldirection ON es.elevation_spec_id = cardianaldirection.entity_id AND cardianaldirection.entity_type = 'elevationSpec' AND cardianaldirection.field_name = 'CARDINAL_DIRECTION'
     LEFT JOIN sn_custom_fields roofincline ON ps.plot_spec_id = roofincline.entity_id AND roofincline.entity_type = 'plotSpec' AND roofincline.field_name = 'Roof_Incline'
     LEFT JOIN sn_custom_fields inverterbrand ON es.elevation_spec_id = inverterbrand.entity_id AND inverterbrand.entity_type = 'elevationSpec' AND inverterbrand.field_name = 'IN___ABOVE_ROOF'
     LEFT JOIN sn_custom_fields wattage ON ps.plot_spec_id = wattage.entity_id AND wattage.entity_type = 'plotSpec' AND wattage.field_name = 'Wattage'
     LEFT JOIN sn_custom_fields panelmcscode ON ps.plot_spec_id = panelmcscode.entity_id AND panelmcscode.entity_type = 'plotSpec' AND panelmcscode.field_name = 'MCS_Code'
     LEFT JOIN sn_custom_fields rws ON es.elevation_spec_id = rws.entity_id AND rws.entity_type = 'elevationSpec' AND rws.field_name = 'Rows'
-    LEFT JOIN sn_custom_fields columns ON es.elevation_spec_id = columns.entity_id AND columns.entity_type = 'elevationSpec' AND columns.field_name = 'Columns'
-    LEFT JOIN sn_custom_fields ratedoutputpower ON es.elevation_spec_id = ratedoutputpower.entity_id AND ratedoutputpower.entity_type = 'elevationSpec' AND ratedoutputpower.field_name = 'Rated_Output__W_'
+    LEFT JOIN sn_custom_fields colmns ON es.elevation_spec_id = colmns.entity_id AND colmns.entity_type = 'elevationSpec' AND colmns.field_name = 'Columns'
+    LEFT JOIN sn_custom_fields ratedoutputpower ON es.elevation_spec_id = ratedoutputpower.entity_id AND ratedoutputpower.entity_type = 'elevationSpec' AND ratedoutputpower.field_name = 'Inverter_Rated_Output__W_'
     LEFT JOIN sn_custom_fields mcscode ON es.elevation_spec_id = mcscode.entity_id AND mcscode.entity_type = 'elevationSpec' AND mcscode.field_name = 'MCS_Code'
     LEFT JOIN sn_custom_fields tiletype ON es.elevation_spec_id = tiletype.entity_id AND tiletype.entity_type = 'elevationSpec' AND tiletype.field_name = 'Tile_Type'
     LEFT JOIN sn_custom_fields variationfromsouth ON es.elevation_spec_id = variationfromsouth.entity_id AND variationfromsouth.entity_type = 'elevationSpec' AND variationfromsouth.field_name = 'Input_Variation_from_South'
     LEFT JOIN sn_custom_fields kwhperkwp ON es.elevation_spec_id = kwhperkwp.entity_id AND kwhperkwp.entity_type = 'elevationSpec' AND kwhperkwp.field_name = 'kWh_KWp'
-    LEFT JOIN sn_custom_fields overshadingfactor ON es.elevation_spec_id = overshadingfactor.entity_id AND overshadingfactor.entity_type = 'elevationSpec' AND overshadingfactor.field_name = 'OVERSHADING_FACTOR'
-    LEFT JOIN sn_custom_fields arraym2 ON es.elevation_spec_id = arraym2.entity_id AND arraym2.entity_type = 'elevationSpec' AND arraym2.field_name = 'ARRAY_Mtwo'
-    LEFT JOIN sn_custom_fields kwh ON es.elevation_spec_id = kwh.entity_id AND kwh.entity_type = 'elevationSpec' AND kwh.field_name = 'kWh'
-    LEFT JOIN sn_custom_fields co2equivalent ON es.elevation_spec_id = co2equivalent.entity_id AND co2equivalent.entity_type = 'elevationSpec' AND co2equivalent.field_name = 'COtwo_EQUIVALENT'
-    LEFT JOIN sn_custom_fields netkwp ON es.elevation_spec_id = netkwp.entity_id AND netkwp.entity_type = 'elevationSpec' AND netkwp.field_name = 'Net_kWp'
+    LEFT JOIN sn_custom_fields overshadingfactor ON ps.plot_spec_id = overshadingfactor.entity_id AND overshadingfactor.entity_type = 'plotSpec' AND overshadingfactor.field_name = 'OVERSHADING_FACTOR'
+    LEFT JOIN sn_custom_fields arraym2 ON ps.plot_spec_id  = arraym2.entity_id AND arraym2.entity_type = 'plotSpec' AND arraym2.field_name = 'ARRAY_Mtwo'
+    LEFT JOIN sn_custom_fields kwh ON ps.plot_spec_id = kwh.entity_id AND kwh.entity_type = 'plotSpec' AND kwh.field_name = 'kWh'
+    LEFT JOIN sn_custom_fields co2equivalent ON ps.plot_spec_id = co2equivalent.entity_id AND co2equivalent.entity_type = 'plotSpec' AND co2equivalent.field_name = 'COtwo_EQUIVALENT'
+    LEFT JOIN sn_custom_fields netkwp ON ps.plot_spec_id = netkwp.entity_id AND netkwp.entity_type = 'plotSpec' AND netkwp.field_name = 'Net_kWp'
     LEFT JOIN sn_custom_fields finisheddrawing ON ps.plot_spec_id = finisheddrawing.entity_id AND finisheddrawing.entity_type = 'plotSpec' AND finisheddrawing.field_name = 'Finished_Drawing'
     LEFT JOIN sn_custom_fields commissioninginfoin ON ps.plot_spec_id = commissioninginfoin.entity_id AND commissioninginfoin.entity_type = 'plotSpec' AND commissioninginfoin.field_name = 'Commissioning_Info_In'
     LEFT JOIN sn_custom_fields mcscompleted ON ps.plot_spec_id = mcscompleted.entity_id AND mcscompleted.entity_type = 'plotSpec' AND mcscompleted.field_name = 'MCS_Completed'
     LEFT JOIN sn_custom_fields dnodocumentcompleted ON ps.plot_spec_id = dnodocumentcompleted.entity_id AND dnodocumentcompleted.entity_type = 'plotSpec' AND dnodocumentcompleted.field_name = 'DNO_Document_Completed'
     LEFT JOIN sn_custom_fields hopackcompleted ON ps.plot_spec_id = hopackcompleted.entity_id AND hopackcompleted.entity_type = 'plotSpec' AND hopackcompleted.field_name = 'HO_Pack_Completed'
-    LEFT JOIN sn_custom_fields shape ON es.elevation_spec_id = shape.entity_id AND shape.entity_type = 'elevationSpec' AND shape.field_name = 'Shape'
-    LEFT JOIN sn_custom_fields invertermauf ON es.elevation_spec_id = invertermauf.entity_id AND invertermauf.entity_type = 'elevationSpec' AND invertermauf.field_name = 'MICROINV'
-    LEFT JOIN sn_custom_fields protectivedevice ON es.elevation_spec_id = protectivedevice.entity_id AND protectivedevice.entity_type = 'elevationSpec' AND protectivedevice.field_name = 'Protective_Device'
+    LEFT JOIN sn_custom_fields shape ON ps.plot_spec_id = shape.entity_id AND shape.entity_type = 'plotSpec' AND shape.field_name = 'Shape'
+    LEFT JOIN sn_custom_fields invertermauf ON ps.plot_spec_id = invertermauf.entity_id AND invertermauf.entity_type = 'plotSpec' AND invertermauf.field_name = 'MICROINV'
+    LEFT JOIN sn_custom_fields protectivedevice ON  ps.plot_spec_id = protectivedevice.entity_id AND protectivedevice.entity_type = 'plotSpec' AND protectivedevice.field_name = 'Protective_Device'
     LEFT JOIN sn_custom_fields buildingside ON es.elevation_spec_id = buildingside.entity_id AND buildingside.entity_type = 'elevationSpec' AND buildingside.field_name = 'Building_Side'
-    LEFT JOIN sn_custom_fields parcel ON es.elevation_spec_id = parcel.entity_id AND parcel.entity_type = 'elevationSpec' AND parcel.field_name = 'PARCEL'
+    LEFT JOIN sn_custom_fields parcel ON ps.plot_spec_id = parcel.entity_id AND parcel.entity_type = 'plotSpec' AND parcel.field_name = 'PARCEL'
     LEFT JOIN sn_custom_fields blockhouse ON ps.plot_spec_id = blockhouse.entity_id AND blockhouse.entity_type = 'plotSpec' AND blockhouse.field_name = 'Block___House'
-    LEFT JOIN sn_custom_fields plotrequirement ON ps.plot_spec_id = plotrequirement.entity_id AND plotrequirement.entity_type = 'plotSpec' AND plotrequirement.field_name = 'Plot_Requirement';
-
+    LEFT JOIN sn_custom_fields plotrequirement ON ps.plot_spec_id = plotrequirement.entity_id AND plotrequirement.entity_type = 'plotSpec' AND plotrequirement.field_name = 'Plot_Requirement'
+    LEFT JOIN sn_custom_fields elevationnumber ON es.elevation_spec_id = elevationnumber.entity_id AND elevationnumber.entity_type = 'elevationSpec' AND elevationnumber.field_name = 'elevationNumber'
+    LEFT JOIN sn_custom_fields elevationno ON es.elevation_spec_id = elevationno.entity_id AND elevationno.entity_type = 'elevationSpec' AND elevationno.field_name = 'Elevation_No'
+ORDER BY
+    p.plot_number,
+    p.plot_id,
+    elevationno.field_value,
+    elevationnumber.field_value,
+    es.elevation_spec_id;
 
 
 
