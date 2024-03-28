@@ -43,7 +43,7 @@ function prepareImportObject(importSheetData){
                 "p2":"",
                 "p3": "",
                 "annualYield": "",
-                "kwp": importSheetData.MAP.KWP,
+                "kwp": importSheetData.MAP.Net_kWp,
                 "kwpWithLimitation": "",
                 "limiterRequired": "",
                 "limiterValueIfNotZero": "",
@@ -244,7 +244,13 @@ function prepareImportObject(importSheetData){
                 "panels_total_cost": "", // No direct mapping available; might need to aggregate panel costs or set manually
                 "roof_kit": "",
                 "roof_kit_cost": "", // No direct mapping available; might need to derive or set manually
-                "annual_yield": ""
+                "annual_yield": "",
+                customFields: {
+                    entityType: 'elevationInstall',
+                    fields: {
+                        elevationNumber: ""
+                    }
+                }
             },
             elevationSpecData: {
                 "plot_spec_id": "", // Needs a UUID or a unique identifier; no direct mapping
@@ -258,6 +264,7 @@ function prepareImportObject(importSheetData){
                 "module_qty": importSheetData.MAP.NO___PANELS,
                 "inverter": importSheetData.Total_Costing.Inverter,
                 "inverter_cost": "", // No direct mapping available; might need to derive or set manually
+                "inverter_manufacturer": importSheetData.Total_Costing.Inverter_Manufacturer,
                 "panel": importSheetData.MAP.Panel,
                 "panel_cost": "", // No direct mapping available; might need to derive or set manually
                 "panels_total_cost": "", // No direct mapping available; might need to aggregate panel costs or set manually
@@ -274,6 +281,7 @@ function prepareImportObject(importSheetData){
                         Mounting: importSheetData.MAP.Mounting,
                         Tile_Type: importSheetData.MAP.Tile_Type,
                         Elevation_No: importSheetData.MAP.Elevation_No,
+                        elevationNumber: "",
                         Building_Side: importSheetData.MAP.Building_Side,
                         Input_Roof_Incline: importSheetData.MAP.Input_Roof_Incline,
                         Input_Variation_from_South: importSheetData.MAP.Input_Variation_from_South,
@@ -389,68 +397,68 @@ const clientObject = {
 };
 
 /**
- * This function imports plot data from a spreadsheet into a database.
+ * Imports plot data from a spreadsheet into a database.
  *
- * It establishes a database connection using the provided credentials and creates an import event.
- * Then, it enters a loop where it retrieves row data from the "Total Costing" sheet based on the
- * index specified in the "MAP" sheet. If the row data matches, it prepares an import object and
- * imports the plot data into the database using the `importPlotData` function. After each iteration,
- * the `searchIndex` in the "MAP" sheet is incremented.
- *
- * The loop continues until 20 minutes have elapsed since the start time.
- * Before the loop terminates, it stores the current `searchIndex` in a persistent script variable
- * associated with the `queryConfigByIndex.sheetId`.
+ * This function performs the following steps:
+ * 1. Establishes a database connection using the provided credentials.
+ * 2. Creates an import event in the database.
+ * 3. Enters a loop to retrieve row data from the "Total Costing" sheet based on the index specified in the "MAP" sheet.
+ *    - If the row data matches, it prepares an import object and imports the plot data into the database using the `importPlotData` function.
+ *    - If there are 20 consecutive "false" returns from `querySheetsByIndexWithSpecialSheet`, the loop breaks.
+ *    - The `searchIndex` in the "MAP" sheet is incremented after each iteration.
+ * 4. The loop continues until 20 minutes have elapsed since the start time or 20 consecutive "false" returns occur.
+ * 5. Before the loop terminates, it stores the current `searchIndex` in a persistent script variable associated with the `queryConfigByIndex.sheetId`.
  *
  * If a persistent script variable exists for the current `queryConfigByIndex.sheetId`, the function
  * sets the `queryConfigByIndex.sheets.MAP.searchIndex` to the value of the persistent script variable
  * before starting the loop.
  *
  * @function
- * @returns {undefined} This function does not return anything.
+ * @returns {void}
  */
 function main() {
-    var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
-    var details = insertInstanceAndGetUuid(conn, clientObject);
-    var importId = insertImportEvent(conn, details.instanceId, '', 'Site Log Import', 'Test Import', details.adminUserId);
+    const usePersistentScriptVariable = false; // Set to true to use the persistent script variable
 
-// Check if a persistent script variable exists for the current queryConfigByIndex.sheetId
+    const conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
+    const details = insertInstanceAndGetUuid(conn, clientObject);
+    const importId = insertImportEvent(conn, details.instanceId, '', 'Site Log Import', 'Test Import', details.adminUserId);
+
+    // Check if a persistent script variable exists for the current queryConfigByIndex.sheetId
     const persistentScriptVariableName = `searchIndex_${queryConfigByIndex.sheetId}`;
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const persistentScriptVariable = scriptProperties.getProperty(persistentScriptVariableName);
 
-// Get the script properties service
-    var scriptProperties = PropertiesService.getScriptProperties();
-
-// Get the persistent script variable
-    var persistentScriptVariable = scriptProperties.getProperty(persistentScriptVariableName);
-    if (persistentScriptVariable) {
+    if (usePersistentScriptVariable && persistentScriptVariable) {
         queryConfigByIndex.sheets.MAP.searchIndex = parseInt(persistentScriptVariable, 10);
     }
 
     const startTime = new Date().getTime();
+    let consecutiveFalseCount = 0;
 
     while (true) {
-        let rowObject = querySheetsByIndexWithSpecialSheet(queryConfigByIndex);
-        console.log(rowObject)
-        if (rowObject.matched === false) {
-            // console.log("No matching data found in the 'Total Costing' sheet for the specified row index in the 'MAP' sheet.");
-            queryConfigByIndex.sheets.MAP.searchIndex++;
-            const currentTime = new Date().getTime();
-            const elapsedTime = currentTime - startTime;
-            if (elapsedTime >= 20 * 60 * 1000) { // 20 minutes in milliseconds
-                // Store the current searchIndex in a persistent script variable
-                scriptProperties.setProperty(persistentScriptVariableName, queryConfigByIndex.sheets.MAP.searchIndex.toString());
+        const rowObject = querySheetsByIndexWithSpecialSheet(queryConfigByIndex);
+        console.log(rowObject);
+
+        if (rowObject.matched) {
+            const importObject = prepareImportObject(rowObject);
+            const result = importPlotData(conn, details.instanceId, importId, importObject.plotData);
+            console.log("plot ID", result);
+            consecutiveFalseCount = 0;
+        } else {
+            console.log("No matching data found in the 'Total Costing' sheet for the specified row index in the 'MAP' sheet.");
+            consecutiveFalseCount++;
+
+            if (consecutiveFalseCount === 20) {
+                console.log("Breaking the loop after 20 consecutive false returns.");
                 break;
             }
-            continue;
         }
-
-        let importObject = prepareImportObject(rowObject);
-        let result = importPlotData(conn, details.instanceId, importId, importObject.plotData);
-        console.log("plot ID", result);
 
         queryConfigByIndex.sheets.MAP.searchIndex++;
 
         const currentTime = new Date().getTime();
         const elapsedTime = currentTime - startTime;
+
         if (elapsedTime >= 20 * 60 * 1000) { // 20 minutes in milliseconds
             // Store the current searchIndex in a persistent script variable
             scriptProperties.setProperty(persistentScriptVariableName, queryConfigByIndex.sheets.MAP.searchIndex.toString());
