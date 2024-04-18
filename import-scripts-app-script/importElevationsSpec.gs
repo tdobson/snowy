@@ -64,8 +64,8 @@ function importElevationSpecData(conn, instanceId, importId, elevationSpecData) 
       elevationSpecData.panel_id =  importProductData(conn,instanceId, importId, { productName: elevationSpecData.panel, productType: 'Panel', costToday: elevationSpecData.panel_cost });
     }
 
-        if (elevationSpecData.roofkit) {
-          elevationSpecData.roofkit_id =   importProductData(conn,instanceId, importId, { productName: elevationSpecData.roof_kit, productType: 'Roof Kit' });
+        if (elevationSpecData.roof_kit) {
+          elevationSpecData.roof_kit_id =   importProductData(conn,instanceId, importId, { productName: elevationSpecData.roof_kit, productType: 'Roof Kit', costToday: elevationSpecData.roof_kit_cost });
         }
 
     // Determine the elevation number for the current elevation specification

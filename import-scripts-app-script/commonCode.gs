@@ -928,9 +928,9 @@ function sanitizeInt(value) {
 }
 
 function convertPhaseToInt(phase) {
-    if (phase === "Single Phase" || phase ===  "1") {
+    if (phase === "Single Phase" || phase === "SINGLE"  || phase === "Single" || phase ===  "1") {
         return 1;
-    } else if (phase === "Three Phase" || phase === "3") {
+    } else if (phase === "Three Phase" || phase === "Three" || phase === "THREE" || phase === "3") {
         return 3;
     } else {
         return 0; // Default value for any other phase
@@ -1120,4 +1120,66 @@ function querySheetsByIndexWithSpecialSheet(config) {
   });
 
   return joinedData;
+}
+
+/**
+ * Retrieves a folder with the specified name within the given parent folder,
+ * or creates a new folder if it doesn't exist.
+ *
+ * @param {Folder} parentFolder - The parent folder to search or create the folder in.
+ * @param {string} folderName - The name of the folder to retrieve or create.
+ * @returns {Folder} The retrieved or created folder.
+ */
+function getOrCreateFolder(parentFolder, folderName) {
+    const folders = parentFolder.getFoldersByName(folderName);
+    if (folders.hasNext()) {
+        return folders.next();
+    } else {
+        return parentFolder.createFolder(folderName);
+    }
+}
+
+/**
+ * Acquires a file-level lock using the PropertiesService.
+ *
+ * @param {string} lockKey - The unique lock key for the file.
+ * @returns {boolean} - True if the lock is acquired, false otherwise.
+ */
+function acquireFileLock(lockKey) {
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const lock = LockService.getScriptLock();
+
+    try {
+        lock.waitLock(10000); // Wait for up to 5 seconds to acquire the script lock
+
+        const lockTimestamp = scriptProperties.getProperty(lockKey);
+        const currentTime = new Date().getTime();
+
+        if (lockTimestamp === null || lockTimestamp === "lock" || currentTime - lockTimestamp > 30 * 60 * 1000) {
+            // Lock is expired or doesn't exist, acquire the lock
+            scriptProperties.setProperty(lockKey, currentTime.toString());
+            return true;
+        }
+
+        return false;
+    } finally {
+        lock.releaseLock(); // Release the script lock
+    }
+}
+
+/**
+ * Releases a file-level lock using the PropertiesService.
+ *
+ * @param {string} lockKey - The unique lock key for the file.
+ */
+function releaseFileLock(lockKey) {
+    const scriptProperties = PropertiesService.getScriptProperties();
+    const lock = LockService.getScriptLock();
+
+    try {
+        lock.waitLock(10000); // Wait for up to 5 seconds to acquire the script lock
+        scriptProperties.deleteProperty(lockKey);
+    } finally {
+        lock.releaseLock(); // Release the script lock
+    }
 }

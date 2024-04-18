@@ -12,7 +12,7 @@ SELECT
     ei.panels_total_cost AS install_panels_total_cost, ei.roof_kit AS install_roof_kit, ei.roof_kit_cost AS install_roof_kit_cost,
     ei.annual_yield AS install_elevation_annual_yield,
     st.status_state, st.status_name, st.status_group, st.status_code, st.status_description,
-    a.address_line_1, a.address_line_2, a.address_town, a.address_county, a.address_postcode, a.address_country, a.address_region_id
+    a.address_line_1, a.address_line_2, a.address_town, a.address_county, a.address_postcode, a.address_country, a.address_region_id, p.instance_id
 FROM
     sn_plots p
     LEFT JOIN sn_plot_spec ps ON p.plot_id = ps.plot_id
@@ -32,7 +32,7 @@ SELECT
     c.client_legacy_number, c.client_name, c.client_address_id, c.client_plot_card_required, c.contact_id,
     st.status_state, st.status_name, st.status_group, st.status_code, st.status_description,
     s.site_name, s.dno_details_id AS site_dno_details_id, s.site_address_id, s.site_manager_id, s.site_surveyor_id, s.site_agent_id,
-    a.address_line_1, a.address_line_2, a.address_town, a.address_county, a.address_postcode, a.address_country, a.address_region_id
+    a.address_line_1, a.address_line_2, a.address_town, a.address_county, a.address_postcode, a.address_country, a.address_region_id, pr.instance_id
 FROM
     sn_projects pr
     LEFT JOIN sn_project_process pp ON pr.project_process_id = pp.project_process_id
@@ -41,7 +41,7 @@ FROM
     LEFT JOIN sn_sites s ON pr.site_id = s.site_id
     LEFT JOIN sn_addresses a ON c.client_address_id = a.address_id;
 
-CREATE VIEW sn_vw_project_info_for_tracker AS
+create VIEW sn_vw_project_info_for_tracker AS
 SELECT
     p.project_id,
     p.pv_number AS projectNo,
@@ -55,20 +55,20 @@ SELECT
     u1.email AS surveyorEmail,
     u2.name AS siteAgentName,
     u2.phone AS siteAgentTel,
-    u2.email AS siteAgentEmail
+    u2.email AS siteAgentEmail,
+    p.instance_id AS instanceId
 FROM sn_projects p
 JOIN sn_sites s ON p.site_id = s.site_id
 JOIN sn_clients c ON p.client_id = c.client_id
 JOIN sn_addresses a ON s.site_address_id = a.address_id
 LEFT JOIN sn_custom_fields cf ON s.site_id = cf.entity_id AND cf.field_name = 'sitew3w'
 LEFT JOIN sn_users u1 ON s.site_surveyor_id = u1.user_id
-LEFT JOIN sn_users u2 ON s.site_agent_id = u2.user_id
-WHERE p.instance_id = (SELECT instance_id FROM sn_instances LIMIT 1);
+LEFT JOIN sn_users u2 ON s.site_agent_id = u2.user_id;
 
-CREATE VIEW sn_vw_plot_details_for_tracker AS
+create VIEW sn_vw_plot_details_for_tracker AS
 SELECT
     p.plot_id,
-    pr.pv_number,
+    pr.pv_number as "Job Code",
     p.plot_number,
     p.housetype,
     a.address_line_1 AS house_no,
@@ -111,7 +111,8 @@ SELECT
     pcf.field_value AS metermodel,
     ps.overall_cost AS totalcost,
     pcf2.field_value AS totalprice,
-    pcf3.field_value AS givenergy
+    pcf3.field_value AS givenergy,
+    p.instance_id AS instanceId
 FROM
     sn_plots p
     LEFT JOIN sn_projects pr ON p.project_id = pr.project_id
@@ -122,7 +123,7 @@ FROM
     LEFT JOIN sn_custom_fields ef2 ON ps.plot_spec_id = ef2.entity_id AND ef2.entity_type = 'plotSpec' AND ef2.field_name = 'String_two'
     LEFT JOIN sn_custom_fields ef3 ON ps.plot_spec_id = ef3.entity_id AND ef3.entity_type = 'plotSpec' AND ef3.field_name = 'String_three'
     LEFT JOIN sn_custom_fields ef4 ON ps.plot_spec_id = ef4.entity_id AND ef4.entity_type = 'plotSpec' AND ef4.field_name = 'String_four'
-    LEFT JOIN sn_custom_fields ef5 ON es.elevation_spec_id = ef5.entity_id AND ef5.entity_type = 'elevationSpec' AND ef5.field_name = 'NO_Trackers'
+    LEFT JOIN sn_custom_fields ef5 ON ps.plot_spec_id = ef5.entity_id AND ef5.entity_type = 'plotSpec' AND ef5.field_name = 'NO_Trackers'
     LEFT JOIN sn_custom_fields ef6 ON es.elevation_spec_id = ef6.entity_id AND ef6.entity_type = 'elevationSpec' AND ef6.field_name = 'IN___ABOVE_ROOF'
     LEFT JOIN sn_custom_fields ef7 ON es.elevation_spec_id = ef7.entity_id AND ef7.entity_type = 'elevationSpec' AND ef7.field_name = 'Rated_Output__W_'
     LEFT JOIN sn_custom_fields ef8 ON es.elevation_spec_id = ef8.entity_id AND ef8.entity_type = 'elevationSpec' AND ef8.field_name = 'Tile_Type'
@@ -137,72 +138,75 @@ FROM
     LEFT JOIN sn_custom_fields pcf2 ON ps.plot_spec_id = pcf2.entity_id AND pcf2.entity_type = 'plotSpec' AND pcf2.field_name = 'Plot_Total__Quoted_'
     LEFT JOIN sn_custom_fields pcf3 ON ps.plot_spec_id = pcf3.entity_id AND pcf3.entity_type = 'plotSpec' AND pcf3.field_name = 'GIVENERGY';
 
-alter VIEW sn_vw_plot_elevation_details_for_tracker AS
+create VIEW sn_vw_plot_elevation_details_for_tracker AS
 SELECT
-    es.elevation_spec_id AS `Elevation Spec ID`,
-    elevationnumber.field_value AS "Elevation Number",
-    elevationno.field_value AS "Elevation_No",
     p.plot_id,
-    p.plot_number AS `PLOT NO`,
-    p.housetype AS Housetype,
-    a.address_line_1 AS `House No/name`,
-    a.address_line_2 AS Street,
-    a.address_town AS Town,
-    a.address_postcode AS Postcode,
-    p.mpan AS MPAN,
-    productspanel.product_name AS Panel,
-    wattage.field_value AS `PANEL kWp`,
-    pvoltage.field_value AS `P Voltage`,
-    panelmcscode.field_value AS `MCS Code`,
-    es.orientation AS Orientation,
-    colmns.field_value AS `Columns`,
-    rws.field_value AS `Rows`,
-    ps.phase AS Phase,
-    notrackers.field_value AS `NO Trackers`,
-    es.strings AS `Total Strings`,
-    string1.field_value AS `String 1`,
-    string2.field_value AS `String 2`,
-    string3.field_value AS `String 3`,
-    string4.field_value AS `String 4`,
-    string5.field_value AS `String 5`,
-    string6.field_value AS `String 6`,
-    string7.field_value AS `String 7`,
-    string8.field_value AS `String 8`,
-    productsinverters.product_name AS `Inverter`,
-   "" AS `Tracker/String no.`,
-    productsinverters.manufacturer AS `Inverter Manufacturer`,
-    "" AS `Hybrid`,
-    es.type_test_ref AS `Type Test No`, -- will need to update this in future to inveter model number
-    ratedoutputpower.field_value AS `Rated Output Power`, -- will need to update this in future to hanging off inveerter
-    productsbattery.product_name AS Battery,
-    productsroofkit.product_name AS `Mounting Kit`,
-    tiletype.field_value AS `Tile Type`,
-    es.pitch AS `Roof Incline`,
-    variationfromsouth.field_value AS `Variationo From South`,
-    es.kk_figure AS `kWh/kWp`,
-    inaboveroof.field_value AS `IN / ABOVE ROOF`,
-    cardianaldirection.field_value AS `CARDINAL DIRECTION`,
-    overshadingfactor.field_value AS `OVERSHADING FACTOR`,
-    es.module_qty AS `NO# PANELS`,
-    arraym2.field_value AS `ARRAY M2`,
-    ps.kwp AS kWp,
-    kwh.field_value AS kWh,
-    co2equivalent.field_value AS `CO2 EQUIVALENT`,
-    netkwp.field_value AS `Net kWp`,
-    finisheddrawing.field_value AS `Finished Drawing`,
-    commissioninginfoin.field_value AS `Commissioning Info In`,
-    mcscompleted.field_value AS `MCS Completed`,
-    dnodocumentcompleted.field_value AS `DNO Document Completed`,
-    hopackcompleted.field_value AS `HO Pack Completed`,
-    shape.field_value AS Shape,
-    invertermauf.field_value AS `Inverter Mauf`,
-    protectivedevice.field_value AS `Protective Device`,
-    buildingside.field_value AS `Building Side`,
-    parcel.field_value AS Parcel,
-    blockhouse.field_value AS `Block/house`,
-    plotrequirement.field_value AS `Plot requirement`
+    pr.pv_number as "Job Code",
+    MAX(CASE WHEN es.elevation_spec_id IS NOT NULL THEN es.elevation_spec_id END) AS `Elevation Spec ID`,
+    MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'elevationNumber' THEN cf.field_value END) AS "Elevation Number",
+    MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'Elevation_No' THEN cf.field_value END) AS "Elevation_No",
+    MAX(CASE WHEN p.plot_number IS NOT NULL THEN p.plot_number END) AS `PLOT NO`,
+    MAX(CASE WHEN p.housetype IS NOT NULL THEN p.housetype END) AS Housetype,
+    MAX(CASE WHEN a.address_line_1 IS NOT NULL THEN a.address_line_1 END) AS `House No/name`,
+    MAX(CASE WHEN a.address_line_2 IS NOT NULL THEN a.address_line_2 END) AS Street,
+    MAX(CASE WHEN a.address_town IS NOT NULL THEN a.address_town END) AS Town,
+    MAX(CASE WHEN a.address_postcode IS NOT NULL THEN a.address_postcode END) AS Postcode,
+    MAX(CASE WHEN p.mpan IS NOT NULL THEN p.mpan END) AS MPAN,
+    MAX(CASE WHEN productspanel.product_name IS NOT NULL THEN productspanel.product_name END) AS Panel,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Wattage' THEN cf.field_value END) AS `PANEL kWp`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Voltage' THEN cf.field_value END) AS `P Voltage`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'MCS_Code' THEN cf.field_value END) AS `MCS Code`,
+    MAX(CASE WHEN es.orientation IS NOT NULL THEN es.orientation END) AS Orientation,
+    MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'Columns' THEN cf.field_value END) AS `Columns`,
+    MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'Rows' THEN cf.field_value END) AS `Rows`,
+    MAX(CASE WHEN ps.phase IS NOT NULL THEN ps.phase END) AS Phase,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'NO_Trackers' THEN cf.field_value END) AS `NO Trackers`,
+    MAX(CASE WHEN es.strings IS NOT NULL THEN es.strings END) AS `Total Strings`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'String_one' THEN cf.field_value END) AS `String 1`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'String_two' THEN cf.field_value END) AS `String 2`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'String_three' THEN cf.field_value END) AS `String 3`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'String_four' THEN cf.field_value END) AS `String 4`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'String_five' THEN cf.field_value END) AS `String 5`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'String_six' THEN cf.field_value END) AS `String 6`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'String_seven' THEN cf.field_value END) AS `String 7`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'String_eight' THEN cf.field_value END) AS `String 8`,
+    MAX(CASE WHEN productsinverters.product_name IS NOT NULL THEN productsinverters.product_name END) AS `Inverter`,
+    '' AS `Tracker/String no.`,
+    MAX(CASE WHEN productsinverters.manufacturer IS NOT NULL THEN productsinverters.manufacturer END) AS `Inverter Manufacturer`,
+    '' AS `Hybrid`,
+    MAX(CASE WHEN es.type_test_ref IS NOT NULL THEN es.type_test_ref END) AS `Type Test No`,
+    MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'Inverter_Rated_Output__W_' THEN cf.field_value END) AS `Rated Output Power`,
+    MAX(CASE WHEN productsbattery.product_name IS NOT NULL THEN productsbattery.product_name END) AS Battery,
+    MAX(CASE WHEN productsroofkit.product_name IS NOT NULL THEN productsroofkit.product_name END) AS `Mounting Kit`, -- error
+    MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'Tile_Type' THEN cf.field_value END) AS `Tile Type`,
+    MAX(CASE WHEN es.pitch IS NOT NULL THEN es.pitch END) AS `Roof Incline`,
+    MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'Input_Variation_from_South' THEN cf.field_value END) AS `Variationo From South`,
+    MAX(CASE WHEN es.kk_figure IS NOT NULL THEN es.kk_figure END) AS `kWh/kWp`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'IN___ABOVE_ROOF' THEN cf.field_value END) AS `IN / ABOVE ROOF`,
+    MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'CARDINAL_DIRECTION' THEN cf.field_value END) AS `CARDINAL DIRECTION`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'OVERSHADING_FACTOR' THEN cf.field_value END) AS `OVERSHADING FACTOR`,
+    MAX(CASE WHEN es.module_qty IS NOT NULL THEN es.module_qty END) AS `NO# PANELS`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'ARRAY_Mtwo' THEN cf.field_value END) AS `ARRAY M2`,
+    MAX(CASE WHEN ps.kwp IS NOT NULL THEN ps.kwp END) AS kWp,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'kWh' THEN cf.field_value END) AS kWh,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'COtwo_EQUIVALENT' THEN cf.field_value END) AS `CO2 EQUIVALENT`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Net_kWp' THEN cf.field_value END) AS `Net kWp`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Finished_Drawing' THEN cf.field_value END) AS `Finished Drawing`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Commissioning_Info_In' THEN cf.field_value END) AS `Commissioning Info In`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'MCS_Completed' THEN cf.field_value END) AS `MCS Completed`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'DNO_Document_Completed' THEN cf.field_value END) AS `DNO Document Completed`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'HO_Pack_Completed' THEN cf.field_value END) AS `HO Pack Completed`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Shape' THEN cf.field_value END) AS Shape,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'MICROINV' THEN cf.field_value END) AS `Inverter Mauf`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Protective_Device' THEN cf.field_value END) AS `Protective Device`,
+    MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'Building_Side' THEN cf.field_value END) AS `Building Side`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'PARCEL' THEN cf.field_value END) AS Parcel,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Block___House' THEN cf.field_value END) AS `Block/house`,
+    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Plot_Requirement' THEN cf.field_value END) AS `Plot requirement`,
+    p.instance_id AS instanceId
 FROM
     sn_plots p
+    LEFT JOIN sn_projects pr ON p.project_id = pr.project_id
     LEFT JOIN sn_plot_spec ps ON p.plot_id = ps.plot_id
     LEFT JOIN sn_elevations_spec es ON p.plot_id = es.plot_id
     LEFT JOIN sn_addresses a ON p.plot_address_id = a.address_id
@@ -211,55 +215,15 @@ FROM
     LEFT JOIN sn_products productsroofkit ON productsroofkit.product_id = es.roof_kit
     LEFT JOIN sn_products productsbattery ON productsbattery.product_id = ps.battery
     LEFT JOIN sn_products productsmeter ON productsmeter.product_id = ps.meter
-    LEFT JOIN sn_custom_fields pvoltage ON ps.plot_spec_id = pvoltage.entity_id AND pvoltage.entity_type = 'plotSpec' AND pvoltage.field_name = 'Voltage'
-    LEFT JOIN sn_custom_fields notrackers ON ps.plot_spec_id = notrackers.entity_id AND notrackers.entity_type = 'plotSpec' AND notrackers.field_name = 'NO_Trackers'
-    LEFT JOIN sn_custom_fields string1 ON ps.plot_spec_id = string1.entity_id AND string1.entity_type = 'plotSpec' AND string1.field_name = 'String_one'
-    LEFT JOIN sn_custom_fields string2 ON ps.plot_spec_id = string2.entity_id AND string2.entity_type = 'plotSpec' AND string2.field_name = 'String_two'
-    LEFT JOIN sn_custom_fields string3 ON ps.plot_spec_id = string3.entity_id AND string3.entity_type = 'plotSpec' AND string3.field_name = 'String_three'
-    LEFT JOIN sn_custom_fields string4 ON ps.plot_spec_id = string4.entity_id AND string4.entity_type = 'plotSpec' AND string4.field_name = 'String_four'
-    LEFT JOIN sn_custom_fields string5 ON ps.plot_spec_id = string5.entity_id AND string5.entity_type = 'plotSpec' AND string5.field_name = 'String_five'
-    LEFT JOIN sn_custom_fields string6 ON ps.plot_spec_id = string6.entity_id AND string6.entity_type = 'plotSpec' AND string6.field_name = 'String_six'
-    LEFT JOIN sn_custom_fields string7 ON ps.plot_spec_id = string7.entity_id AND string7.entity_type = 'plotSpec' AND string7.field_name = 'String_seven'
-    LEFT JOIN sn_custom_fields string8 ON ps.plot_spec_id = string8.entity_id AND string8.entity_type = 'plotSpec' AND string8.field_name = 'String_eight'
-    LEFT JOIN sn_custom_fields inaboveroof ON ps.plot_spec_id = inaboveroof.entity_id AND inaboveroof.entity_type = 'plotSpec' AND inaboveroof.field_name = 'IN___ABOVE_ROOF'
-    LEFT JOIN sn_custom_fields cardianaldirection ON es.elevation_spec_id = cardianaldirection.entity_id AND cardianaldirection.entity_type = 'elevationSpec' AND cardianaldirection.field_name = 'CARDINAL_DIRECTION'
-    LEFT JOIN sn_custom_fields roofincline ON ps.plot_spec_id = roofincline.entity_id AND roofincline.entity_type = 'plotSpec' AND roofincline.field_name = 'Roof_Incline'
-    LEFT JOIN sn_custom_fields inverterbrand ON es.elevation_spec_id = inverterbrand.entity_id AND inverterbrand.entity_type = 'elevationSpec' AND inverterbrand.field_name = 'IN___ABOVE_ROOF'
-    LEFT JOIN sn_custom_fields wattage ON ps.plot_spec_id = wattage.entity_id AND wattage.entity_type = 'plotSpec' AND wattage.field_name = 'Wattage'
-    LEFT JOIN sn_custom_fields panelmcscode ON ps.plot_spec_id = panelmcscode.entity_id AND panelmcscode.entity_type = 'plotSpec' AND panelmcscode.field_name = 'MCS_Code'
-    LEFT JOIN sn_custom_fields rws ON es.elevation_spec_id = rws.entity_id AND rws.entity_type = 'elevationSpec' AND rws.field_name = 'Rows'
-    LEFT JOIN sn_custom_fields colmns ON es.elevation_spec_id = colmns.entity_id AND colmns.entity_type = 'elevationSpec' AND colmns.field_name = 'Columns'
-    LEFT JOIN sn_custom_fields ratedoutputpower ON es.elevation_spec_id = ratedoutputpower.entity_id AND ratedoutputpower.entity_type = 'elevationSpec' AND ratedoutputpower.field_name = 'Inverter_Rated_Output__W_'
-    LEFT JOIN sn_custom_fields mcscode ON es.elevation_spec_id = mcscode.entity_id AND mcscode.entity_type = 'elevationSpec' AND mcscode.field_name = 'MCS_Code'
-    LEFT JOIN sn_custom_fields tiletype ON es.elevation_spec_id = tiletype.entity_id AND tiletype.entity_type = 'elevationSpec' AND tiletype.field_name = 'Tile_Type'
-    LEFT JOIN sn_custom_fields variationfromsouth ON es.elevation_spec_id = variationfromsouth.entity_id AND variationfromsouth.entity_type = 'elevationSpec' AND variationfromsouth.field_name = 'Input_Variation_from_South'
-    LEFT JOIN sn_custom_fields kwhperkwp ON es.elevation_spec_id = kwhperkwp.entity_id AND kwhperkwp.entity_type = 'elevationSpec' AND kwhperkwp.field_name = 'kWh_KWp'
-    LEFT JOIN sn_custom_fields overshadingfactor ON ps.plot_spec_id = overshadingfactor.entity_id AND overshadingfactor.entity_type = 'plotSpec' AND overshadingfactor.field_name = 'OVERSHADING_FACTOR'
-    LEFT JOIN sn_custom_fields arraym2 ON ps.plot_spec_id  = arraym2.entity_id AND arraym2.entity_type = 'plotSpec' AND arraym2.field_name = 'ARRAY_Mtwo'
-    LEFT JOIN sn_custom_fields kwh ON ps.plot_spec_id = kwh.entity_id AND kwh.entity_type = 'plotSpec' AND kwh.field_name = 'kWh'
-    LEFT JOIN sn_custom_fields co2equivalent ON ps.plot_spec_id = co2equivalent.entity_id AND co2equivalent.entity_type = 'plotSpec' AND co2equivalent.field_name = 'COtwo_EQUIVALENT'
-    LEFT JOIN sn_custom_fields netkwp ON ps.plot_spec_id = netkwp.entity_id AND netkwp.entity_type = 'plotSpec' AND netkwp.field_name = 'Net_kWp'
-    LEFT JOIN sn_custom_fields finisheddrawing ON ps.plot_spec_id = finisheddrawing.entity_id AND finisheddrawing.entity_type = 'plotSpec' AND finisheddrawing.field_name = 'Finished_Drawing'
-    LEFT JOIN sn_custom_fields commissioninginfoin ON ps.plot_spec_id = commissioninginfoin.entity_id AND commissioninginfoin.entity_type = 'plotSpec' AND commissioninginfoin.field_name = 'Commissioning_Info_In'
-    LEFT JOIN sn_custom_fields mcscompleted ON ps.plot_spec_id = mcscompleted.entity_id AND mcscompleted.entity_type = 'plotSpec' AND mcscompleted.field_name = 'MCS_Completed'
-    LEFT JOIN sn_custom_fields dnodocumentcompleted ON ps.plot_spec_id = dnodocumentcompleted.entity_id AND dnodocumentcompleted.entity_type = 'plotSpec' AND dnodocumentcompleted.field_name = 'DNO_Document_Completed'
-    LEFT JOIN sn_custom_fields hopackcompleted ON ps.plot_spec_id = hopackcompleted.entity_id AND hopackcompleted.entity_type = 'plotSpec' AND hopackcompleted.field_name = 'HO_Pack_Completed'
-    LEFT JOIN sn_custom_fields shape ON ps.plot_spec_id = shape.entity_id AND shape.entity_type = 'plotSpec' AND shape.field_name = 'Shape'
-    LEFT JOIN sn_custom_fields invertermauf ON ps.plot_spec_id = invertermauf.entity_id AND invertermauf.entity_type = 'plotSpec' AND invertermauf.field_name = 'MICROINV'
-    LEFT JOIN sn_custom_fields protectivedevice ON  ps.plot_spec_id = protectivedevice.entity_id AND protectivedevice.entity_type = 'plotSpec' AND protectivedevice.field_name = 'Protective_Device'
-    LEFT JOIN sn_custom_fields buildingside ON es.elevation_spec_id = buildingside.entity_id AND buildingside.entity_type = 'elevationSpec' AND buildingside.field_name = 'Building_Side'
-    LEFT JOIN sn_custom_fields parcel ON ps.plot_spec_id = parcel.entity_id AND parcel.entity_type = 'plotSpec' AND parcel.field_name = 'PARCEL'
-    LEFT JOIN sn_custom_fields blockhouse ON ps.plot_spec_id = blockhouse.entity_id AND blockhouse.entity_type = 'plotSpec' AND blockhouse.field_name = 'Block___House'
-    LEFT JOIN sn_custom_fields plotrequirement ON ps.plot_spec_id = plotrequirement.entity_id AND plotrequirement.entity_type = 'plotSpec' AND plotrequirement.field_name = 'Plot_Requirement'
-    LEFT JOIN sn_custom_fields elevationnumber ON es.elevation_spec_id = elevationnumber.entity_id AND elevationnumber.entity_type = 'elevationSpec' AND elevationnumber.field_name = 'elevationNumber'
-    LEFT JOIN sn_custom_fields elevationno ON es.elevation_spec_id = elevationno.entity_id AND elevationno.entity_type = 'elevationSpec' AND elevationno.field_name = 'Elevation_No'
+    LEFT JOIN sn_custom_fields cf ON (cf.entity_id = ps.plot_spec_id AND cf.entity_type = 'plotSpec') OR (cf.entity_id = es.elevation_spec_id AND cf.entity_type = 'elevationSpec')
+GROUP BY
+    p.plot_id
 ORDER BY
     p.plot_number,
     p.plot_id,
-    elevationno.field_value,
-    elevationnumber.field_value,
+    MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'Elevation_No' THEN cf.field_value END),
+    MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'elevationNumber' THEN cf.field_value END),
     es.elevation_spec_id;
-
 
 
     -- this view provides the info requires to submit to the MCS api
