@@ -284,7 +284,7 @@ function prepareImportObject(importSheetData){
                 "pitch": importSheetData.MAP.Roof_Incline,
                 "orientation": importSheetData.MAP.Orientation,
                 "kk_figure": importSheetData.MAP.kWh_kWp,
-                "kwp": importSheetData.MAP.KWp,
+                "kwp": importSheetData.MAP.kWp,
                 "strings": importSheetData.MAP.Total_Strings,
                 "module_qty": importSheetData.MAP.NO__PANELS,
                 "inverter": importSheetData.Total_Costing.Inverter,

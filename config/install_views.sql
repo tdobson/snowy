@@ -106,7 +106,7 @@ SELECT
     es.kwp,
     ef13.field_value AS kwh,
     ef14.field_value AS co2equivalent,
-    ef15.field_value AS netkwp,
+    ps.kwp AS netkwp,
     ps.meter AS metermake,
     pcf.field_value AS metermodel,
     ps.overall_cost AS totalcost,
@@ -138,7 +138,7 @@ FROM
     LEFT JOIN sn_custom_fields pcf2 ON ps.plot_spec_id = pcf2.entity_id AND pcf2.entity_type = 'plotSpec' AND pcf2.field_name = 'Plot_Total__Quoted_'
     LEFT JOIN sn_custom_fields pcf3 ON ps.plot_spec_id = pcf3.entity_id AND pcf3.entity_type = 'plotSpec' AND pcf3.field_name = 'GIVENERGY';
 
-create VIEW sn_vw_plot_elevation_details_for_tracker AS
+alter VIEW sn_vw_plot_elevation_details_for_tracker AS
 SELECT
     p.plot_id,
     pr.pv_number as "Job Code",
@@ -187,10 +187,10 @@ SELECT
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'OVERSHADING_FACTOR' THEN cf.field_value END) AS `OVERSHADING FACTOR`,
     MAX(CASE WHEN es.module_qty IS NOT NULL THEN es.module_qty END) AS `NO# PANELS`,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'ARRAY_Mtwo' THEN cf.field_value END) AS `ARRAY M2`,
-    MAX(CASE WHEN ps.kwp IS NOT NULL THEN ps.kwp END) AS kWp,
+    MAX(CASE WHEN es.kwp IS NOT NULL THEN es.kwp END) AS kWp,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'kWh' THEN cf.field_value END) AS kWh,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'COtwo_EQUIVALENT' THEN cf.field_value END) AS `CO2 EQUIVALENT`,
-    MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Net_kWp' THEN cf.field_value END) AS `Net kWp`,
+    MAX(CASE WHEN ps.kwp IS NOT NULL THEN ps.kwp END) AS `Net kWp`,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Finished_Drawing' THEN cf.field_value END) AS `Finished Drawing`,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Commissioning_Info_In' THEN cf.field_value END) AS `Commissioning Info In`,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'MCS_Completed' THEN cf.field_value END) AS `MCS Completed`,
