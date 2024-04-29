@@ -138,20 +138,20 @@ FROM
     LEFT JOIN sn_custom_fields pcf2 ON ps.plot_spec_id = pcf2.entity_id AND pcf2.entity_type = 'plotSpec' AND pcf2.field_name = 'Plot_Total__Quoted_'
     LEFT JOIN sn_custom_fields pcf3 ON ps.plot_spec_id = pcf3.entity_id AND pcf3.entity_type = 'plotSpec' AND pcf3.field_name = 'GIVENERGY';
 
-alter VIEW sn_vw_plot_elevation_details_for_tracker AS
+create VIEW sn_vw_plot_elevation_details_for_tracker AS
 SELECT
     p.plot_id,
     pr.pv_number as "Job Code",
     MAX(CASE WHEN es.elevation_spec_id IS NOT NULL THEN es.elevation_spec_id END) AS `Elevation Spec ID`,
     MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'elevationNumber' THEN cf.field_value END) AS "Elevation Number",
     MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'Elevation_No' THEN cf.field_value END) AS "Elevation_No",
-    MAX(CASE WHEN p.plot_number IS NOT NULL THEN p.plot_number END) AS `PLOT NO`,
-    MAX(CASE WHEN p.housetype IS NOT NULL THEN p.housetype END) AS Housetype,
+    p.plot_number AS `PLOT NO`,
+    p.housetype AS Housetype,
     MAX(CASE WHEN a.address_line_1 IS NOT NULL THEN a.address_line_1 END) AS `House No/name`,
     MAX(CASE WHEN a.address_line_2 IS NOT NULL THEN a.address_line_2 END) AS Street,
     MAX(CASE WHEN a.address_town IS NOT NULL THEN a.address_town END) AS Town,
     MAX(CASE WHEN a.address_postcode IS NOT NULL THEN a.address_postcode END) AS Postcode,
-    MAX(CASE WHEN p.mpan IS NOT NULL THEN p.mpan END) AS MPAN,
+    p.mpan AS MPAN,
     MAX(CASE WHEN productspanel.product_name IS NOT NULL THEN productspanel.product_name END) AS Panel,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Wattage' THEN cf.field_value END) AS `PANEL kWp`,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Voltage' THEN cf.field_value END) AS `P Voltage`,
@@ -159,7 +159,7 @@ SELECT
     MAX(CASE WHEN es.orientation IS NOT NULL THEN es.orientation END) AS Orientation,
     MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'Columns' THEN cf.field_value END) AS `Columns`,
     MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'Rows' THEN cf.field_value END) AS `Rows`,
-    MAX(CASE WHEN ps.phase IS NOT NULL THEN ps.phase END) AS Phase,
+    ps.phase AS Phase,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'NO_Trackers' THEN cf.field_value END) AS `NO Trackers`,
     MAX(CASE WHEN es.strings IS NOT NULL THEN es.strings END) AS `Total Strings`,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'String_one' THEN cf.field_value END) AS `String 1`,
@@ -174,12 +174,12 @@ SELECT
     '' AS `Tracker/String no.`,
     MAX(CASE WHEN productsinverters.manufacturer IS NOT NULL THEN productsinverters.manufacturer END) AS `Inverter Manufacturer`,
     '' AS `Hybrid`,
-    MAX(CASE WHEN es.type_test_ref IS NOT NULL THEN es.type_test_ref END) AS `Type Test No`,
+    es.type_test_ref AS `Type Test No`,
     MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'Inverter_Rated_Output__W_' THEN cf.field_value END) AS `Rated Output Power`,
     MAX(CASE WHEN productsbattery.product_name IS NOT NULL THEN productsbattery.product_name END) AS Battery,
-    MAX(CASE WHEN productsroofkit.product_name IS NOT NULL THEN productsroofkit.product_name END) AS `Mounting Kit`, -- error
+    MAX(CASE WHEN productsroofkit.product_name IS NOT NULL THEN productsroofkit.product_name END) AS `Mounting Kit`,
     MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'Tile_Type' THEN cf.field_value END) AS `Tile Type`,
-    MAX(CASE WHEN es.pitch IS NOT NULL THEN es.pitch END) AS `Roof Incline`,
+    es.pitch AS `Roof Incline`,
     MAX(CASE WHEN cf.entity_type = 'elevationSpec' AND cf.field_name = 'Input_Variation_from_South' THEN cf.field_value END) AS `Variationo From South`,
     MAX(CASE WHEN es.kk_figure IS NOT NULL THEN es.kk_figure END) AS `kWh/kWp`,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'IN___ABOVE_ROOF' THEN cf.field_value END) AS `IN / ABOVE ROOF`,
@@ -187,10 +187,10 @@ SELECT
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'OVERSHADING_FACTOR' THEN cf.field_value END) AS `OVERSHADING FACTOR`,
     MAX(CASE WHEN es.module_qty IS NOT NULL THEN es.module_qty END) AS `NO# PANELS`,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'ARRAY_Mtwo' THEN cf.field_value END) AS `ARRAY M2`,
-    MAX(CASE WHEN es.kwp IS NOT NULL THEN es.kwp END) AS kWp,
+    es.kwp AS kWp,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'kWh' THEN cf.field_value END) AS kWh,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'COtwo_EQUIVALENT' THEN cf.field_value END) AS `CO2 EQUIVALENT`,
-    MAX(CASE WHEN ps.kwp IS NOT NULL THEN ps.kwp END) AS `Net kWp`,
+    ps.kwp AS `Net kWp`,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Finished_Drawing' THEN cf.field_value END) AS `Finished Drawing`,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Commissioning_Info_In' THEN cf.field_value END) AS `Commissioning Info In`,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'MCS_Completed' THEN cf.field_value END) AS `MCS Completed`,
@@ -203,6 +203,7 @@ SELECT
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'PARCEL' THEN cf.field_value END) AS Parcel,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Block___House' THEN cf.field_value END) AS `Block/house`,
     MAX(CASE WHEN cf.entity_type = 'plotSpec' AND cf.field_name = 'Plot_Requirement' THEN cf.field_value END) AS `Plot requirement`,
+    ie.import_date AS import_date,
     p.instance_id AS instanceId
 FROM
     sn_plots p
@@ -215,7 +216,8 @@ FROM
     LEFT JOIN sn_products productsroofkit ON productsroofkit.product_id = es.roof_kit
     LEFT JOIN sn_products productsbattery ON productsbattery.product_id = ps.battery
     LEFT JOIN sn_products productsmeter ON productsmeter.product_id = ps.meter
-    LEFT JOIN sn_custom_fields cf ON (cf.entity_id = ps.plot_spec_id AND cf.entity_type = 'plotSpec') OR (cf.entity_id = es.elevation_spec_id AND cf.entity_type = 'elevationSpec')
+    LEFT JOIN sn_import_events ie ON es.import_id = ie.import_id
+    LEFT JOIN sn_custom_fields cf ON (cf.entity_id = ps.plot_spec_id) OR (cf.entity_id = es.elevation_spec_id)
 GROUP BY
     p.plot_id
 ORDER BY
