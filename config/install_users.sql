@@ -4,7 +4,7 @@ GRANT SELECT, INSERT, UPDATE ON snowy.sn_dm_electrical_submissions TO 'devicemag
 
 -- Grant privileges to the 'devicemagic' user on everything in the 'snowy' database.
 CREATE USER 'snowy_user'@'%' IDENTIFIED BY 'Fugheu5auv9zohf0xee3ziefei6gan';
-GRANT SELECT, INSERT, UPDATE ON snowy.* TO 'snowy'@'%';
+GRANT SELECT, INSERT, UPDATE ON snowy.* TO 'snowy_user'@'%';
 
 -- Reload all the privileges.
 FLUSH PRIVILEGES;
