@@ -11,19 +11,47 @@
  * runIngestOTron(folderUUID);
  */
 function runIngestOTron() {
+    //return 0
     let folderId = "117PqYtSoi6_dRi0HuLE1OvQlAt4bjVQf"
     console.log(ingestOTron(folderId));
 }
 
 function runIngestOTron2() {
+    return 0
     let folderId = "1wtkkJv1ll-HXWJMNjw_-RKbX2-dlPjy6"
     console.log(ingestOTron(folderId));
 }
 
 function runIngestOTron3() {
+    return 0
     let folderId = "1wtkkJv1ll-HXWJMNjw_-RKbX2-dlPjy6"
     console.log(ingestOTron(folderId));
 }
+
+function runIngestOTron4() {
+    return 0
+    let folderId = "1glUP0k1_zNIyaPeP2N_mvABxw30_lD-a"
+    console.log(ingestOTron(folderId));
+}
+
+function runIngestOTron5() {
+    return 0
+    let folderId = "1RYQsmZxhZOsmRDAHcKhHOoW31fG-GnuI"
+    console.log(ingestOTron(folderId));
+}
+
+function runIngestOTron6() {
+    return 0
+    let folderId = "1wtkkJv1ll-HXWJMNjw_-RKbX2-dlPjy6"
+    console.log(ingestOTron(folderId));
+}
+
+function runIngestOTron7() {
+    return 0
+    let folderId = "1glUP0k1_zNIyaPeP2N_mvABxw30_lD-a"
+    console.log(ingestOTron(folderId));
+}
+
 
 /* import:
 * plots
@@ -340,14 +368,15 @@ function prepareImportObject(importSheetData){
                         "company_role": "Client Contact",
                         "category": "Humans"
                     },
-                    customFields: {
-                        entityType: "project",
-                        fields: {
-                            Total_systems: importSheetData.Site_Data.Total_systems,
-                            Total_Panels: importSheetData.Site_Data.Total_Panels,
-                            Site_kWp: importSheetData.Site_Data.Site_kWp,
-                            Site_cotwo: importSheetData.Site_Data.Site_cotwo
-                        }
+
+                },
+                customFields: {
+                    entityType: "project",
+                    fields: {
+                        Total_systems: importSheetData.Site_Data.Total_systems,
+                        Total_Panels: importSheetData.Site_Data.Total_Panels,
+                        Site_kWp: importSheetData.Site_Data.Site_kWp,
+                        Site_cotwo: importSheetData.Site_Data.Site_cotwo
                     }
                 },
                 dnoDetails: {
@@ -452,7 +481,7 @@ function importMapSheet(queryConfigByIndex) {
     const importId = insertImportEvent(conn, details.instanceId, '', 'Site Log Import', 'Test Import', details.adminUserId);
 
     // Check if a persistent script variable exists for the current queryConfigByIndex.sheetId
-    const persistentScriptVariableName = `searchIndex_${queryConfigByIndex.sheetId}`;
+    const persistentScriptVariableName = `searchIndex1_${queryConfigByIndex.sheetId}`;
     const scriptProperties = PropertiesService.getScriptProperties();
     const persistentScriptVariable = scriptProperties.getProperty(persistentScriptVariableName);
 
@@ -540,7 +569,7 @@ function ingestOTron(parentFolderId) {
     console.log(`Processing folder: ${parentFolder.getName()}`);
 
     // Check if the "Completed" folder exists, create it if not
-    let completedFolder = getOrCreateFolder(parentFolder, "Completed");
+    let completedFolder = getOrCreateFolder(parentFolder, "Loaded");
 
     // Start the 20-minute timer
     const startTime = new Date().getTime();
@@ -580,6 +609,9 @@ function ingestOTron(parentFolderId) {
                     if (isSheetCompleted) {
                         sheet.moveTo(completedFolder);
                         console.log(`File moved to "Completed" folder: ${sheet.getName()}`);
+
+                        // Send email notification
+                        GmailApp.sendEmail("import@tdobson.net", `${sheet.getName()} has been ingested`, "love from ingest-o-tron");
                     }
 
                     // Release the file-level lock
@@ -590,11 +622,181 @@ function ingestOTron(parentFolderId) {
                 }
             } catch (error) {
                 console.error(`Error processing sheet '${sheet.getName()}':`, error);
-                // Release the file-level lock in case of an error
-                releaseFileLock(lockKey);
+                // Send email notification
+                GmailApp.sendEmail("error@tdobson.net", `Error ingesting ${sheet.getName()} due to ${error}`, `${sheet.getName()} can't be ingested due to ${error} \n love from ingest-o-tron`);
             }
+            // Release the file-level lock in case of an error
+            releaseFileLock(lockKey);
+
         } else {
             console.log(`Skipping file not owned by the script: ${sheet.getName()}`);
         }
     }
 }
+
+
+/// import from excel
+// first run copyFilesToSheetsFormat
+// then run loadDataFromTabs
+// but I don't understand how it works
+// more details at https://script.google.com/u/3/home/projects/1gILEMGiLVMrJuS9dSd1mEfnZIcPFGtAkM4dx2PkXsdmhqdFLUnjWTFHd/edit
+
+function copyFilesToSheetsFormat() {
+    // Set the source and destination folders
+    var sourceFolderId = '11K-J5KynRyAZSvZG1yhDQO93F6kRNWbn';   //qms-data for uploads - tkr files
+    var destFolderId = '117PqYtSoi6_dRi0HuLE1OvQlAt4bjVQf';     //qms-data for up,aods - sheets archivev
+
+    // Get the source folder
+    var sourceFolder = DriveApp.getFolderById(sourceFolderId);
+
+    // Get all files in the source folder
+    var files = sourceFolder.getFiles();
+
+    // Iterate through each file
+    while (files.hasNext()) {
+        var file = files.next();
+
+        // Get the file name and extension
+        var fileName = file.getName();
+
+        // Remove the extension from the file name
+        var fileNameWithoutExtension = fileName.replace(/\.[^/.]+$/, "");
+
+        // Copy the original Excel file into Google Sheets format
+        var copiedFile = copyFileToSheetsFormat(file.getId(), fileNameWithoutExtension, destFolderId);
+
+        // Log the file ID of the copied Google Sheets file
+        Logger.log('Copied File ID: ' + copiedFile.getId());
+
+        // add Output Sheet
+        var sheetAdded= addOutputSheet(copiedFile.getId());
+        Logger.log ( 'sheeet added to : '+ sheetAdded)
+
+        // move file
+        var movedFile = moveFileToFolder(copiedFile.getId(),destFolderId);
+        Logger.log('moved file id : '+ movedFile);
+
+
+
+    }
+
+    Logger.log('Files copied successfully!');
+}
+
+function copyFileToSheetsFormat(fileId, newName, destFolderId) {
+    var copiedFile = Drive.Files.copy(
+        {
+            title: newName,
+            parents: [{ id: destFolderId }],
+            mimeType: 'application/vnd.google-apps.spreadsheet'
+        },
+        fileId
+    );
+
+    // Delete the original file
+    DriveApp.getFileById(fileId).setTrashed(true);
+
+    return copiedFile;
+}
+
+function addOutputSheet(fileId) {
+    // Open the spreadsheet by fileId
+    var spreadsheet = SpreadsheetApp.openById(fileId);
+
+    // Create a new sheet named "Output"
+    var newSheet = spreadsheet.insertSheet('Output');
+
+    // Define the column headers
+    var headers = [
+        'plot id', 'site id', 'Job Code', 'Elevation Number', 'PLOT NO', 'Housetype', 'House No/name',
+        'Street', 'Town', 'Postcode', 'MPAN', 'Panel', 'PANEL kWp', 'P Voltage', 'MCS Code', 'Orientation',
+        'Columns', 'Rows', 'Phase', 'NO Trackers', 'Total Strings', 'String 1', 'String 2', 'String 3',
+        'String 4', 'String 5', 'String 6', 'String 7', 'String 8', 'Inverter', 'Tracker/String no', 'Inverter',
+        'Hybrid', 'Type Test No', 'Rated Output Power', 'Battery', 'Mounting Kit', 'MCS Code', 'Tile Type',
+        'Roof Incline', 'Variation From South', 'kWh/kWp', 'IN / ABOVE ROOF', 'ROOF INCLINE VARIATION FROM SOUTH',
+        'CARDINAL DIRECTION', 'OVERSHADING FACTOR', 'NO# PANELS', 'ARRAY M2', 'kWp', 'kWh', 'CO2 EQUIVALENT',
+        'Net kWp', 'Finished Drawing', 'Commissioning Info In', 'MCS Completed', 'DNO Document Completed',
+        'HO Pack Completed', 'Shape', 'Inverter Manufacturer', 'Protective Device', 'Building Side', 'Parcel',
+        'Block/house', 'Plot requirement', 'Total Price', 'Total Cost', '1stfix Price', '2nd fix price'
+    ];
+
+    // Set the column headers to the new sheet
+    newSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+
+    // Log a message indicating the sheet has been created
+    Logger.log('Output sheet added successfully to the file with ID: ' + fileId);
+    return fileId;
+}
+
+
+function moveFileToFolder(fileId,destFolderId) {
+    // File ID and Destination Folder ID
+    //var fileId = '1gZ26D5omin412jhSaGN8Mzj9rzW2K_2fivfwqD3yz8A';
+    //var destFolderId = '1bIa--w79H6-8dqOQTCCKx6bezoiMzzaV';
+
+    // Get the file and destination folder
+    var file = DriveApp.getFileById(fileId);
+    var destFolder = DriveApp.getFolderById(destFolderId);
+
+    // Make a copy of the Google Sheets file in the destination folder
+    var newFile = file.makeCopy(file.getName(), destFolder);
+
+
+    // Delete the original file
+    DriveApp.getFileById(fileId).setTrashed(true);
+
+    Logger.log('File with ID ' + fileId + ' copied to folder with ID ' + destFolderId);
+    return fileId;
+}
+
+
+function loadDataFromTabs() {
+    // Replace "YOUR_FOLDER_ID" with the actual ID of your folder
+    var folderId = "1szWOqDnuTcHOHNRlyaFwkLeIRS0IfRng";
+    var folder = DriveApp.getFolderById(folderId);
+
+    // Get all files in the folder
+    var files = folder.getFiles();
+
+    while (files.hasNext()) {
+        var file = files.next();
+        var fileId = file.getId();
+        var fileName = file.getName();
+
+        // Open the spreadsheet
+        var spreadsheet = SpreadsheetApp.openById(fileId);
+
+        // Create an object to store data from each tab
+        var dataObject = {};
+
+        // Iterate through each sheet in the spreadsheet
+        spreadsheet.getSheets().forEach(function(sheet) {
+            // Get the sheet name and column headers
+            var sheetName = sheet.getName();
+            var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+            // Get all data rows
+            var data = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+
+            // Create an array to store rows of data
+            var rows = [];
+
+            // Iterate through each row and create an object for each row
+            data.forEach(function(row) {
+                var rowData = {};
+                headers.forEach(function(header, index) {
+                    rowData[header] = row[index];
+                });
+                rows.push(rowData);
+            });
+
+            // Add the data to the object
+            dataObject[sheetName] = rows;
+        });
+
+        // Do something with the data object (e.g., log it)
+        Logger.log("File Name: " + fileName);
+        Logger.log(dataObject);
+    }
+}
+
