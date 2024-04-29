@@ -69,21 +69,70 @@ function importElevationInstallData(conn, instanceId, importId, elevationData) {
               elevationData.roofkit_id =   importProductData(conn,instanceId, importId, { productName: elevationData.roof_kit, productType: 'Roof Kit' });
             }
 
-    // Determine the elevation number for the current elevation specification
-    elevationData.customFields.fields.elevationNumber = 1;
-    var countElevationsStmt = conn.prepareStatement('SELECT COUNT(*) AS count FROM sn_elevations_spec WHERE instance_id = ? AND plot_id = ?');
-    countElevationsStmt.setString(1, instanceId);
-    countElevationsStmt.setString(2, elevationData.plot_id);
-    var countRs = countElevationsStmt.executeQuery();
-    if (countRs.next()) {
-        elevationData.customFields.fields.elevationNumber = countRs.getInt('count') + 1;
-    }
+// Determine the elevation number for the current elevation installation
+var elevationNumberStmt = conn.prepareStatement(`
+    -- Check if a custom field value already exists for the elevation installation
+    SELECT field_value INTO @existing_elevation_number
+    FROM sn_custom_fields
+    WHERE entity_type = 'elevationInstall'
+      AND entity_id = ?
+      AND field_name = 'Elevation_No';
 
-var checkElevationStmt = conn.prepareStatement('SELECT * FROM sn_elevations_install WHERE instance_id = ? AND plot_id = ? AND pitch = ? AND orientation = ?');
+    -- If a custom field value exists, use it as the elevation number
+    IF @existing_elevation_number IS NOT NULL THEN
+        SET @elevation_number = @existing_elevation_number;
+    ELSE
+        -- Check if a custom field value already exists for the elevation installation with 'elevation_number' field name
+        SELECT field_value INTO @existing_elevation_number
+        FROM sn_custom_fields
+        WHERE entity_type = 'elevationInstall'
+          AND entity_id = ?
+          AND field_name = 'elevation_number';
+
+        -- If a custom field value exists, use it as the elevation number
+        IF @existing_elevation_number IS NOT NULL THEN
+            SET @elevation_number = @existing_elevation_number;
+        ELSE
+            -- If a custom field value doesn't exist, determine the elevation number based on import date
+            SELECT COUNT(*) + 1 INTO @elevation_number
+            FROM sn_elevations_install ei
+            INNER JOIN sn_import_events ie ON ei.import_id = ie.import_id
+            WHERE ei.instance_id = ?
+              AND ei.plot_id = ?
+              AND (
+                ie.import_date < (
+                  SELECT ie2.import_date
+                  FROM sn_elevations_install ei2
+                  INNER JOIN sn_import_events ie2 ON ei2.import_id = ie2.import_id
+                  WHERE ei2.elevation_install_id = ?
+                )
+                OR (
+                  ie.import_date = (
+                    SELECT ie2.import_date
+                    FROM sn_elevations_install ei2
+                    INNER JOIN sn_import_events ie2 ON ei2.import_id = ie2.import_id
+                    WHERE ei2.elevation_install_id = ?
+                  )
+                  AND ei.elevation_install_id <= ?
+                )
+              );
+        END IF;
+    END IF;
+
+    -- Return the elevation number
+    SELECT @elevation_number AS elevation_number;
+`);
+
+var checkElevationStmt = conn.prepareStatement("SELECT * FROM sn_plots p JOIN sn_plot_install pi ON p.plot_id = pi.plot_id JOIN sn_elevations_install ei ON pi.plot_install_id = ei.plot_install_id JOIN sn_custom_fields elevationno ON ei.elevation_install_id = elevationno.entity_id AND elevationno.entity_type = 'elevationInstall' AND elevationno.field_name = 'Elevation_No' JOIN sn_custom_fields variationfromsouth ON ei.elevation_install_id = variationfromsouth.entity_id AND variationfromsouth.entity_type = 'elevationInstall' AND variationfromsouth.field_name = 'Input_Variation_from_South' WHERE p.instance_id = ? AND p.plot_id = ? AND ei.plot_install_id = ? AND pitch = ? AND orientation = ? AND elevationno.field_value = ? AND type_test_ref = ? AND module_qty = ? AND variationfromsouth.field_value = ?");
 checkElevationStmt.setString(1, instanceId);
 checkElevationStmt.setString(2, elevationData.plot_id);
-checkElevationStmt.setFloat(3, sanitizeFloat(elevationData.pitch));
-checkElevationStmt.setString(4, sanitizeFloat(elevationData.orientation));
+checkElevationStmt.setString(3, elevationData.plot_install_id);
+checkElevationStmt.setFloat(4, sanitizeFloat(elevationData.pitch));
+checkElevationStmt.setString(5, sanitizeString(elevationData.orientation));
+checkElevationStmt.setString(6, elevationData.customFields.fields.Elevation_No);
+checkElevationStmt.setString(7, elevationData.type_test_ref);
+checkElevationStmt.setString(8, elevationData.module_qty);
+checkElevationStmt.setString(9, elevationData.customFields.fields.Input_Variation_from_South);
 var rs = checkElevationStmt.executeQuery();
 
     if (rs.next()) {
@@ -154,6 +203,18 @@ var rs = checkElevationStmt.executeQuery();
         insertStmt.execute();
         console.log("New elevation installed with UUID: " + newUuid);
 
+elevationNumberStmt.setString(1, newUuid);
+elevationNumberStmt.setString(2, newUuid);
+elevationNumberStmt.setString(3, instanceId);
+elevationNumberStmt.setString(4, elevationData.plot_id);
+elevationNumberStmt.setString(5, newUuid);
+elevationNumberStmt.setString(6, newUuid);
+elevationNumberStmt.setString(7, newUuid);
+
+var elevationNumberRs = elevationNumberStmt.executeQuery();
+if (elevationNumberRs.next()) {
+    elevationData.customFields.fields.elevationNumber = elevationNumberRs.getInt('elevation_number');
+}
         // Import custom fields for the new elevation install
         if (elevationData.customFields) {
             elevationData.customFields.entityType = 'elevationInstall';

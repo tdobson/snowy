@@ -1,6 +1,3 @@
-function myFunction() {
-
-}
 /**
  * Imports or updates plot specification data into the sn_plot_spec table in the database. This function
  * is designed to handle the insertion of new plot specification records or the updating of existing ones.
@@ -57,9 +54,17 @@ function myFunction() {
  * var plotSpecId = importPlotSpecData(conn, instanceId, importId, plotSpecData);
  */
 function importPlotSpecData(conn, instanceId, importId, plotSpecData) {
-var checkPlotSpecStmt = conn.prepareStatement('SELECT * FROM sn_plot_spec WHERE instance_id = ? AND plot_id = ?');
+var checkPlotSpecStmt = conn.prepareStatement(`
+  SELECT *
+  FROM sn_plot_spec
+  WHERE instance_id = ? AND plot_id = ? AND phase = ? AND kwp = ? AND battery = ? AND meter = ?
+`);
 checkPlotSpecStmt.setString(1, instanceId);
 checkPlotSpecStmt.setString(2, plotSpecData.plotId);
+checkPlotSpecStmt.setInt(3, convertPhaseToInt(plotSpecData.phase));
+checkPlotSpecStmt.setFloat(4, plotSpecData.kwp);
+checkPlotSpecStmt.setString(5, plotSpecData.battery);
+checkPlotSpecStmt.setString(6, plotSpecData.meter);
 
     var rs = checkPlotSpecStmt.executeQuery();
 

@@ -68,28 +68,20 @@ function importElevationSpecData(conn, instanceId, importId, elevationSpecData) 
           elevationSpecData.roof_kit_id =   importProductData(conn,instanceId, importId, { productName: elevationSpecData.roof_kit, productType: 'Roof Kit', costToday: elevationSpecData.roof_kit_cost });
         }
 
-    // Determine the elevation number for the current elevation specification
-    elevationSpecData.customFields.fields.elevationNumber = 1;
-    var countElevationsStmt = conn.prepareStatement('SELECT COUNT(*) AS count FROM sn_elevations_spec WHERE instance_id = ? AND plot_id = ?');
-    countElevationsStmt.setString(1, instanceId);
-    countElevationsStmt.setString(2, elevationSpecData.plot_id);
-    var countRs = countElevationsStmt.executeQuery();
-    if (countRs.next()) {
-        elevationSpecData.customFields.fields.elevationNumber = countRs.getInt('count') + 1;
-    }
-
-
-    // Check if elevation spec data already exists
-    var checkElevationSpecStmt = conn.prepareStatement("SELECT * FROM sn_plots p JOIN sn_elevations_spec es ON p.plot_id=es.plot_id JOIN sn_custom_fields elevationno ON es.elevation_spec_id = elevationno.entity_id AND elevationno.entity_type = 'elevationSpec' AND elevationno.field_name = 'Elevation_No' JOIN sn_custom_fields variationfromsouth ON es.elevation_spec_id = variationfromsouth.entity_id AND variationfromsouth.entity_type = 'elevationSpec' AND variationfromsouth.field_name = 'Input_Variation_from_South' WHERE p.instance_id = ? AND p.plot_id = ? AND pitch = ? AND orientation = ? AND elevationno.field_value = ? AND type_test_ref = ? AND module_qty = ? AND variationfromsouth.field_value = ?");
-       checkElevationSpecStmt.setString(1, instanceId); // todo - this check isn't very good and probably means we don't import stuff we should
-       checkElevationSpecStmt.setString(2, elevationSpecData.plot_id);
-       checkElevationSpecStmt.setString(3, elevationSpecData.pitch);
-       checkElevationSpecStmt.setString(4, elevationSpecData.orientation);
-       checkElevationSpecStmt.setString(5, elevationSpecData.customFields.fields.Elevation_No);
-       checkElevationSpecStmt.setString(6, elevationSpecData.type_test_ref);
-       checkElevationSpecStmt.setString(7, elevationSpecData.module_qty);
-       checkElevationSpecStmt.setString(8, elevationSpecData.customFields.fields.Input_Variation_from_South);
+// Check if elevation spec data already exists
+var checkElevationSpecStmt = conn.prepareStatement("SELECT * FROM sn_plots p JOIN sn_plot_spec ps ON p.plot_id = ps.plot_id JOIN sn_elevations_spec es ON ps.plot_spec_id = es.plot_spec_id JOIN sn_custom_fields elevationno ON es.elevation_spec_id = elevationno.entity_id AND elevationno.entity_type = 'elevationSpec' AND elevationno.field_name = 'Elevation_No' JOIN sn_custom_fields variationfromsouth ON es.elevation_spec_id = variationfromsouth.entity_id AND variationfromsouth.entity_type = 'elevationSpec' AND variationfromsouth.field_name = 'Input_Variation_from_South' WHERE p.instance_id = ? AND p.plot_id = ? AND es.plot_spec_id = ? AND pitch = ? AND orientation = ? AND elevationno.field_value = ? AND type_test_ref = ? AND module_qty = ? AND variationfromsouth.field_value = ?");
+checkElevationSpecStmt.setString(1, instanceId);
+checkElevationSpecStmt.setString(2, elevationSpecData.plot_id);
+checkElevationSpecStmt.setString(3, elevationSpecData.plot_spec_id);
+checkElevationSpecStmt.setString(4, elevationSpecData.pitch);
+checkElevationSpecStmt.setString(5, elevationSpecData.orientation);
+checkElevationSpecStmt.setString(6, elevationSpecData.customFields.fields.Elevation_No);
+checkElevationSpecStmt.setString(7, elevationSpecData.type_test_ref);
+checkElevationSpecStmt.setString(8, elevationSpecData.module_qty);
+checkElevationSpecStmt.setString(9, elevationSpecData.customFields.fields.Input_Variation_from_South);
 var rs = checkElevationSpecStmt.executeQuery();
+
+    elevationSpecData.customFields.fields.elevationNumber = elevationSpecData.customFields.fields.Elevation_No
 
 
     if (rs.next()) {

@@ -12,6 +12,7 @@
 function insertImportEvent(conn, instanceId, importRef, source, notes, userId) {
     var importId = Utilities.getUuid();
     var currentDate = new Date();
+    var unixDate = Math.floor(currentDate.getTime() / 1000);
     var formattedDate = Utilities.formatDate(currentDate, Session.getScriptTimeZone(), "yyyy-MM-dd");
 
     var importStmt = conn.prepareStatement('INSERT INTO sn_import_events '
@@ -30,6 +31,24 @@ function insertImportEvent(conn, instanceId, importRef, source, notes, userId) {
     importStmt.setString(10, notes);
 
     importStmt.execute();
+
+    // Import custom fields for the existing elevation specification
+    if (formattedDate) {
+        var importEventData = {}
+        importEventData.customFields = {
+            entityType: "importEvent",
+            fields: {
+                last_modified_unix: unixDate
+            }
+        }
+        importEventData.customFields.entityType = 'importEvent';
+        importEventData.customFields.entityId = importId;
+        importEventData.customFields.instanceId = instanceId;
+        var customFieldsImported = importCustomFields(conn,instanceId, importId, importEventData.customFields);
+        if (!customFieldsImported) {
+            console.error('Failed to import custom fields for import event: ' + existingUuid);
+        }
+    }
 
     return importId;
 }
