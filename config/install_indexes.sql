@@ -14,6 +14,8 @@ CREATE INDEX idx_sn_projects_region_id ON sn_projects (region_id);
 CREATE INDEX idx_sn_projects_site_id ON sn_projects (site_id);
 CREATE INDEX idx_sn_projects_import_id ON sn_projects (import_id);
 CREATE INDEX idx_sn_projects_project_process_id ON sn_projects (project_process_id);
+CREATE INDEX idx_sn_projects_pv_number ON sn_projects (pv_number);
+
 
 -- sn_project_process
 CREATE INDEX idx_sn_project_process_approval_status ON sn_project_process (approval_status);
@@ -28,6 +30,7 @@ CREATE INDEX idx_sn_plots_site_id ON sn_plots (site_id);
 CREATE INDEX idx_sn_plots_plot_address_id ON sn_plots (plot_address_id);
 CREATE INDEX idx_sn_plots_import_id ON sn_plots (import_id);
 CREATE INDEX idx_sn_plots_tracker_ref ON sn_plots (tracker_ref);
+CREATE INDEX idx_sn_plots_plot_number ON sn_plots (plot_number);
 
 -- sn_plot_spec
 CREATE INDEX idx_sn_plot_spec_plot_id ON sn_plot_spec (plot_id);
@@ -121,6 +124,10 @@ CREATE INDEX idx_sn_custom_fields_entity_type ON sn_custom_fields (entity_type);
 CREATE INDEX idx_sn_custom_fields_entity_id ON sn_custom_fields (entity_id);
 CREATE INDEX idx_sn_custom_fields_field_name ON sn_custom_fields (field_name);
 CREATE INDEX idx_sn_custom_fields_import_id ON sn_custom_fields (import_id);
+
+CREATE INDEX idx_sn_custom_fields_entity_type_entity_id_field_name ON sn_custom_fields (entity_type, entity_id, field_name);
+CREATE INDEX idx_sn_custom_fields_entity_type_entity_id ON sn_custom_fields (entity_type, entity_id);
+CREATE INDEX idx_sn_custom_fields_entity_type_field_name ON sn_custom_fields (entity_type, field_name);
 
 -- sn_instances
 CREATE INDEX idx_sn_instances_instance_key_contact ON sn_instances (instance_key_contact);
