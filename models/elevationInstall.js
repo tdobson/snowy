@@ -17,6 +17,13 @@ ElevationInstall.init({
             key: 'plot_install_id',
         }
     },
+    instanceId: {
+        type: DataTypes.CHAR(36),
+        references: {
+            model: 'sn_instances', // Ensure this matches your users table name
+            key: 'instance_id',
+        }
+    },
     plotId: {
         type: DataTypes.CHAR(36),
         allowNull: false

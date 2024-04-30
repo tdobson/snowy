@@ -18,6 +18,13 @@ PlotSpec.init({
             key: 'plot_id',
         }
     },
+    instanceId: {
+        type: DataTypes.CHAR(36),
+        references: {
+            model: 'sn_instances', // Ensure this matches your users table name
+            key: 'instance_id',
+        }
+    },
     dateSpecified: DataTypes.DATE,
     specifiedBy: {
         type: DataTypes.CHAR(36),

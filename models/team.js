@@ -10,6 +10,13 @@ Team.init({
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4
     },
+    instanceId: {
+        type: DataTypes.CHAR(36),
+        references: {
+            model: 'sn_instances', // Ensure this matches your users table name
+            key: 'instance_id',
+        }
+    },
     teamName: {
         type: DataTypes.STRING,
         unique: true,

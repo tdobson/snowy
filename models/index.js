@@ -27,167 +27,186 @@ const Team = require('./team');
 const User = require('./user');
 
 // Address associations
-Address.hasMany(Site, { foreignKey: 'siteAddressId' });
-Address.hasMany(Client, { foreignKey: 'clientAddressId' });
-Address.hasMany(Plot, { foreignKey: 'plotAddressId' });
-Address.belongsTo(Region, { foreignKey: 'addressRegionId' });
-Address.belongsTo(User, { foreignKey: 'userAddressId' });
+Address.hasMany(Site, { foreignKey: 'site_address_id' });
+Address.hasMany(Client, { foreignKey: 'client_address_id' });
+Address.hasMany(Plot, { foreignKey: 'plot_address_id' });
+Address.belongsTo(Region, { foreignKey: 'address_region_id' });
 
 // Client associations
-Client.hasMany(Project, { foreignKey: 'clientId' });
-Client.belongsTo(Address, { foreignKey: 'clientAddressId' });
-Client.belongsTo(User, { as: 'ContactPerson', foreignKey: 'contactId' });
+Client.hasMany(Project, { foreignKey: 'client_id' });
+Client.belongsTo(Address, { foreignKey: 'client_address_id' });
+Client.belongsTo(User, { as: 'ContactPerson', foreignKey: 'contact_id' });
 
 // DnoDetail associations
-DnoDetail.hasMany(Project, { foreignKey: 'dnoDetailsId' });
-DnoDetail.hasMany(Site, { foreignKey: 'dnoDetailsId' });
+DnoDetail.hasMany(Project, { foreignKey: 'dno_details_id' });
+DnoDetail.hasMany(Site, { foreignKey: 'dno_details_id' });
 
 // ElevationInstall associations
-ElevationInstall.belongsTo(PlotInstall, { foreignKey: 'plotInstallId' });
-ElevationInstall.belongsTo(Plot, { foreignKey: 'plotId' }); // Optional, based on your model structure
+ElevationInstall.belongsTo(PlotInstall, { foreignKey: 'plot_install_id' });
 ElevationInstall.belongsTo(Product, { as: 'Inverter', foreignKey: 'inverter' });
 ElevationInstall.belongsTo(Product, { as: 'Panel', foreignKey: 'panel' });
-ElevationInstall.belongsTo(Product, { as: 'RoofKit', foreignKey: 'roofKit' });
+ElevationInstall.belongsTo(Product, { as: 'RoofKit', foreignKey: 'roof_kit' });
 
 // ElevationSpec associations
-ElevationSpec.belongsTo(PlotSpec, { foreignKey: 'plotSpecId' });
-ElevationSpec.belongsTo(Plot, { foreignKey: 'plotId' }); // Optional, based on your model structure
+ElevationSpec.belongsTo(PlotSpec, { foreignKey: 'plot_spec_id' });
 ElevationSpec.belongsTo(Product, { as: 'Inverter', foreignKey: 'inverter' });
 ElevationSpec.belongsTo(Product, { as: 'Panel', foreignKey: 'panel' });
-ElevationSpec.belongsTo(Product, { as: 'RoofKit', foreignKey: 'roofKit' });
+ElevationSpec.belongsTo(Product, { as: 'RoofKit', foreignKey: 'roof_kit' });
 
 // FormSubmission associations
-FormSubmission.belongsTo(Plot, { foreignKey: 'plotId' });
-FormSubmission.belongsTo(Job, { foreignKey: 'jobId' });
+FormSubmission.belongsTo(Plot, { foreignKey: 'plot_id' });
+FormSubmission.belongsTo(Job, { foreignKey: 'job_id' });
 
 // ImportEvent associations
-ImportEvent.belongsTo(User, { as: 'ImportedBy', foreignKey: 'importedBy' });
-ImportEvent.belongsTo(User, { as: 'ModifiedBy', foreignKey: 'modifiedBy' });
-ImportEvent.hasMany(Address, { foreignKey: 'importId' });
-ImportEvent.hasMany(Client, { foreignKey: 'importId' });
-ImportEvent.hasMany(DnoDetail, { foreignKey: 'importId' });
-ImportEvent.hasMany(ElevationInstall, { foreignKey: 'importId' });
-ImportEvent.hasMany(ElevationSpec, { foreignKey: 'importId' });
-ImportEvent.hasMany(FormSubmission, { foreignKey: 'importId' });
-ImportEvent.hasMany(Job, { foreignKey: 'importId' });
-ImportEvent.hasMany(McsRefCounty, { foreignKey: 'importId' });
-ImportEvent.hasMany(McsSubmission, { foreignKey: 'importId' });
-ImportEvent.hasMany(Plot, { foreignKey: 'importId' });
-ImportEvent.hasMany(PlotInstall, { foreignKey: 'importId' });
-ImportEvent.hasMany(PlotSpec, { foreignKey: 'importId' });
-ImportEvent.hasMany(Product, { foreignKey: 'importId' });
-ImportEvent.hasMany(Project, { foreignKey: 'importId' });
-ImportEvent.hasMany(ProjectProcess, { foreignKey: 'importId' });
-ImportEvent.hasMany(Region, { foreignKey: 'importId' });
-ImportEvent.hasMany(Site, { foreignKey: 'importId' });
-ImportEvent.hasMany(Slot, { foreignKey: 'importId' });
-ImportEvent.hasMany(Status, { foreignKey: 'importId' });
-ImportEvent.hasMany(Team, { foreignKey: 'importId' });
-ImportEvent.hasMany(User, { foreignKey: 'importId' });
+ImportEvent.belongsTo(User, { as: 'ImportedBy', foreignKey: 'imported_by' });
+ImportEvent.belongsTo(User, { as: 'ModifiedBy', foreignKey: 'modified_by' });
 
 // Job associations
-Job.belongsTo(Plot, { foreignKey: 'plotId' });
-Job.belongsTo(Project, { foreignKey: 'projectId' });
-Job.belongsTo(Slot, { foreignKey: 'slotId' });
-Job.belongsTo(Status, { foreignKey: 'jobStatus' });
-Job.belongsTo(User, { as: 'DispatchedBy', foreignKey: 'dispatchedBy' });
-Job.belongsTo(User, { as: 'ReturnedBy', foreignKey: 'returnedBy' });
-Job.belongsTo(Team, { foreignKey: 'dispatchTeam' });
+Job.belongsTo(Plot, { foreignKey: 'plot_id' });
+Job.belongsTo(Project, { foreignKey: 'project_id' });
+Job.belongsTo(User, { foreignKey: 'user_id' });
+Job.belongsTo(Slot, { foreignKey: 'slot_id' });
+Job.belongsTo(Status, { foreignKey: 'job_status' });
+Job.belongsTo(FormSubmission, { foreignKey: 'submission_id' });
+Job.belongsTo(User, { as: 'DispatchedBy', foreignKey: 'dispatched_by' });
+Job.belongsTo(User, { as: 'ReturnedBy', foreignKey: 'returned_by' });
+Job.belongsTo(Team, { foreignKey: 'dispatch_team' });
 
 // McsSubmission associations
-McsSubmission.belongsTo(Status, { foreignKey: 'mcsSubmitStatus' });
-McsSubmission.belongsTo(User, { as: 'SubmissionCheckedBy', foreignKey: 'submissionCheckedBy' });
-McsSubmission.belongsTo(User, { as: 'SubmittedBy', foreignKey: 'submittedBy' });
+McsSubmission.belongsTo(Status, { foreignKey: 'mcs_submit_status' });
+McsSubmission.belongsTo(User, { as: 'SubmissionCheckedBy', foreignKey: 'submission_checked_by' });
+McsSubmission.belongsTo(User, { as: 'SubmittedBy', foreignKey: 'submitted_by' });
 
 // Plot associations
-Plot.belongsTo(Project, { foreignKey: 'projectId' });
-Plot.belongsTo(Site, { foreignKey: 'site' });
-Plot.belongsTo(Address, { foreignKey: 'plotAddressId' });
-Plot.belongsTo(Status, { foreignKey: 'plotStatus' });
-Plot.hasMany(FormSubmission, { foreignKey: 'plotId' });
-Plot.hasOne(PlotInstall, { foreignKey: 'plotId' });
-Plot.hasMany(PlotSpec, { foreignKey: 'plotId' });
+Plot.belongsTo(Project, { foreignKey: 'project_id' });
+Plot.belongsTo(PlotInstall, { foreignKey: 'plot_install_id' });
+Plot.belongsTo(Status, { foreignKey: 'plot_status' });
+Plot.belongsTo(Site, { foreignKey: 'site_id' });
+Plot.belongsTo(Address, { foreignKey: 'plot_address_id' });
+Plot.hasMany(FormSubmission, { foreignKey: 'plot_id' });
+Plot.hasMany(PlotSpec, { foreignKey: 'plot_id' });
 
 // PlotInstall associations
-PlotInstall.belongsTo(Plot, { foreignKey: 'plotId' });
-PlotInstall.belongsTo(User, { as: 'InstallBy', foreignKey: 'installBy' });
-PlotInstall.belongsTo(User, { as: 'CheckedBy', foreignKey: 'checkedBy' });
-PlotInstall.belongsTo(Status, { foreignKey: 'plotInstallStatus' });
-PlotInstall.hasMany(ElevationInstall, { foreignKey: 'plotInstallId' }); // we can have many elevations per install
+PlotInstall.belongsTo(Plot, { foreignKey: 'plot_id' });
+PlotInstall.belongsTo(User, { as: 'InstallBy', foreignKey: 'install_by' });
+PlotInstall.belongsTo(User, { as: 'CheckedBy', foreignKey: 'checked_by' });
+PlotInstall.belongsTo(Status, { foreignKey: 'plot_install_status' });
+PlotInstall.hasMany(ElevationInstall, { foreignKey: 'plot_install_id' });
 PlotInstall.belongsTo(Product, { as: 'Meter', foreignKey: 'meter' });
 PlotInstall.belongsTo(Product, { as: 'Battery', foreignKey: 'battery' });
+PlotInstall.belongsTo(McsSubmission, { foreignKey: 'mcs_submission_id' });
 
 // PlotSpec associations
-PlotSpec.belongsTo(Plot, { foreignKey: 'plotId' });
-PlotSpec.hasMany(ElevationSpec, { foreignKey: 'plotSpecId' }); // we can have many elecations per spec
-PlotSpec.belongsTo(User, { as: 'SpecifiedBy', foreignKey: 'specifiedBy' });
-PlotSpec.belongsTo(Status, { foreignKey: 'plotSpecStatus' });
+PlotSpec.belongsTo(Plot, { foreignKey: 'plot_id' });
+PlotSpec.belongsTo(User, { as: 'SpecifiedBy', foreignKey: 'specified_by' });
+PlotSpec.belongsTo(Status, { foreignKey: 'plot_spec_status' });
 PlotSpec.belongsTo(Product, { as: 'Meter', foreignKey: 'meter' });
 PlotSpec.belongsTo(Product, { as: 'Battery', foreignKey: 'battery' });
-
-// Product associations
-Product.hasMany(PlotInstall, { as: 'Meters', foreignKey: 'meter' });
-Product.hasMany(PlotInstall, { as: 'Batteries', foreignKey: 'battery' });
-Product.hasMany(PlotSpec, { as: 'Meters', foreignKey: 'meter' });
-Product.hasMany(PlotSpec, { as: 'Batteries', foreignKey: 'battery' });
-Product.hasMany(ElevationInstall, { foreignKey: 'inverter' });
-Product.hasMany(ElevationInstall, { foreignKey: 'panel' });
-Product.hasMany(ElevationInstall, { foreignKey: 'roofKit' });
-Product.hasMany(ElevationSpec, { foreignKey: 'inverter' });
-Product.hasMany(ElevationSpec, { foreignKey: 'panel' });
-Product.hasMany(ElevationSpec, { foreignKey: 'roofKit' });
+PlotSpec.hasMany(ElevationSpec, { foreignKey: 'plot_spec_id' });
 
 // Project associations
-Project.belongsTo(Client, { foreignKey: 'clientId' });
-Project.belongsTo(DnoDetail, { foreignKey: 'dnoDetailsId' });
-Project.belongsTo(Region, { foreignKey: 'regionId' });
-Project.belongsTo(Site, { foreignKey: 'siteId' });
-Project.belongsTo(ProjectProcess, { foreignKey: 'projectProcessId' });
-Project.hasMany(Plot, { foreignKey: 'projectId' });
-Project.hasMany(Job, { foreignKey: 'projectId' });
+Project.belongsTo(Client, { foreignKey: 'client_id' });
+Project.belongsTo(DnoDetail, { foreignKey: 'dno_details_id' });
+Project.belongsTo(Region, { foreignKey: 'region_id' });
+Project.belongsTo(Site, { foreignKey: 'site_id' });
+Project.belongsTo(ProjectProcess, { foreignKey: 'project_process_id' });
+Project.hasMany(Plot, { foreignKey: 'project_id' });
+Project.hasMany(Job, { foreignKey: 'project_id' });
 
 // ProjectProcess associations
-ProjectProcess.belongsTo(Status, { as: 'ApprovalStatus', foreignKey: 'approvalStatus' });
-ProjectProcess.belongsTo(Status, { as: 'DnoStatus', foreignKey: 'dnoStatus' });
+ProjectProcess.belongsTo(Status, { as: 'ApprovalStatus', foreignKey: 'approval_status' });
+ProjectProcess.belongsTo(Status, { as: 'DnoStatus', foreignKey: 'dno_status' });
 
 // Region associations
-Region.hasMany(Project, { foreignKey: 'regionId' });
-Region.hasMany(Address, { foreignKey: 'addressRegionId' });
+Region.hasMany(Project, { foreignKey: 'region_id' });
+Region.hasMany(Address, { foreignKey: 'address_region_id' });
 
 // Site associations
-Site.belongsTo(Address, { foreignKey: 'siteAddressId' });
-Site.belongsTo(DnoDetail, { foreignKey: 'dnoDetailsId' });
-Site.belongsTo(User, { as: 'SiteManager', foreignKey: 'siteManagerId' });
-Site.hasMany(Project, { foreignKey: 'siteId' });
+Site.belongsTo(DnoDetail, { foreignKey: 'dno_details_id' });
+Site.belongsTo(Address, { foreignKey: 'site_address_id' });
+Site.belongsTo(User, { as: 'SiteManager', foreignKey: 'site_manager_id' });
+Site.belongsTo(User, { as: 'SiteSurveyor', foreignKey: 'site_surveyor_id' });
+Site.belongsTo(User, { as: 'SiteAgent', foreignKey: 'site_agent_id' });
+Site.hasMany(Project, { foreignKey: 'site_id' });
 
 // Slot associations
-Slot.hasMany(Job, { foreignKey: 'slotId' });
+Slot.hasMany(Job, { foreignKey: 'slot_id' });
 
 // Status associations
-Status.hasMany(Job, { foreignKey: 'jobStatus' });
-Status.hasMany(Plot, { foreignKey: 'plotStatus' });
-Status.hasMany(PlotInstall, { foreignKey: 'plotInstallStatus' });
-Status.hasMany(ProjectProcess, { as: 'ApprovalStatus', foreignKey: 'approvalStatus' });
-Status.hasMany(ProjectProcess, { as: 'DnoStatus', foreignKey: 'dnoStatus' });
-Status.hasMany(McsSubmission, { foreignKey: 'mcsSubmitStatus' });
-Status.hasMany(PlotSpec, { foreignKey: 'plotSpecStatus' });
+Status.hasMany(Job, { foreignKey: 'job_status' });
+Status.hasMany(Plot, { foreignKey: 'plot_status' });
+Status.hasMany(PlotInstall, { foreignKey: 'plot_install_status' });
+Status.hasMany(ProjectProcess, { as: 'ApprovalStatus', foreignKey: 'approval_status' });
+Status.hasMany(ProjectProcess, { as: 'DnoStatus', foreignKey: 'dno_status' });
+Status.hasMany(McsSubmission, { foreignKey: 'mcs_submit_status' });
+Status.hasMany(PlotSpec, { foreignKey: 'plot_spec_status' });
 
 // Team associations
-Team.hasMany(User, { foreignKey: 'teamId' });
+Team.hasMany(User, { foreignKey: 'team' });
 
 // User associations
-User.belongsTo(Team, { foreignKey: 'teamId' });
-User.hasOne(Address, { foreignKey: 'userAddressId' });
-User.hasMany(Job, { as: 'DispatchedBy', foreignKey: 'dispatchedBy' });
-User.hasMany(Job, { as: 'ReturnedBy', foreignKey: 'returnedBy' });
-User.hasMany(PlotInstall, { as: 'InstallBy', foreignKey: 'installBy' });
-User.hasMany(PlotInstall, { as: 'CheckedBy', foreignKey: 'checkedBy' });
-User.hasMany(McsSubmission, { as: 'SubmissionCheckedBy', foreignKey: 'submissionCheckedBy' });
-User.hasMany(McsSubmission, { as: 'SubmittedBy', foreignKey: 'submittedBy' });
-User.hasMany(ImportEvent, { as: 'ImportedBy', foreignKey: 'importedBy' });
-User.hasMany(ImportEvent, { as: 'ModifiedBy', foreignKey: 'modifiedBy' });
-User.hasMany(Site, { as: 'SiteManager', foreignKey: 'siteManagerId' });
-User.hasMany(PlotSpec, { as: 'SpecifiedBy', foreignKey: 'specifiedBy' });
+User.belongsTo(Team, { foreignKey: 'team' });
+User.hasMany(Job, { foreignKey: 'user_id' });
+User.hasMany(Job, { as: 'DispatchedBy', foreignKey: 'dispatched_by' });
+User.hasMany(Job, { as: 'ReturnedBy', foreignKey: 'returned_by' });
+User.hasMany(PlotInstall, { as: 'InstallBy', foreignKey: 'install_by' });
+User.hasMany(PlotInstall, { as: 'CheckedBy', foreignKey: 'checked_by' });
+User.hasMany(McsSubmission, { as: 'SubmissionCheckedBy', foreignKey: 'submission_checked_by' });
+User.hasMany(McsSubmission, { as: 'SubmittedBy', foreignKey: 'submitted_by' });
+User.hasMany(ImportEvent, { as: 'ImportedBy', foreignKey: 'imported_by' });
+User.hasMany(ImportEvent, { as: 'ModifiedBy', foreignKey: 'modified_by' });
+User.hasMany(Site, { as: 'SiteManager', foreignKey: 'site_manager_id' });
+User.hasMany(Site, { as: 'SiteSurveyor', foreignKey: 'site_surveyor_id' });
+User.hasMany(Site, { as: 'SiteAgent', foreignKey: 'site_agent_id' });
+User.hasMany(PlotSpec, { as: 'SpecifiedBy', foreignKey: 'specified_by' });
+User.hasMany(Client, { as: 'ContactPerson', foreignKey: 'contact_id' });
+
+// Instance associations
+Instance.hasMany(Address, { foreignKey: 'instance_id' });
+Instance.hasMany(Client, { foreignKey: 'instance_id' });
+Instance.hasMany(DnoDetail, { foreignKey: 'instance_id' });
+Instance.hasMany(ElevationInstall, { foreignKey: 'instance_id' });
+Instance.hasMany(ElevationSpec, { foreignKey: 'instance_id' });
+Instance.hasMany(FormSubmission, { foreignKey: 'instance_id' });
+Instance.hasMany(ImportEvent, { foreignKey: 'instance_id' });
+Instance.hasMany(Job, { foreignKey: 'instance_id' });
+//Instance.hasMany(McsRefCounty, { foreignKey: 'instance_id' });
+//Instance.hasMany(McsSubmission, { foreignKey: 'instance_id' });
+Instance.hasMany(Plot, { foreignKey: 'instance_id' });
+Instance.hasMany(PlotInstall, { foreignKey: 'instance_id' });
+Instance.hasMany(PlotSpec, { foreignKey: 'instance_id' });
+Instance.hasMany(Product, { foreignKey: 'instance_id' });
+Instance.hasMany(Project, { foreignKey: 'instance_id' });
+Instance.hasMany(ProjectProcess, { foreignKey: 'instance_id' });
+Instance.hasMany(Region, { foreignKey: 'instance_id' });
+Instance.hasMany(Site, { foreignKey: 'instance_id' });
+Instance.hasMany(Slot, { foreignKey: 'instance_id' });
+Instance.hasMany(Status, { foreignKey: 'instance_id' });
+Instance.hasMany(Team, { foreignKey: 'instance_id' });
+Instance.hasMany(User, { foreignKey: 'instance_id' });
+
+Address.belongsTo(Instance, { foreignKey: 'instance_id' });
+Client.belongsTo(Instance, { foreignKey: 'instance_id' });
+DnoDetail.belongsTo(Instance, { foreignKey: 'instance_id' });
+ElevationInstall.belongsTo(Instance, { foreignKey: 'instance_id' });
+ElevationSpec.belongsTo(Instance, { foreignKey: 'instance_id' });
+FormSubmission.belongsTo(Instance, { foreignKey: 'instance_id' });
+ImportEvent.belongsTo(Instance, { foreignKey: 'instance_id' });
+Job.belongsTo(Instance, { foreignKey: 'instance_id' });
+//McsRefCounty.belongsTo(Instance, { foreignKey: 'instance_id' });
+//McsSubmission.belongsTo(Instance, { foreignKey: 'instance_id' });
+Plot.belongsTo(Instance, { foreignKey: 'instance_id' });
+PlotInstall.belongsTo(Instance, { foreignKey: 'instance_id' });
+PlotSpec.belongsTo(Instance, { foreignKey: 'instance_id' });
+Product.belongsTo(Instance, { foreignKey: 'instance_id' });
+Project.belongsTo(Instance, { foreignKey: 'instance_id' });
+ProjectProcess.belongsTo(Instance, { foreignKey: 'instance_id' });
+Region.belongsTo(Instance, { foreignKey: 'instance_id' });
+Site.belongsTo(Instance, { foreignKey: 'instance_id' });
+Slot.belongsTo(Instance, { foreignKey: 'instance_id' });
+Status.belongsTo(Instance, { foreignKey: 'instance_id' });
+Team.belongsTo(Instance, { foreignKey: 'instance_id' });
+User.belongsTo(Instance, { foreignKey: 'instance_id' });
 
 module.exports = {
   sequelize,

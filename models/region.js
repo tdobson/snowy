@@ -15,6 +15,13 @@ Region.init({
         unique: true,
         allowNull: false
     },
+    instanceId: {
+        type: DataTypes.CHAR(36),
+        references: {
+            model: 'sn_instances', // Ensure this matches your users table name
+            key: 'instance_id',
+        }
+    },
     regionName: DataTypes.STRING,
     importId: {
         type: DataTypes.CHAR(36),

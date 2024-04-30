@@ -14,8 +14,15 @@ PlotInstall.init({
         type: DataTypes.CHAR(36),
         allowNull: false,
         references: {
-            model: 'sn_plots', // Ensure this matches your MCS submission table name
+            model: 'sn_plots',
             key: 'plot_id',
+        }
+    },
+    instanceId: {
+        type: DataTypes.CHAR(36),
+        references: {
+            model: 'sn_instances', // Ensure this matches your users table name
+            key: 'instance_id',
         }
     },
     dateInstall: DataTypes.DATE,
