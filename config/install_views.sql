@@ -68,7 +68,7 @@ LEFT JOIN sn_users u2 ON s.site_agent_id = u2.user_id;
 create VIEW sn_vw_plot_details_for_tracker AS
 SELECT
     p.plot_id,
-    pr.pv_number as "Job Code",
+    pr.pv_number AS "Job Code",
     p.plot_number,
     p.housetype,
     a.address_line_1 AS house_no,
@@ -84,34 +84,34 @@ SELECT
     es.module_qty AS `rows`,
     ps.phase,
     es.strings AS totalstrings,
-    ef1.field_value AS string1,
-    ef2.field_value AS string2,
-    ef3.field_value AS string3,
-    ef4.field_value AS string4,
+    pscf.String_one AS string1,
+    pscf.String_two AS string2,
+    pscf.String_three AS string3,
+    pscf.String_four AS string4,
     es.inverter,
-    ef5.field_value AS trackerstringno,
-    ef6.field_value AS inverterhybrid,
+    pscf.NO_Trackers AS trackerstringno,
+    escf.IN___ABOVE_ROOF AS inverterhybrid,
     es.type_test_ref AS typetestno,
-    ef7.field_value AS ratedoutputpower,
+    escf.Rated_Output__W_ AS ratedoutputpower,
     ps.battery,
     es.roof_kit AS mountingkit,
-    ef8.field_value AS tiletype,
+    escf.Tile_Type AS tiletype,
     es.pitch AS roofincline,
-    ef9.field_value AS variationfromsouth,
-    ef10.field_value AS kwhperkwp,
-    ef6.field_value AS inaboveroof,
-    ef11.field_value AS overshadingfactor,
+    escf.Input_Variation_from_South AS variationfromsouth,
+    escf.kWh_KWp AS kwhperkwp,
+    escf.IN___ABOVE_ROOF AS inaboveroof,
+    escf.OVERSHADING_FACTOR AS overshadingfactor,
     es.module_qty AS nopanels,
-    ef12.field_value AS arraym2,
+    escf.ARRAY_Mtwo AS arraym2,
     es.kwp,
-    ef13.field_value AS kwh,
-    ef14.field_value AS co2equivalent,
+    escf.kWh AS kwh,
+    escf.COtwo_EQUIVALENT AS co2equivalent,
     ps.kwp AS netkwp,
     ps.meter AS metermake,
-    pcf.field_value AS metermodel,
+    pscf.Model_Number AS metermodel,
     ps.overall_cost AS totalcost,
-    pcf2.field_value AS totalprice,
-    pcf3.field_value AS givenergy,
+    pscf.Plot_Total__Quoted_ AS totalprice,
+    pscf.GIVENERGY AS givenergy,
     p.instance_id AS instanceId
 FROM
     sn_plots p
@@ -119,24 +119,44 @@ FROM
     LEFT JOIN sn_plot_spec ps ON p.plot_id = ps.plot_id
     LEFT JOIN sn_elevations_spec es ON p.plot_id = es.plot_id
     LEFT JOIN sn_addresses a ON p.plot_address_id = a.address_id
-    LEFT JOIN sn_custom_fields ef1 ON ps.plot_spec_id = ef1.entity_id AND ef1.entity_type = 'plotSpec' AND ef1.field_name = 'String_one'
-    LEFT JOIN sn_custom_fields ef2 ON ps.plot_spec_id = ef2.entity_id AND ef2.entity_type = 'plotSpec' AND ef2.field_name = 'String_two'
-    LEFT JOIN sn_custom_fields ef3 ON ps.plot_spec_id = ef3.entity_id AND ef3.entity_type = 'plotSpec' AND ef3.field_name = 'String_three'
-    LEFT JOIN sn_custom_fields ef4 ON ps.plot_spec_id = ef4.entity_id AND ef4.entity_type = 'plotSpec' AND ef4.field_name = 'String_four'
-    LEFT JOIN sn_custom_fields ef5 ON ps.plot_spec_id = ef5.entity_id AND ef5.entity_type = 'plotSpec' AND ef5.field_name = 'NO_Trackers'
-    LEFT JOIN sn_custom_fields ef6 ON es.elevation_spec_id = ef6.entity_id AND ef6.entity_type = 'elevationSpec' AND ef6.field_name = 'IN___ABOVE_ROOF'
-    LEFT JOIN sn_custom_fields ef7 ON es.elevation_spec_id = ef7.entity_id AND ef7.entity_type = 'elevationSpec' AND ef7.field_name = 'Rated_Output__W_'
-    LEFT JOIN sn_custom_fields ef8 ON es.elevation_spec_id = ef8.entity_id AND ef8.entity_type = 'elevationSpec' AND ef8.field_name = 'Tile_Type'
-    LEFT JOIN sn_custom_fields ef9 ON es.elevation_spec_id = ef9.entity_id AND ef9.entity_type = 'elevationSpec' AND ef9.field_name = 'Input_Variation_from_South'
-    LEFT JOIN sn_custom_fields ef10 ON es.elevation_spec_id = ef10.entity_id AND ef10.entity_type = 'elevationSpec' AND ef10.field_name = 'kWh_KWp'
-    LEFT JOIN sn_custom_fields ef11 ON es.elevation_spec_id = ef11.entity_id AND ef11.entity_type = 'elevationSpec' AND ef11.field_name = 'OVERSHADING_FACTOR'
-    LEFT JOIN sn_custom_fields ef12 ON es.elevation_spec_id = ef12.entity_id AND ef12.entity_type = 'elevationSpec' AND ef12.field_name = 'ARRAY_Mtwo'
-    LEFT JOIN sn_custom_fields ef13 ON es.elevation_spec_id = ef13.entity_id AND ef13.entity_type = 'elevationSpec' AND ef13.field_name = 'kWh'
-    LEFT JOIN sn_custom_fields ef14 ON es.elevation_spec_id = ef14.entity_id AND ef14.entity_type = 'elevationSpec' AND ef14.field_name = 'COtwo_EQUIVALENT'
-    LEFT JOIN sn_custom_fields ef15 ON es.elevation_spec_id = ef15.entity_id AND ef15.entity_type = 'elevationSpec' AND ef15.field_name = 'Net_kWp'
-    LEFT JOIN sn_custom_fields pcf ON ps.plot_spec_id = pcf.entity_id AND pcf.entity_type = 'plotSpec' AND pcf.field_name = 'Model_Number'
-    LEFT JOIN sn_custom_fields pcf2 ON ps.plot_spec_id = pcf2.entity_id AND pcf2.entity_type = 'plotSpec' AND pcf2.field_name = 'Plot_Total__Quoted_'
-    LEFT JOIN sn_custom_fields pcf3 ON ps.plot_spec_id = pcf3.entity_id AND pcf3.entity_type = 'plotSpec' AND pcf3.field_name = 'GIVENERGY';
+    LEFT JOIN (
+        SELECT
+            entity_id,
+            MAX(CASE WHEN field_name = 'String_one' THEN field_value END) AS String_one,
+            MAX(CASE WHEN field_name = 'String_two' THEN field_value END) AS String_two,
+            MAX(CASE WHEN field_name = 'String_three' THEN field_value END) AS String_three,
+            MAX(CASE WHEN field_name = 'String_four' THEN field_value END) AS String_four,
+            MAX(CASE WHEN field_name = 'NO_Trackers' THEN field_value END) AS NO_Trackers,
+            MAX(CASE WHEN field_name = 'Model_Number' THEN field_value END) AS Model_Number,
+            MAX(CASE WHEN field_name = 'Plot_Total__Quoted_' THEN field_value END) AS Plot_Total__Quoted_,
+            MAX(CASE WHEN field_name = 'GIVENERGY' THEN field_value END) AS GIVENERGY
+        FROM
+            sn_custom_fields
+        WHERE
+            entity_id IN (SELECT plot_spec_id FROM sn_plot_spec)
+        GROUP BY
+            entity_id
+    ) pscf ON pscf.entity_id = ps.plot_spec_id
+    LEFT JOIN (
+        SELECT
+            entity_id,
+            MAX(CASE WHEN field_name = 'IN___ABOVE_ROOF' THEN field_value END) AS IN___ABOVE_ROOF,
+            MAX(CASE WHEN field_name = 'Rated_Output__W_' THEN field_value END) AS Rated_Output__W_,
+            MAX(CASE WHEN field_name = 'Tile_Type' THEN field_value END) AS Tile_Type,
+            MAX(CASE WHEN field_name = 'Input_Variation_from_South' THEN field_value END) AS Input_Variation_from_South,
+            MAX(CASE WHEN field_name = 'kWh_KWp' THEN field_value END) AS kWh_KWp,
+            MAX(CASE WHEN field_name = 'OVERSHADING_FACTOR' THEN field_value END) AS OVERSHADING_FACTOR,
+            MAX(CASE WHEN field_name = 'ARRAY_Mtwo' THEN field_value END) AS ARRAY_Mtwo,
+            MAX(CASE WHEN field_name = 'kWh' THEN field_value END) AS kWh,
+            MAX(CASE WHEN field_name = 'COtwo_EQUIVALENT' THEN field_value END) AS COtwo_EQUIVALENT
+        FROM
+            sn_custom_fields
+        WHERE
+            entity_id IN (SELECT elevation_spec_id FROM sn_elevations_spec)
+        GROUP BY
+            entity_id
+    ) escf ON escf.entity_id = es.elevation_spec_id;
+
 
 ALTER VIEW sn_vw_plot_elevation_details_for_tracker AS
 SELECT
