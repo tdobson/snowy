@@ -25,6 +25,7 @@ const Slot = require('./slot');
 const Status = require('./status');
 const Team = require('./team');
 const User = require('./user');
+const Instance = require('./instance');
 
 // Address associations
 Address.hasMany(Site, { foreignKey: 'site_address_id' });
