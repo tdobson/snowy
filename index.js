@@ -8,6 +8,7 @@ const userRoutes = require('./routes/userRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const authRoutes = require('./routes/authRoutes');
 const mcsRoutes = require('./routes/mcsRoutes');
+const elevationRoutes = require('./routes/elevationRoutes');
 
 const errorHandler = require('./middleware/errorHandler');
 const swaggerUi = require('swagger-ui-express');
@@ -26,6 +27,8 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/projects', projectRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/mcs', mcsRoutes);
+app.use('/api/v1/elevations', elevationRoutes);
+
 
 // API Documentation with Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));

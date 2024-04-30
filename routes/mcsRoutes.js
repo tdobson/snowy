@@ -1,5 +1,5 @@
 const express = require('express');
-const mcsController = require('../controllers/mcsController');
+const mcsController = require('../controllers/mcsReportController');
 const router = express.Router();
 
 router.get('/', mcsController.getMCSReport);
