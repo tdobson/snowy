@@ -138,71 +138,71 @@ FROM
     LEFT JOIN sn_custom_fields pcf2 ON ps.plot_spec_id = pcf2.entity_id AND pcf2.entity_type = 'plotSpec' AND pcf2.field_name = 'Plot_Total__Quoted_'
     LEFT JOIN sn_custom_fields pcf3 ON ps.plot_spec_id = pcf3.entity_id AND pcf3.entity_type = 'plotSpec' AND pcf3.field_name = 'GIVENERGY';
 
-alter VIEW sn_vw_plot_elevation_details_for_tracker AS
+ALTER VIEW sn_vw_plot_elevation_details_for_tracker AS
 SELECT
     p.plot_id,
-    pr.pv_number as "Job Code",
+    pr.pv_number AS "Job Code",
     es.elevation_spec_id AS `Elevation Spec ID`,
-    MAX(CASE WHEN escf.field_name = 'elevationNumber' THEN escf.field_value END) AS "Elevation Number",
-    MAX(CASE WHEN escf.field_name = 'Elevation_No' THEN escf.field_value END) AS "Elevation_No",
+    escf.elevationNumber AS "Elevation Number",
+    escf.Elevation_No AS "Elevation_No",
     p.plot_number AS `PLOT NO`,
     p.housetype AS Housetype,
     a.address_line_1 AS `House No/name`,
-    a.address_line_2  AS Street,
+    a.address_line_2 AS Street,
     a.address_town AS Town,
     a.address_postcode AS Postcode,
     p.mpan AS MPAN,
     productspanel.product_name AS Panel,
-    MAX(CASE WHEN pscf.field_name = 'Wattage' THEN pscf.field_value END) AS `PANEL kWp`,
-    MAX(CASE WHEN pscf.field_name = 'Voltage' THEN pscf.field_value END) AS `P Voltage`,
-    MAX(CASE WHEN pscf.field_name = 'MCS_Code' THEN pscf.field_value END) AS `MCS Code`,
+    pscf.Wattage AS `PANEL kWp`,
+    pscf.Voltage AS `P Voltage`,
+    pscf.MCS_Code AS `MCS Code`,
     es.orientation AS Orientation,
-    MAX(CASE WHEN escf.field_name = 'Columns' THEN escf.field_value END) AS `Columns`,
-    MAX(CASE WHEN escf.field_name = 'Rows' THEN escf.field_value END) AS `Rows`,
+    escf.`Columns` AS `Columns`,
+    escf.`Rows` AS `Rows`,
     ps.phase AS Phase,
-    MAX(CASE WHEN pscf.field_name = 'NO_Trackers' THEN pscf.field_value END) AS `NO Trackers`,
+    pscf.NO_Trackers AS `NO Trackers`,
     es.strings AS `Total Strings`,
-    MAX(CASE WHEN pscf.field_name = 'String_one' THEN pscf.field_value END) AS `String 1`,
-    MAX(CASE WHEN pscf.field_name = 'String_two' THEN pscf.field_value END) AS `String 2`,
-    MAX(CASE WHEN pscf.field_name = 'String_three' THEN pscf.field_value END) AS `String 3`,
-    MAX(CASE WHEN pscf.field_name = 'String_four' THEN pscf.field_value END) AS `String 4`,
-    MAX(CASE WHEN pscf.field_name = 'String_five' THEN pscf.field_value END) AS `String 5`,
-    MAX(CASE WHEN pscf.field_name = 'String_six' THEN pscf.field_value END) AS `String 6`,
-    MAX(CASE WHEN pscf.field_name = 'String_seven' THEN pscf.field_value END) AS `String 7`,
-    MAX(CASE WHEN pscf.field_name = 'String_eight' THEN pscf.field_value END) AS `String 8`,
-    MAX(CASE WHEN productsinverters.product_name IS NOT NULL THEN productsinverters.product_name END) AS `Inverter`,
+    pscf.String_one AS `String 1`,
+    pscf.String_two AS `String 2`,
+    pscf.String_three AS `String 3`,
+    pscf.String_four AS `String 4`,
+    pscf.String_five AS `String 5`,
+    pscf.String_six AS `String 6`,
+    pscf.String_seven AS `String 7`,
+    pscf.String_eight AS `String 8`,
+    productsinverters.product_name AS `Inverter`,
     '' AS `Tracker/String no.`,
-    MAX(CASE WHEN productsinverters.manufacturer IS NOT NULL THEN productsinverters.manufacturer END) AS `Inverter Manufacturer`,
+    productsinverters.manufacturer AS `Inverter Manufacturer`,
     '' AS `Hybrid`,
     es.type_test_ref AS `Type Test No`,
-    MAX(CASE WHEN escf.field_name = 'Inverter_Rated_Output__W_' THEN escf.field_value END) AS `Rated Output Power`,
+    escf.Inverter_Rated_Output__W_ AS `Rated Output Power`,
     productsbattery.product_name AS Battery,
     productsroofkit.product_name AS `Mounting Kit`,
-    MAX(CASE WHEN escf.field_name = 'Tile_Type' THEN escf.field_value END) AS `Tile Type`,
+    escf.Tile_Type AS `Tile Type`,
     es.pitch AS `Roof Incline`,
-    MAX(CASE WHEN escf.field_name = 'Input_Variation_from_South' THEN escf.field_value END) AS `Variationo From South`,
+    escf.Input_Variation_from_South AS `Variationo From South`,
     es.kk_figure AS `kWh/kWp`,
-    MAX(CASE WHEN pscf.field_name = 'IN___ABOVE_ROOF' THEN pscf.field_value END) AS `IN / ABOVE ROOF`,
-    MAX(CASE WHEN escf.field_name = 'CARDINAL_DIRECTION' THEN escf.field_value END) AS `CARDINAL DIRECTION`,
-    MAX(CASE WHEN pscf.field_name = 'OVERSHADING_FACTOR' THEN pscf.field_value END) AS `OVERSHADING FACTOR`,
+    pscf.IN___ABOVE_ROOF AS `IN / ABOVE ROOF`,
+    escf.CARDINAL_DIRECTION AS `CARDINAL DIRECTION`,
+    pscf.OVERSHADING_FACTOR AS `OVERSHADING FACTOR`,
     es.module_qty AS `NO# PANELS`,
-    MAX(CASE WHEN pscf.field_name = 'ARRAY_Mtwo' THEN pscf.field_value END) AS `ARRAY M2`,
+    pscf.ARRAY_Mtwo AS `ARRAY M2`,
     es.kwp AS kWp,
-    MAX(CASE WHEN pscf.field_name = 'kWh' THEN pscf.field_value END) AS kWh,
-    MAX(CASE WHEN pscf.field_name = 'COtwo_EQUIVALENT' THEN pscf.field_value END) AS `CO2 EQUIVALENT`,
+    pscf.kWh AS kWh,
+    pscf.COtwo_EQUIVALENT AS `CO2 EQUIVALENT`,
     ps.kwp AS `Net kWp`,
-    MAX(CASE WHEN pscf.field_name = 'Finished_Drawing' THEN pscf.field_value END) AS `Finished Drawing`,
-    MAX(CASE WHEN pscf.field_name = 'Commissioning_Info_In' THEN pscf.field_value END) AS `Commissioning Info In`,
-    MAX(CASE WHEN pscf.field_name = 'MCS_Completed' THEN pscf.field_value END) AS `MCS Completed`,
-    MAX(CASE WHEN pscf.field_name = 'DNO_Document_Completed' THEN pscf.field_value END) AS `DNO Document Completed`,
-    MAX(CASE WHEN pscf.field_name = 'HO_Pack_Completed' THEN pscf.field_value END) AS `HO Pack Completed`,
-    MAX(CASE WHEN pscf.field_name = 'Shape' THEN pscf.field_value END) AS Shape,
-    MAX(CASE WHEN pscf.field_name = 'MICROINV' THEN pscf.field_value END) AS `Inverter Mauf`,
-    MAX(CASE WHEN pscf.field_name = 'Protective_Device' THEN pscf.field_value END) AS `Protective Device`,
-    MAX(CASE WHEN escf.field_name = 'Building_Side' THEN pscf.field_value END) AS `Building Side`,
-    MAX(CASE WHEN pscf.field_name = 'PARCEL' THEN pscf.field_value END) AS Parcel,
-    MAX(CASE WHEN pscf.field_name = 'Block___House' THEN pscf.field_value END) AS `Block/house`,
-    MAX(CASE WHEN pscf.field_name = 'Plot_Requirement' THEN pscf.field_value END) AS `Plot requirement`,
+    pscf.Finished_Drawing AS `Finished Drawing`,
+    pscf.Commissioning_Info_In AS `Commissioning Info In`,
+    pscf.MCS_Completed AS `MCS Completed`,
+    pscf.DNO_Document_Completed AS `DNO Document Completed`,
+    pscf.HO_Pack_Completed AS `HO Pack Completed`,
+    pscf.Shape AS Shape,
+    pscf.MICROINV AS `Inverter Mauf`,
+    pscf.Protective_Device AS `Protective Device`,
+    escf.Building_Side AS `Building Side`,
+    pscf.PARCEL AS Parcel,
+    pscf.Block___House AS `Block/house`,
+    pscf.Plot_Requirement AS `Plot requirement`,
     ie.import_date AS import_date,
     p.instance_id AS instanceId
 FROM
@@ -217,15 +217,70 @@ FROM
     LEFT JOIN sn_products productsbattery ON productsbattery.product_id = ps.battery
     LEFT JOIN sn_products productsmeter ON productsmeter.product_id = ps.meter
     LEFT JOIN sn_import_events ie ON es.import_id = ie.import_id
-    LEFT JOIN sn_custom_fields pscf ON (pscf.entity_id = ps.plot_spec_id)
-    LEFT JOIN sn_custom_fields escf ON (escf.entity_id = es.elevation_spec_id)
+    LEFT JOIN (
+        SELECT
+            entity_id,
+            MAX(CASE WHEN field_name = 'Wattage' THEN field_value END) AS Wattage,
+            MAX(CASE WHEN field_name = 'Voltage' THEN field_value END) AS Voltage,
+            MAX(CASE WHEN field_name = 'MCS_Code' THEN field_value END) AS MCS_Code,
+            MAX(CASE WHEN field_name = 'NO_Trackers' THEN field_value END) AS NO_Trackers,
+            MAX(CASE WHEN field_name = 'String_one' THEN field_value END) AS String_one,
+            MAX(CASE WHEN field_name = 'String_two' THEN field_value END) AS String_two,
+            MAX(CASE WHEN field_name = 'String_three' THEN field_value END) AS String_three,
+            MAX(CASE WHEN field_name = 'String_four' THEN field_value END) AS String_four,
+            MAX(CASE WHEN field_name = 'String_five' THEN field_value END) AS String_five,
+            MAX(CASE WHEN field_name = 'String_six' THEN field_value END) AS String_six,
+            MAX(CASE WHEN field_name = 'String_seven' THEN field_value END) AS String_seven,
+            MAX(CASE WHEN field_name = 'String_eight' THEN field_value END) AS String_eight,
+            MAX(CASE WHEN field_name = 'IN___ABOVE_ROOF' THEN field_value END) AS IN___ABOVE_ROOF,
+            MAX(CASE WHEN field_name = 'OVERSHADING_FACTOR' THEN field_value END) AS OVERSHADING_FACTOR,
+            MAX(CASE WHEN field_name = 'ARRAY_Mtwo' THEN field_value END) AS ARRAY_Mtwo,
+            MAX(CASE WHEN field_name = 'kWh' THEN field_value END) AS kWh,
+            MAX(CASE WHEN field_name = 'COtwo_EQUIVALENT' THEN field_value END) AS COtwo_EQUIVALENT,
+            MAX(CASE WHEN field_name = 'Finished_Drawing' THEN field_value END) AS Finished_Drawing,
+            MAX(CASE WHEN field_name = 'Commissioning_Info_In' THEN field_value END) AS Commissioning_Info_In,
+            MAX(CASE WHEN field_name = 'MCS_Completed' THEN field_value END) AS MCS_Completed,
+            MAX(CASE WHEN field_name = 'DNO_Document_Completed' THEN field_value END) AS DNO_Document_Completed,
+            MAX(CASE WHEN field_name = 'HO_Pack_Completed' THEN field_value END) AS HO_Pack_Completed,
+            MAX(CASE WHEN field_name = 'Shape' THEN field_value END) AS Shape,
+            MAX(CASE WHEN field_name = 'MICROINV' THEN field_value END) AS MICROINV,
+            MAX(CASE WHEN field_name = 'Protective_Device' THEN field_value END) AS Protective_Device,
+            MAX(CASE WHEN field_name = 'PARCEL' THEN field_value END) AS PARCEL,
+            MAX(CASE WHEN field_name = 'Block___House' THEN field_value END) AS Block___House,
+            MAX(CASE WHEN field_name = 'Plot_Requirement' THEN field_value END) AS Plot_Requirement
+        FROM
+            sn_custom_fields
+        WHERE
+            entity_id IN (SELECT plot_spec_id FROM sn_plot_spec)
+        GROUP BY
+            entity_id
+    ) pscf ON pscf.entity_id = ps.plot_spec_id
+    LEFT JOIN (
+        SELECT
+            entity_id,
+            MAX(CASE WHEN field_name = 'elevationNumber' THEN field_value END) AS elevationNumber,
+            MAX(CASE WHEN field_name = 'Elevation_No' THEN field_value END) AS Elevation_No,
+            MAX(CASE WHEN field_name = 'Columns' THEN field_value END) AS Columns,
+            MAX(CASE WHEN field_name = 'Rows' THEN field_value END) AS `Rows`,
+            MAX(CASE WHEN field_name = 'Inverter_Rated_Output__W_' THEN field_value END) AS Inverter_Rated_Output__W_,
+            MAX(CASE WHEN field_name = 'Tile_Type' THEN field_value END) AS Tile_Type,
+            MAX(CASE WHEN field_name = 'Input_Variation_from_South' THEN field_value END) AS Input_Variation_from_South,
+            MAX(CASE WHEN field_name = 'CARDINAL_DIRECTION' THEN field_value END) AS CARDINAL_DIRECTION,
+            MAX(CASE WHEN field_name = 'Building_Side' THEN field_value END) AS Building_Side
+        FROM
+            sn_custom_fields
+        WHERE
+            entity_id IN (SELECT elevation_spec_id FROM sn_elevations_spec)
+        GROUP BY
+            entity_id
+    ) escf ON escf.entity_id = es.elevation_spec_id
 GROUP BY
     p.plot_id
 ORDER BY
     p.plot_number,
     p.plot_id,
-    MAX(CASE WHEN escf.field_name = 'Elevation_No' THEN escf.field_value END),
-    MAX(CASE WHEN escf.field_name = 'elevationNumber' THEN escf.field_value END),
+    escf.Elevation_No,
+    escf.elevationNumber,
     es.elevation_spec_id;
 
 
