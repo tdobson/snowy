@@ -1,9 +1,21 @@
 // ./models/address.js
-const { Model, DataTypes } = require('sequelize');
-const sequelize = require('../config/sequelize');
+// ./models/address.ts
+import { Model, DataTypes, Sequelize } from 'sequelize';
+import { AddressInstance } from '../types/address';
+import sequelize from '../config/sequelize';
 
-
-class Address extends Model {}
+class Address extends Model<AddressInstance> implements AddressInstance {
+    public addressId!: string;
+    public addressLine1?: string;
+    public addressLine2?: string;
+    public addressTown?: string;
+    public addressCounty?: string;
+    public addressPostcode?: string;
+    public addressCountry?: string;
+    public instanceId!: string;
+    public addressRegionId?: string;
+    public importId?: string;
+}
 
 Address.init({
     addressId: {
@@ -20,25 +32,24 @@ Address.init({
     instanceId: {
         type: DataTypes.CHAR(36),
         references: {
-            model: 'sn_instances', // Ensure this matches your users table name
+            model: 'sn_instances',
             key: 'instance_id',
         }
     },
     addressRegionId: {
         type: DataTypes.CHAR(36),
         references: {
-            model: 'sn_regions', // Ensure this matches your regions table name
+            model: 'sn_regions',
             key: 'region_id',
         }
     },
     importId: {
         type: DataTypes.CHAR(36),
         references: {
-            model: 'sn_import_events', // Ensure this matches your import events table name
+            model: 'sn_import_events',
             key: 'import_id',
         }
     },
-    // Additional fields can be added here as necessary
 }, {
     sequelize,
     modelName: 'Address',
@@ -46,4 +57,4 @@ Address.init({
     underscored: true,
 });
 
-module.exports = Address;
+export default Address;

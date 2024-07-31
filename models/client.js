@@ -1,8 +1,19 @@
 // ./models/client.js
-const { Model, DataTypes } = require('sequelize');
-const sequelize = require('../config/sequelize');
+// ./models/client.ts
+import { Model, DataTypes, Sequelize } from 'sequelize';
+import { ClientInstance } from '../types/client';
+import sequelize from '../config/sequelize';
 
-class Client extends Model {}
+class Client extends Model<ClientInstance> implements ClientInstance {
+    public clientId!: string;
+    public instanceId!: string;
+    public clientLegacyNumber?: string;
+    public clientName!: string;
+    public clientAddressId?: string;
+    public clientPlotCardRequired?: string;
+    public contactId?: string;
+    public importId?: string;
+}
 
 Client.init({
     clientId: {
@@ -13,7 +24,7 @@ Client.init({
     instanceId: {
         type: DataTypes.CHAR(36),
         references: {
-            model: 'sn_instances', // Ensure this matches your users table name
+            model: 'sn_instances',
             key: 'instance_id',
         }
     },
@@ -26,7 +37,7 @@ Client.init({
     clientAddressId: {
         type: DataTypes.CHAR(36),
         references: {
-            model: 'sn_addresses', // Ensure this matches the table name in your database
+            model: 'sn_addresses',
             key: 'address_id',
         }
     },
@@ -34,22 +45,21 @@ Client.init({
     contactId: {
         type: DataTypes.CHAR(36),
         references: {
-            model: 'sn_users', // Ensure this matches the table name in your database
+            model: 'sn_users',
             key: 'user_id',
         }
     },
     importId: {
         type: DataTypes.CHAR(36),
         references: {
-            model: 'sn_import_events', // Ensure this matches the table name in your database
+            model: 'sn_import_events',
             key: 'import_id',
         }
     },
-    // Additional fields can be added here as necessary
 }, {
     sequelize,
     modelName: 'Client',
     tableName: 'sn_clients'
 });
 
-module.exports = Client;
+export default Client;

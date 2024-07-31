@@ -1,8 +1,21 @@
 // ./models/dnoDetail.js
-const { Model, DataTypes } = require('sequelize');
-const sequelize = require('../config/sequelize');
+// ./models/dnoDetail.ts
+import { Model, DataTypes, Sequelize } from 'sequelize';
+import { DnoDetailInstance } from '../types/dnoDetail';
+import sequelize from '../config/sequelize';
 
-class DnoDetail extends Model {}
+class DnoDetail extends Model<DnoDetailInstance> implements DnoDetailInstance {
+    public dnoDetailsId!: string;
+    public mpanPrefix!: number;
+    public dnoName!: string;
+    public instanceId!: string;
+    public address?: string;
+    public emailAddress?: string;
+    public contactNo?: string;
+    public internalTel?: string;
+    public type?: string;
+    public importId?: string;
+}
 
 DnoDetail.init({
     dnoDetailsId: {
@@ -23,7 +36,7 @@ DnoDetail.init({
     instanceId: {
         type: DataTypes.CHAR(36),
         references: {
-            model: 'sn_instances', // Ensure this matches your users table name
+            model: 'sn_instances',
             key: 'instance_id',
         }
     },
@@ -35,11 +48,10 @@ DnoDetail.init({
     importId: {
         type: DataTypes.CHAR(36),
         references: {
-            model: 'sn_import_events', // Ensure this matches your import events table name
+            model: 'sn_import_events',
             key: 'import_id',
         }
     },
-    // Additional fields can be added here as necessary
 }, {
     sequelize,
     modelName: 'DnoDetail',
@@ -47,4 +59,4 @@ DnoDetail.init({
     underscored: true,
 });
 
-module.exports = DnoDetail;
+export default DnoDetail;
