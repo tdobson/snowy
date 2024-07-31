@@ -1,6 +1,6 @@
-const swaggerJsdoc = require('swagger-jsdoc');
+import swaggerJsdoc from 'swagger-jsdoc';
 
-const options = {
+const options: swaggerJsdoc.Options = {
     definition: {
         openapi: '3.0.0',
         info: {
@@ -9,9 +9,9 @@ const options = {
             description: 'A simple API for the Snowy Backend',
         },
     },
-    apis: ['./routes/*.js'], // Path to your API routes files
+    apis: ['./routes/*.ts'], // Updated to look for TypeScript files
 };
 
 const specs = swaggerJsdoc(options);
 
-module.exports = specs;
+export default specs;
