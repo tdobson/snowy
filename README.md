@@ -33,6 +33,55 @@ Snowy API is a comprehensive backend system designed for managing solar panel in
 5. Access the API at: `http://localhost:3000/`.
 6. Explore the API documentation at: `http://localhost:3000/api-docs`.
 
+## TypeScript and ESLint Setup
+
+To set up TypeScript and ESLint in your project, follow these steps:
+
+1. **Initialize TypeScript Configuration**:
+   ```sh
+   npx tsc --init
+   ```
+
+2. **Install TypeScript and ESLint Dependencies**:
+   ```sh
+   npm install --save-dev typescript @types/node eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
+   ```
+
+3. **Configure ESLint**:
+   Create an `.eslintrc.js` file with the following content:
+   ```javascript
+   module.exports = {
+     parser: '@typescript-eslint/parser',
+     extends: [
+       'plugin:@typescript-eslint/recommended',
+     ],
+     parserOptions: {
+       ecmaVersion: 2018,
+       sourceType: 'module',
+     },
+     rules: {
+       // Add custom rules here
+     },
+   };
+   ```
+
+4. **Update `tsconfig.json`**:
+   Ensure your `tsconfig.json` file is configured correctly, as shown in the example above.
+
+5. **Compile TypeScript**:
+   To compile your TypeScript code, run:
+   ```sh
+   npx tsc
+   ```
+
+6. **Run ESLint**:
+   To lint your TypeScript code, run:
+   ```sh
+   npx eslint . --ext .ts,.js
+   ```
+
+By following these steps, you will have TypeScript and ESLint set up in your project, enabling you to gradually convert your codebase to TypeScript while maintaining code quality with ESLint.
+
 ## Directory Structure
 
 - `./src`: TypeScript source files.
