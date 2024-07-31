@@ -1,8 +1,8 @@
 import { Request } from 'express';
 import { ImportEventInstance, ImportEventAttributes } from '../types/importEvent';
-import { Model } from 'sequelize';
+import { Model, ModelStatic } from 'sequelize';
 
-const ImportEvent: Model<ImportEventInstance, ImportEventAttributes> = require('../models/importEvent');
+const ImportEvent: ModelStatic<Model<ImportEventInstance, ImportEventAttributes>> = require('../models/importEvent');
 
 /**
  * Creates a new import event in the database.
