@@ -1,4 +1,5 @@
 // ./models/dnoDetail.js
+// ./models/dnoDetail.ts
 import { Model, DataTypes } from 'sequelize';
 import { DnoDetailInstance, DnoDetailAttributes } from '../types/dnoDetail';
 import sequelize from '../config/sequelize';

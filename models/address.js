@@ -1,4 +1,5 @@
 // ./models/address.js
+// ./models/address.ts
 import { Model, DataTypes } from 'sequelize';
 import { AddressInstance, AddressAttributes } from '../types/address';
 import sequelize from '../config/sequelize';

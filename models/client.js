@@ -1,4 +1,5 @@
 // ./models/client.js
+// ./models/client.ts
 import { Model, DataTypes } from 'sequelize';
 import { ClientInstance, ClientAttributes } from '../types/client';
 import sequelize from '../config/sequelize';
