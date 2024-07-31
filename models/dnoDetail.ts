@@ -14,7 +14,7 @@ class DnoDetail extends Model<DnoDetailAttributes, DnoDetailCreationAttributes> 
   public type?: string;
   public importId?: string;
 
-  public static initialize(sequelize: Sequelize) {
+  public static initialize(sequelize: Sequelize): void {
     this.init(
       {
         dnoDetailsId: {
