@@ -21,6 +21,8 @@ Snowy API is a comprehensive backend system designed for managing solar panel in
 - **JWT (JSON Web Tokens)**: Used for secure authentication.
 - **Bcryptjs**: Library for hashing and comparing passwords.
 - **Nodemailer**: (Not visible installed yet) for sending emails, like password reset emails.
+- **TypeScript**: Static type-checking for JavaScript.
+- **ESLint**: Linting utility for JavaScript and TypeScript.
 
 ## Getting Started
 
@@ -33,6 +35,8 @@ Snowy API is a comprehensive backend system designed for managing solar panel in
 
 ## Directory Structure
 
+- `./src`: TypeScript source files.
+- `./dist`: Compiled JavaScript files.
 - `./models`: Sequelize models for database tables.
 - `./routes`: Express routes for handling API requests.
 - `./controllers`: Controllers to handle the logic for each route.
