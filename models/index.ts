@@ -1,31 +1,33 @@
-const Sequelize = require('sequelize');
-const config = require('../config/config.json')[process.env.NODE_ENV || 'development'];
-const sequelize = new Sequelize(config.database, config.username, config.password, config);
+import { Sequelize } from 'sequelize';
+import config from '../config/config.json';
+import Address from './address';
+import Client from './client';
+import DnoDetail from './dnoDetail';
+import ElevationInstall from './elevationInstall';
+import ElevationSpec from './elevationSpec';
+import FormSubmission from './formSubmission';
+import ImportEvent from './importEvent';
+import Job from './job';
+import McsRefCounty from './mcsRefCounty';
+import McsSubmission from './mcsSubmission';
+import Plot from './plot';
+import PlotInstall from './plotInstall';
+import PlotSpec from './plotSpec';
+import Product from './product';
+import Project from './project';
+import ProjectProcess from './projectProcess';
+import Region from './region';
+import Site from './site';
+import Slot from './slot';
+import Status from './status';
+import Team from './team';
+import User from './user';
+import Instance from './instance';
 
-// Import models
-const Address = require('./address');
-const Client = require('./client');
-const DnoDetail = require('./dnoDetail');
-const ElevationInstall = require('./elevationInstall');
-const ElevationSpec = require('./elevationSpec');
-const FormSubmission = require('./formSubmission');
-const ImportEvent = require('./importEvent');
-const Job = require('./job');
-const McsRefCounty = require('./mcsRefCounty');
-const McsSubmission = require('./mcsSubmission');
-const Plot = require('./plot');
-const PlotInstall = require('./plotInstall');
-const PlotSpec = require('./plotSpec');
-const Product = require('./product');
-const Project = require('./project');
-const ProjectProcess = require('./projectProcess');
-const Region = require('./region');
-const Site = require('./site');
-const Slot = require('./slot');
-const Status = require('./status');
-const Team = require('./team');
-const User = require('./user');
-const Instance = require('./instance');
+const env = process.env.NODE_ENV || 'development';
+const dbConfig = (config as any)[env];
+
+const sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, dbConfig);
 
 // Address associations
 Address.hasMany(Site, { foreignKey: 'site_address_id' });
@@ -209,7 +211,32 @@ Status.belongsTo(Instance, { foreignKey: 'instance_id' });
 Team.belongsTo(Instance, { foreignKey: 'instance_id' });
 User.belongsTo(Instance, { foreignKey: 'instance_id' });
 
-module.exports = {
+// Initialize models
+Address.initialize(sequelize);
+Client.initialize(sequelize);
+DnoDetail.initialize(sequelize);
+ElevationInstall.initialize(sequelize);
+ElevationSpec.initialize(sequelize);
+FormSubmission.initialize(sequelize);
+ImportEvent.initialize(sequelize);
+Job.initialize(sequelize);
+McsRefCounty.initialize(sequelize);
+McsSubmission.initialize(sequelize);
+Plot.initialize(sequelize);
+PlotInstall.initialize(sequelize);
+PlotSpec.initialize(sequelize);
+Product.initialize(sequelize);
+Project.initialize(sequelize);
+ProjectProcess.initialize(sequelize);
+Region.initialize(sequelize);
+Site.initialize(sequelize);
+Slot.initialize(sequelize);
+Status.initialize(sequelize);
+Team.initialize(sequelize);
+User.initialize(sequelize);
+Instance.initialize(sequelize);
+
+export {
   sequelize,
   Sequelize,
   Address,
@@ -233,5 +260,6 @@ module.exports = {
   Slot,
   Status,
   Team,
-  User
+  User,
+  Instance
 };
