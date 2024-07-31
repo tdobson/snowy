@@ -38,7 +38,7 @@ This guide provides a detailed plan for converting the entire project from JavaS
 ## Step 2: Convert JavaScript Files to TypeScript
 
 1. **Rename JavaScript Files**:
-   Rename your JavaScript files (e.g., `index.js`, `app.js`) to TypeScript files (e.g., `index.ts`, `app.ts`).
+   Rename your JavaScript files (e.g., `index.ts`, `app.js`) to TypeScript files (e.g., `index.ts`, `app.ts`).
 
 2. **Add TypeScript Definitions**:
    Add TypeScript definitions for your dependencies. You can use `@types` packages for many popular libraries.
@@ -66,7 +66,7 @@ This guide provides a detailed plan for converting the entire project from JavaS
    Modify the `start` and `test` scripts in `package.json` to use TypeScript:
    ```json
    "scripts": {
-     "start": "tsc && node dist/index.js",
+     "start": "tsc && node dist/index.ts",
      "test": "tsc && mocha --require ts-node/register test/**/*.ts"
    }
    ```

@@ -87,7 +87,7 @@ By following these steps, you will have TypeScript and ESLint set up in your pro
 To convert the project to TypeScript, follow these steps:
 
 1. **Rename JavaScript Files**:
-   Rename your JavaScript files (e.g., `index.js`, `app.js`) to TypeScript files (e.g., `index.ts`, `app.ts`).
+   Rename your JavaScript files (e.g., `index.ts`, `app.js`) to TypeScript files (e.g., `index.ts`, `app.ts`).
 
 2. **Add TypeScript Definitions**:
    Add TypeScript definitions for your dependencies. You can use `@types` packages for many popular libraries.
