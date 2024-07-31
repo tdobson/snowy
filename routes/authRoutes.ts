@@ -1,11 +1,11 @@
-// ./routes/authRoutes.js
-const express = require('express');
-const authController = require('../controllers/authController');
+import express from 'express';
+import { register, login, requestPasswordReset, resetPassword } from '../controllers/authController';
+
 const router = express.Router();
 
-router.post('/register', authController.register);
-router.post('/login', authController.login);
-router.post('/requestReset', authController.requestPasswordReset); // Route to request a password reset
-router.post('/reset', authController.resetPassword); // Route to reset the password
+router.post('/register', register);
+router.post('/login', login);
+router.post('/requestReset', requestPasswordReset); // Route to request a password reset
+router.post('/reset', resetPassword); // Route to reset the password
 
-module.exports = router;
+export default router;

@@ -1,11 +1,9 @@
-const express = require('express');
-const elevationViewController = require('../controllers/elevationViewController');
+import express from 'express';
+import { getAllElevations, getElevationsByProject } from '../controllers/elevationViewController';
+
 const router = express.Router();
 
-//router.post('/', projectController.createProject);
-router.get('/', elevationViewController.getAllElevations);
-router.get('/:jobCode', elevationViewController.getElevationsByProject);
-//router.put('/:id', projectController.updateProject);
-//router.delete('/:id', projectController.deleteProject);
+router.get('/', getAllElevations);
+router.get('/:jobCode', getElevationsByProject);
 
-module.exports = router;
+export default router;
