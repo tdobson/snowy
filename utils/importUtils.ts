@@ -1,8 +1,8 @@
 import { Request } from 'express';
-import { ImportEventInstance, ImportEventAttributes } from '../types/importEvent';
+import { ImportEventInstance, ImportEventAttributes, ImportEventCreationAttributes } from '../types/importEvent';
 import { Model, ModelStatic } from 'sequelize';
 
-const ImportEvent: ModelStatic<Model<ImportEventInstance, ImportEventAttributes>> = require('../models/importEvent');
+const ImportEvent: ModelStatic<ImportEventInstance> = require('../models/importEvent');
 
 /**
  * Creates a new import event in the database.
@@ -12,12 +12,14 @@ const ImportEvent: ModelStatic<Model<ImportEventInstance, ImportEventAttributes>
  *
  * @param {Request} req - The Express request object containing the body with import details.
  * @param {string} userId - The ID of the user who is creating the import event.
+ * @param {string} instanceId - The ID of the instance associated with this import event.
  * @returns {Promise<string>} A promise that resolves with the importId of the newly created import event.
  * @throws {Error} Throws an error if there is an issue creating the import event.
  */
-export const createImportEvent = async (req: Request, userId: string): Promise<string> => {
+export const createImportEvent = async (req: Request, userId: string, instanceId: string): Promise<string> => {
     try {
         const importEvent = await ImportEvent.create({
+            instanceId,
             importDate: new Date(),
             importedBy: userId,
             modifiedDate: new Date(),
@@ -26,7 +28,7 @@ export const createImportEvent = async (req: Request, userId: string): Promise<s
             importRef: req.body.importRef || 'Default Import Reference',
             importSource: 'Project Creation',
             importNotes: req.body.importNotes || 'No additional notes'
-        });
+        } as ImportEventCreationAttributes);
         return importEvent.importId;
     } catch (error) {
         console.error('Error creating import event:', error);
