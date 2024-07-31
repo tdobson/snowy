@@ -1,41 +1,47 @@
-// ./models/team.js
-const { Model, DataTypes } = require('sequelize');
-const sequelize = require('../config/sequelize');
+import { Model, DataTypes, Sequelize } from 'sequelize';
+import { TeamAttributes, TeamCreationAttributes } from '../types/team';
 
-class Team extends Model {}
+class Team extends Model<TeamAttributes, TeamCreationAttributes> implements TeamAttributes {
+    public teamId!: string;
+    public instanceId!: string;
+    public teamName!: string;
+    public teamDescription?: string;
+    public importId?: string;
 
-Team.init({
-    teamId: {
-        type: DataTypes.CHAR(36),
-        primaryKey: true,
-        defaultValue: DataTypes.UUIDV4
-    },
-    instanceId: {
-        type: DataTypes.CHAR(36),
-        references: {
-            model: 'sn_instances', // Ensure this matches your users table name
-            key: 'instance_id',
-        }
-    },
-    teamName: {
-        type: DataTypes.STRING,
-        unique: true,
-        allowNull: false
-    },
-    teamDescription: DataTypes.STRING,
-    importId: {
-        type: DataTypes.CHAR(36),
-        references: {
-            model: 'sn_import_events', // Ensure this matches your import events table name
-            key: 'import_id',
-        }
-    },
-    // Additional fields can be added here as necessary
-}, {
-    sequelize,
-    modelName: 'Team',
-    tableName: 'sn_teams',
-    underscored: true,
-});
+    public static initialize(sequelize: Sequelize): void {
+        this.init({
+            teamId: {
+                type: DataTypes.CHAR(36),
+                primaryKey: true,
+                defaultValue: DataTypes.UUIDV4
+            },
+            instanceId: {
+                type: DataTypes.CHAR(36),
+                references: {
+                    model: 'sn_instances',
+                    key: 'instance_id',
+                }
+            },
+            teamName: {
+                type: DataTypes.STRING,
+                unique: true,
+                allowNull: false
+            },
+            teamDescription: DataTypes.STRING,
+            importId: {
+                type: DataTypes.CHAR(36),
+                references: {
+                    model: 'sn_import_events',
+                    key: 'import_id',
+                }
+            },
+        }, {
+            sequelize,
+            modelName: 'Team',
+            tableName: 'sn_teams',
+            underscored: true,
+        });
+    }
+}
 
-module.exports = Team;
+export default Team;
