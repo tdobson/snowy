@@ -82,6 +82,27 @@ To set up TypeScript and ESLint in your project, follow these steps:
 
 By following these steps, you will have TypeScript and ESLint set up in your project, enabling you to gradually convert your codebase to TypeScript while maintaining code quality with ESLint.
 
+### Converting the Project to TypeScript
+
+To convert the project to TypeScript, follow these steps:
+
+1. **Rename JavaScript Files**:
+   Rename your JavaScript files (e.g., `index.js`, `app.js`) to TypeScript files (e.g., `index.ts`, `app.ts`).
+
+2. **Add TypeScript Definitions**:
+   Add TypeScript definitions for your dependencies. You can use `@types` packages for many popular libraries.
+
+3. **Update Imports**:
+   Update your import statements to use TypeScript's module resolution.
+
+4. **Add Type Annotations**:
+   Add type annotations to your functions, variables, and classes.
+
+5. **Compile and Test**:
+   Compile your TypeScript code using `npx tsc` and test your application to ensure everything works correctly.
+
+By following these steps, you can gradually convert your project to TypeScript while ensuring that your code remains functional and maintainable.
+
 ## Directory Structure
 
 - `./src`: TypeScript source files.
