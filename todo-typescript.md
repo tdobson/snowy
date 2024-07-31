@@ -49,7 +49,15 @@ This guide provides a detailed plan for converting the entire project from JavaS
 4. **Add Type Annotations**:
    Add type annotations to your functions, variables, and classes.
 
-5. **Compile and Test**:
+5. **Convert Models to TypeScript**:
+   - For each model in the `models/` directory:
+     a. Rename the file from `.js` to `.ts`.
+     b. Convert the model class to use TypeScript syntax.
+     c. Create a corresponding type file in the `types/` directory.
+     d. Define interfaces for the model attributes and creation attributes.
+     e. Update the model to use the new interfaces.
+
+6. **Compile and Test**:
    Compile your TypeScript code using `npx tsc` and test your application to ensure everything works correctly.
 
 ## Step 3: Update Build and Test Scripts
