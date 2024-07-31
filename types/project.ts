@@ -1,5 +1,7 @@
 import { Model, Optional } from 'sequelize';
 
+import { Model, Optional } from 'sequelize';
+
 export interface ProjectAttributes {
     projectId: string;
     clientId: string;
@@ -20,3 +22,5 @@ export interface ProjectAttributes {
 export interface ProjectCreationAttributes extends Optional<ProjectAttributes, 'projectId'> {}
 
 export interface ProjectInstance extends Model<ProjectAttributes, ProjectCreationAttributes>, ProjectAttributes {}
+
+export { ProjectInstance as Project };

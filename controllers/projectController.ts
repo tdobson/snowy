@@ -1,13 +1,14 @@
-const Project = require('../models/project');
-const { createImportEvent, createModificationEvent } = require('../utils/importUtils');
+import { Request, Response } from 'express';
+import { Project, ProjectInstance } from '../models/project';
+import { createImportEvent, createModificationEvent } from '../utils/importUtils';
 
 /**
  * Creates a new project and logs the creation as an import event.
- * @param {Object} req - The request object containing project data.
- * @param {Object} res - The response object.
+ * @param {Request} req - The request object containing project data.
+ * @param {Response} res - The response object.
  * @returns {Promise<void>} - A promise that resolves when the project is created.
  */
-exports.createProject = async (req, res) => {
+export const createProject = async (req: Request, res: Response): Promise<void> => {
     try {
         // Assuming you have the user's ID from the request or session
         const userId = req.userId; //todo
@@ -31,11 +32,11 @@ exports.createProject = async (req, res) => {
 
 /**
  * Retrieves a project by its ID.
- * @param {Object} req - The request object containing the project ID.
- * @param {Object} res - The response object.
+ * @param {Request} req - The request object containing the project ID.
+ * @param {Response} res - The response object.
  * @returns {Promise<void>} - A promise that resolves when the project is retrieved.
  */
-exports.getProjectById = async (req, res) => {
+export const getProjectById = async (req: Request, res: Response): Promise<void> => {
     try {
         const project = await Project.findByPk(req.params.id);
         if (!project) {
@@ -49,11 +50,11 @@ exports.getProjectById = async (req, res) => {
 
 /**
  * Updates an existing project and logs the update as a modification event.
- * @param {Object} req - The request object containing updated project data.
- * @param {Object} res - The response object.
+ * @param {Request} req - The request object containing updated project data.
+ * @param {Response} res - The response object.
  * @returns {Promise<void>} - A promise that resolves when the project is updated.
  */
-exports.updateProject = async (req, res) => {
+export const updateProject = async (req: Request, res: Response): Promise<void> => {
     try {
         const project = await Project.findByPk(req.params.id);
         if (!project) {
@@ -79,11 +80,11 @@ exports.updateProject = async (req, res) => {
 
 /**
  * Deletes a project by its ID.
- * @param {Object} req - The request object containing the project ID.
- * @param {Object} res - The response object.
+ * @param {Request} req - The request object containing the project ID.
+ * @param {Response} res - The response object.
  * @returns {Promise<void>} - A promise that resolves when the project is deleted.
  */
-exports.deleteProject = async (req, res) => {
+export const deleteProject = async (req: Request, res: Response): Promise<void> => {
     try {
         const project = await Project.findByPk(req.params.id);
         if (!project) {
@@ -98,11 +99,11 @@ exports.deleteProject = async (req, res) => {
 
 /**
  * Retrieves all projects.
- * @param {Object} req - The request object.
- * @param {Object} res - The response object.
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
  * @returns {Promise<void>} - A promise that resolves when all projects are retrieved.
  */
-exports.getAllProjects = async (req, res) => {
+export const getAllProjects = async (req: Request, res: Response): Promise<void> => {
     try {
         const projects = await Project.findAll();
         res.status(200).json(projects);
