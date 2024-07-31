@@ -1,42 +1,44 @@
-const { Project, Client, DnoDetail, Site, Region } = require('../models');
+import { Request, Response } from 'express';
+import { Project, Client, DnoDetail, Site, Region } from '../models';
 
-exports.getMCSReport = async (req, res) => {
+export const getMCSReport = async (req: Request, res: Response): Promise<void> => {
     try {
         const projects = await Project.findAll({
             include: [
-                { model: Client, attributes: ['name'] },
-                { model: DnoDetail, attributes: ['dno_name'] },
-                { model: Site, attributes: ['site_name'] },
-                { model: Region, attributes: ['region_name'] }
+                { model: Client, attributes: ['clientName'] },
+                { model: DnoDetail, attributes: ['dnoName'] },
+                { model: Site, attributes: ['siteName'] },
+                { model: Region, attributes: ['regionName'] }
             ],
-            attributes: ['project_id', 'pv_number', 'ref_number']
+            attributes: ['projectId', 'pvNumber', 'refNumber']
         });
         res.json(projects);
     } catch (error) {
-        res.status(500).send(error.message);
+        res.status(500).send((error as Error).message);
     }
 };
 
-exports.getMCSReportById = async (req, res) => {
-    const { project_id } = req.params;
+export const getMCSReportById = async (req: Request, res: Response): Promise<void> => {
+    const { projectId } = req.params;
 
     try {
-        const project = await Project.findByPk(project_id, {
+        const project = await Project.findByPk(projectId, {
             include: [
-                { model: Client, attributes: ['name'] },
-                { model: DnoDetail, attributes: ['dno_name'] },
-                { model: Site, attributes: ['site_name'] },
-                { model: Region, attributes: ['region_name'] }
+                { model: Client, attributes: ['clientName'] },
+                { model: DnoDetail, attributes: ['dnoName'] },
+                { model: Site, attributes: ['siteName'] },
+                { model: Region, attributes: ['regionName'] }
             ],
-            attributes: ['project_id', 'pv_number', 'ref_number']
+            attributes: ['projectId', 'pvNumber', 'refNumber']
         });
 
         if (!project) {
-            return res.status(404).json({ message: 'Project not found' });
+            res.status(404).json({ message: 'Project not found' });
+            return;
         }
 
         res.json(project);
     } catch (error) {
-        res.status(500).send(error.message);
+        res.status(500).send((error as Error).message);
     }
 };
