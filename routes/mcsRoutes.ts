@@ -1,8 +1,9 @@
-const express = require('express');
-const mcsController = require('../controllers/mcsReportController');
+import express from 'express';
+import { getMCSReport, getMCSReportById } from '../controllers/mcsReportController';
+
 const router = express.Router();
 
-router.get('/', mcsController.getMCSReport);
-router.get('/:project_id', mcsController.getMCSReportById);
+router.get('/', getMCSReport);
+router.get('/:project_id', getMCSReportById);
 
-module.exports = router;
+export default router;

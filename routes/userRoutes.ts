@@ -1,5 +1,5 @@
-const express = require('express');
-const usersController = require('../controllers/usersController');
+import express from 'express';
+import { getAllUsers, getUserById, createUser, updateUser, deleteUser } from '../controllers/usersController';
 
 const router = express.Router();
 
@@ -25,10 +25,10 @@ const router = express.Router();
  *                   last_name:
  *                     type: string
  */
-router.get('/', usersController.getAllUsers);
-router.get('/:id', usersController.getUserById);
-router.post('/', usersController.createUser);
-router.put('/:id', usersController.updateUser);
-router.delete('/:id', usersController.deleteUser);
+router.get('/', getAllUsers);
+router.get('/:id', getUserById);
+router.post('/', createUser);
+router.put('/:id', updateUser);
+router.delete('/:id', deleteUser);
 
-module.exports = router;
+export default router;
