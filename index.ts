@@ -1,20 +1,20 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const { sequelize } = require('./models'); // Importing sequelize connection
-const userRoutes = require('./routes/userRoutes');
-const projectRoutes = require('./routes/projectRoutes');
-const authRoutes = require('./routes/authRoutes');
-const mcsRoutes = require('./routes/mcsRoutes');
-const elevationRoutes = require('./routes/elevationRoutes');
+import express from 'express';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import { sequelize } from './models'; // Importing sequelize connection
+import userRoutes from './routes/userRoutes';
+import projectRoutes from './routes/projectRoutes';
+import authRoutes from './routes/authRoutes';
+import mcsRoutes from './routes/mcsRoutes';
+import elevationRoutes from './routes/elevationRoutes';
 
-const errorHandler = require('./middleware/errorHandler');
-const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('./config/swagger');
+import errorHandler from './middleware/errorHandler';
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './config/swagger';
 
-const app = express();
+const app: express.Application = express();
 
 // Middlewares
 app.use(bodyParser.json());
