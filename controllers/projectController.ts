@@ -25,9 +25,9 @@ export const createProject = async (req: Request, res: Response): Promise<Respon
 
         // Create the project with the importId
         const project = await Project.create(projectData);
-        res.status(201).json(project);
+        return res.status(201).json(project);
     } catch (error: any) {
-        res.status(400).json({ error: (error as Error).message || 'An error occurred while creating the project' });
+        return res.status(400).json({ error: (error as Error).message || 'An error occurred while creating the project' });
     }
 };
 
@@ -43,9 +43,9 @@ export const getProjectById = async (req: Request, res: Response): Promise<Respo
         if (!project) {
             return res.status(404).json({ message: 'Project not found' });
         }
-        res.status(200).json(project);
+        return res.status(200).json(project);
     } catch (error) {
-        res.status(400).json({ error: (error as Error).message });
+        return res.status(400).json({ error: (error as Error).message });
     }
 };
 
@@ -73,9 +73,9 @@ export const updateProject = async (req: Request, res: Response): Promise<Respon
         const importId = await createModificationEvent(req, userId, project.importId || '');
 
         // Respond with the updated project and the importId of the modification event
-        res.status(200).json({ project, importId });
+        return res.status(200).json({ project, importId });
     } catch (error) {
-        res.status(400).json({ error: (error as Error).message });
+        return res.status(400).json({ error: (error as Error).message });
     }
 };
 
@@ -85,16 +85,16 @@ export const updateProject = async (req: Request, res: Response): Promise<Respon
  * @param {Response} res - The response object.
  * @returns {Promise<void>} - A promise that resolves when the project is deleted.
  */
-export const deleteProject = async (req: Request, res: Response): Promise<void> => {
+export const deleteProject = async (req: Request, res: Response): Promise<Response> => {
     try {
         const project = await Project.findByPk(req.params.id);
         if (!project) {
             return res.status(404).json({ message: 'Project not found' });
         }
         await project.destroy();
-        res.status(200).json({ message: 'Project deleted' });
+        return res.status(200).json({ message: 'Project deleted' });
     } catch (error) {
-        res.status(400).json({ error: (error as Error).message });
+        return res.status(400).json({ error: (error as Error).message });
     }
 };
 
@@ -104,11 +104,11 @@ export const deleteProject = async (req: Request, res: Response): Promise<void> 
  * @param {Response} res - The response object.
  * @returns {Promise<void>} - A promise that resolves when all projects are retrieved.
  */
-export const getAllProjects = async (req: Request, res: Response): Promise<void> => {
+export const getAllProjects = async (req: Request, res: Response): Promise<Response> => {
     try {
         const projects = await Project.findAll();
-        res.status(200).json(projects);
+        return res.status(200).json(projects);
     } catch (error) {
-        res.status(400).json({ error: (error as Error).message });
+        return res.status(400).json({ error: (error as Error).message });
     }
 };
