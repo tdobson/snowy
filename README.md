@@ -40,10 +40,47 @@ The project includes several npm scripts to help with development:
 - `npm start`: Start the production server.
 - `npm run build`: Compile TypeScript files.
 - `npm run dev`: Start the development server with hot-reloading.
-- `npm test`: Run tests (currently not implemented).
+- `npm test`: Run tests using Jest.
 - `npm run lint`: Run ESLint on TypeScript files.
 - `npm run lint:fix`: Run ESLint and automatically fix issues.
 - `npm run format`: Format code using Prettier.
+
+## Testing
+
+The project uses Jest along with Supertest for testing the backend API.
+
+### Running Tests
+
+To run the tests, use the following command:
+
+```sh
+npm test
+```
+
+### Writing Tests
+
+Tests should be written in TypeScript and placed in the `src/tests` directory. Test files should follow the naming convention `*.test.ts`.
+
+Example test file:
+
+```ts
+// src/tests/sample.test.ts
+import request from 'supertest';
+import app from '../app'; // Adjust the import according to your app's entry point
+
+describe('Sample Test', () => {
+  it('should test that true === true', () => {
+    expect(true).toBe(true);
+  });
+
+  it('should return 200 OK', async () => {
+    const res = await request(app).get('/');
+    expect(res.status).toBe(200);
+  });
+});
+```
+
+Feel free to expand upon this setup to include more comprehensive tests for your API endpoints.
 
 ## TypeScript and ESLint Setup
 
