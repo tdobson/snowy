@@ -109,6 +109,6 @@ export const getAllProjects = async (req: Request, res: Response): Promise<void>
         const projects = await Project.findAll();
         res.status(200).json(projects);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(400).json({ error: (error as Error).message });
     }
 };
