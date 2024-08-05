@@ -33,75 +33,63 @@ Snowy API is a comprehensive backend system designed for managing solar panel in
 5. Access the API at: `http://localhost:3000/`.
 6. Explore the API documentation at: `http://localhost:3000/api-docs`.
 
+## Development Scripts
+
+The project includes several npm scripts to help with development:
+
+- `npm start`: Start the production server.
+- `npm run build`: Compile TypeScript files.
+- `npm run dev`: Start the development server with hot-reloading.
+- `npm test`: Run tests (currently not implemented).
+- `npm run lint`: Run ESLint on TypeScript files.
+- `npm run lint:fix`: Run ESLint and automatically fix issues.
+- `npm run format`: Format code using Prettier.
+
 ## TypeScript and ESLint Setup
 
-To set up TypeScript and ESLint in your project, follow these steps:
+The project is set up with TypeScript and ESLint for static type checking and code linting. The configuration files (`tsconfig.json` and `.eslintrc.js`) are already set up in the project.
 
-1. **Initialize TypeScript Configuration**:
-   ```sh
-   npx tsc --init
-   ```
+To run the TypeScript compiler:
 
-2. **Install TypeScript and ESLint Dependencies**:
-   ```sh
-   npm install --save-dev typescript @types/node eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
-   ```
+```sh
+npm run build
+```
 
-3. **Configure ESLint**:
-   Create an `.eslintrc.js` file with the following content:
-   ```javascript
-   module.exports = {
-     parser: '@typescript-eslint/parser',
-     extends: [
-       'plugin:@typescript-eslint/recommended',
-     ],
-     parserOptions: {
-       ecmaVersion: 2018,
-       sourceType: 'module',
-     },
-     rules: {
-       // Add custom rules here
-     },
-   };
-   ```
+To run ESLint:
 
-4. **Update `tsconfig.json`**:
-   Ensure your `tsconfig.json` file is configured correctly, as shown in the example above.
+```sh
+npm run lint
+```
 
-5. **Compile TypeScript**:
-   To compile your TypeScript code, run:
-   ```sh
-   npx tsc
-   ```
+To automatically fix ESLint issues:
 
-6. **Run ESLint**:
-   To lint your TypeScript code, run:
-   ```sh
-   npx eslint . --ext .ts,.js
-   ```
+```sh
+npm run lint:fix
+```
 
-By following these steps, you will have TypeScript and ESLint set up in your project, enabling you to gradually convert your codebase to TypeScript while maintaining code quality with ESLint.
+## Prettier Setup
 
-### Converting the Project to TypeScript
+Prettier is configured for code formatting. To format your code:
 
-To convert the project to TypeScript, follow these steps:
+```sh
+npm run format
+```
 
-1. **Rename JavaScript Files**:
-   Rename your JavaScript files (e.g., `index.ts`, `app.js`) to TypeScript files (e.g., `index.ts`, `app.ts`).
+## Husky and lint-staged
 
-2. **Add TypeScript Definitions**:
-   Add TypeScript definitions for your dependencies. You can use `@types` packages for many popular libraries.
+The project uses Husky and lint-staged to run linting and formatting on staged files before each commit. This ensures that all committed code meets the project's style guidelines.
 
-3. **Update Imports**:
-   Update your import statements to use TypeScript's module resolution.
+## Converting JavaScript to TypeScript
 
-4. **Add Type Annotations**:
-   Add type annotations to your functions, variables, and classes.
+If you need to convert existing JavaScript files to TypeScript:
 
-5. **Compile and Test**:
-   Compile your TypeScript code using `npx tsc` and test your application to ensure everything works correctly.
+1. Rename the file from `.js` to `.ts`.
+2. Update imports/exports to use ES6 module syntax.
+3. Add type annotations where necessary.
+4. Run `npm run build` to check for any TypeScript errors.
+5. Fix any type errors that the compiler identifies.
 
-By following these steps, you can gradually convert your project to TypeScript while ensuring that your code remains functional and maintainable.
+Remember to update any import statements in other files that reference the newly converted TypeScript file.
 
 ## Directory Structure
 
