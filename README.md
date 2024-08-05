@@ -49,6 +49,14 @@ The project includes several npm scripts to help with development:
 
 The project uses Jest along with Supertest for testing the backend API.
 
+### Jest
+
+Jest is a delightful JavaScript Testing Framework with a focus on simplicity. It works with projects using: Babel, TypeScript, Node, React, Angular, Vue and more.
+
+### Supertest
+
+Supertest is a library for testing Node.js HTTP servers. It allows you to programmatically send HTTP requests to your application and make assertions about the responses.
+
 ### Running Tests
 
 To run the tests, use the following command:
@@ -57,14 +65,15 @@ To run the tests, use the following command:
 npm test
 ```
 
+This command will run all test files with the `.test.ts` extension in the `src` directory and its subdirectories.
+
 ### Writing Tests
 
 Tests should be written in TypeScript and placed in the `src/tests` directory. Test files should follow the naming convention `*.test.ts`.
 
 Example test file:
 
-```ts
-// src/tests/sample.test.ts
+```typescript
 import request from 'supertest';
 import app from '../app'; // Adjust the import according to your app's entry point
 
@@ -73,14 +82,34 @@ describe('Sample Test', () => {
     expect(true).toBe(true);
   });
 
-  it('should return 200 OK', async () => {
-    const res = await request(app).get('/');
-    expect(res.status).toBe(200);
+  it('GET / - should return 200 OK', async () => {
+    const response = await request(app).get('/');
+    expect(response.statusCode).toBe(200);
   });
 });
 ```
 
-Feel free to expand upon this setup to include more comprehensive tests for your API endpoints.
+### Test Structure
+
+- `describe` blocks group related tests together.
+- `it` blocks define individual test cases.
+- Use `expect` to make assertions about the results of your tests.
+
+### Mocking
+
+Jest provides built-in mocking capabilities. You can use `jest.mock()` to mock modules or specific functions.
+
+### Coverage Reports
+
+To generate a coverage report, you can run:
+
+```sh
+npm test -- --coverage
+```
+
+This will create a `coverage` directory with detailed information about your test coverage.
+
+Feel free to expand upon this setup to include more comprehensive tests for your API endpoints. As your application grows, consider organizing your tests into subdirectories that mirror your source code structure.
 
 ## TypeScript and ESLint Setup
 
