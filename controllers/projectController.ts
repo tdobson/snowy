@@ -9,7 +9,7 @@ import { createImportEvent, createModificationEvent } from '../utils/importUtils
  * @param {Response} res - The response object.
  * @returns {Promise<void>} - A promise that resolves when the project is created.
  */
-export const createProject = async (req: Request, res: Response): Promise<void> => {
+export const createProject = async (req: Request, res: Response): Promise<Response> => {
     try {
         // Assuming you have the user's ID from the request or session
         const userId = (req as any).userId; // TODO: Implement proper user authentication
@@ -37,7 +37,7 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
  * @param {Response} res - The response object.
  * @returns {Promise<void>} - A promise that resolves when the project is retrieved.
  */
-export const getProjectById = async (req: Request, res: Response): Promise<void> => {
+export const getProjectById = async (req: Request, res: Response): Promise<Response> => {
     try {
         const project = await Project.findByPk(req.params.id);
         if (!project) {
@@ -55,7 +55,7 @@ export const getProjectById = async (req: Request, res: Response): Promise<void>
  * @param {Response} res - The response object.
  * @returns {Promise<void>} - A promise that resolves when the project is updated.
  */
-export const updateProject = async (req: Request, res: Response): Promise<void> => {
+export const updateProject = async (req: Request, res: Response): Promise<Response> => {
     try {
         const project = await Project.findByPk(req.params.id);
         if (!project) {
