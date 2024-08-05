@@ -4,7 +4,7 @@ import { UserAttributes } from '../models/user';
 
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const users: UserAttributes[] = await User.findAll();
+        const users = await User.findAll();
         res.status(200).json(users);
     } catch (error) {
         next(error);
