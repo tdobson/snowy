@@ -45,7 +45,7 @@ export const getProjectById = async (req: Request, res: Response): Promise<void>
         }
         res.status(200).json(project);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(400).json({ error: (error as Error).message });
     }
 };
 
@@ -70,12 +70,12 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
         const userId = (req as any).userId; // TODO: Implement proper user authentication
 
         // Create a modification event
-        const importId = await createModificationEvent(req, userId, project.importId);
+        const importId = await createModificationEvent(req, userId, project.importId || '');
 
         // Respond with the updated project and the importId of the modification event
         res.status(200).json({ project, importId });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(400).json({ error: (error as Error).message });
     }
 };
 
@@ -94,7 +94,7 @@ export const deleteProject = async (req: Request, res: Response): Promise<void> 
         await project.destroy();
         res.status(200).json({ message: 'Project deleted' });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(400).json({ error: (error as Error).message });
     }
 };
 
