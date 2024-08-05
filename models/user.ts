@@ -95,3 +95,60 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
 }
 
 export default User;
+import { Model, DataTypes, Sequelize } from 'sequelize';
+
+export interface UserAttributes {
+  userId: string;
+  email: string;
+  password: string;
+  resetToken?: string;
+  resetTokenExpires?: Date;
+  // Add other user attributes here
+}
+
+export interface UserCreationAttributes extends Omit<UserAttributes, 'userId'> {}
+
+class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
+  public userId!: string;
+  public email!: string;
+  public password!: string;
+  public resetToken?: string;
+  public resetTokenExpires?: Date;
+
+  public static initialize(sequelize: Sequelize) {
+    this.init(
+      {
+        userId: {
+          type: DataTypes.UUID,
+          defaultValue: DataTypes.UUIDV4,
+          primaryKey: true,
+        },
+        email: {
+          type: DataTypes.STRING,
+          allowNull: false,
+          unique: true,
+        },
+        password: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+        resetToken: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
+        resetTokenExpires: {
+          type: DataTypes.DATE,
+          allowNull: true,
+        },
+      },
+      {
+        sequelize,
+        modelName: 'User',
+        tableName: 'users',
+        underscored: true,
+      }
+    );
+  }
+}
+
+export default User;

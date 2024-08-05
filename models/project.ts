@@ -95,3 +95,91 @@ class Project extends Model<ProjectAttributes, ProjectCreationAttributes> implem
 }
 
 export default Project;
+import { Model, DataTypes, Sequelize } from 'sequelize';
+import { ProjectAttributes, ProjectCreationAttributes } from '../types/project';
+
+class Project extends Model<ProjectAttributes, ProjectCreationAttributes> implements ProjectAttributes {
+    public projectId!: string;
+    public clientId!: string;
+    public instanceId!: string;
+    public pvNumber!: string;
+    public dnoDetailsId!: string;
+    public regionId?: string;
+    public siteId?: string;
+    public refNumber?: string;
+    public projectName?: string;
+    public jobCode?: string;
+    public comments?: string;
+    public importId?: string;
+    public projectProcessId?: string;
+    public dnoZone?: string;
+
+    public static initialize(sequelize: Sequelize) {
+        this.init({
+            projectId: {
+                type: DataTypes.UUID,
+                defaultValue: DataTypes.UUIDV4,
+                primaryKey: true,
+            },
+            clientId: {
+                type: DataTypes.UUID,
+                allowNull: false,
+            },
+            instanceId: {
+                type: DataTypes.UUID,
+                allowNull: false,
+            },
+            pvNumber: {
+                type: DataTypes.STRING,
+                allowNull: false,
+            },
+            dnoDetailsId: {
+                type: DataTypes.UUID,
+                allowNull: false,
+            },
+            regionId: {
+                type: DataTypes.UUID,
+                allowNull: true,
+            },
+            siteId: {
+                type: DataTypes.UUID,
+                allowNull: true,
+            },
+            refNumber: {
+                type: DataTypes.STRING,
+                allowNull: true,
+            },
+            projectName: {
+                type: DataTypes.STRING,
+                allowNull: true,
+            },
+            jobCode: {
+                type: DataTypes.STRING,
+                allowNull: true,
+            },
+            comments: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            importId: {
+                type: DataTypes.UUID,
+                allowNull: true,
+            },
+            projectProcessId: {
+                type: DataTypes.UUID,
+                allowNull: true,
+            },
+            dnoZone: {
+                type: DataTypes.STRING,
+                allowNull: true,
+            },
+        }, {
+            sequelize,
+            modelName: 'Project',
+            tableName: 'projects',
+            underscored: true,
+        });
+    }
+}
+
+export default Project;

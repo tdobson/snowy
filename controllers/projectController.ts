@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { Project, ProjectInstance } from '../models/project';
+import Project from '../models/project';
+import { ProjectAttributes } from '../types/project';
 import { createImportEvent, createModificationEvent } from '../utils/importUtils';
 
 /**
@@ -11,10 +12,10 @@ import { createImportEvent, createModificationEvent } from '../utils/importUtils
 export const createProject = async (req: Request, res: Response): Promise<void> => {
     try {
         // Assuming you have the user's ID from the request or session
-        const userId = req.userId; //todo
+        const userId = (req as any).userId; // TODO: Implement proper user authentication
 
         // Use the utility function to create an import event and get the importId
-        const importId = await createImportEvent(req, userId);
+        const importId = await createImportEvent(req, userId, 'project');
 
         // Prepare project data
         const projectData = {
@@ -25,8 +26,8 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
         // Create the project with the importId
         const project = await Project.create(projectData);
         res.status(201).json(project);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message || 'An error occurred while creating the project' });
     }
 };
 
@@ -66,7 +67,7 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
 
         // Assuming you have the user's ID in req.userId
         // You can replace 'req.userId' with the appropriate variable as per your application's context
-        const userId = req.userId;
+        const userId = (req as any).userId; // TODO: Implement proper user authentication
 
         // Create a modification event
         const importId = await createModificationEvent(req, userId, project.importId);

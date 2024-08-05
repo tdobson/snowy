@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { User, UserInstance } from '../models/user';
+import User from '../models/user';
+import { UserAttributes } from '../models/user';
 
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const users: UserInstance[] = await User.findAll(); // This fetches all users from the 'wp_members_db' table
+        const users: UserAttributes[] = await User.findAll();
         res.status(200).json(users);
     } catch (error) {
         next(error);
