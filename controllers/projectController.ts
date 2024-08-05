@@ -27,7 +27,7 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
         const project = await Project.create(projectData);
         res.status(201).json(project);
     } catch (error: any) {
-        res.status(400).json({ error: error.message || 'An error occurred while creating the project' });
+        res.status(400).json({ error: (error as Error).message || 'An error occurred while creating the project' });
     }
 };
 
