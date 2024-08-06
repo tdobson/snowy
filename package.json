@@ -11,7 +11,8 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "db:init": "ts-node config/initializeDatabase.ts"
   },
   "keywords": [],
   "author": "",
