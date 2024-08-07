@@ -266,9 +266,9 @@ var sheetData = {
 
 
 
-const trackerSheetId = "16oKLBkE05smVMLFqE10Bxh5lbHg6EoHDB9hwCtJzlrI";
-const queryConfigByIndex = {
-  sheetId: trackerSheetId,
+const upowaTrackerSheetId = "16oKLBkE05smVMLFqE10Bxh5lbHg6EoHDB9hwCtJzlrI";
+const upowaQueryConfigByIndex = {
+  sheetId: upowaTrackerSheetId,
   sheets: {
     Plots: {
       joinOn: "Job Code",
@@ -289,7 +289,7 @@ function main() {
     var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
     var importId = insertImportEvent(conn, '', 'Site Log Import', 'Importing client and contact details', '4df57691-4d43-4cfb-9338-00e4cfafa63d');
 
-let rowObject = querySheetsByIndex(queryConfigByIndex)
+let rowObject = querySheetsByIndex(upowaQueryConfigByIndex)
 
 
 

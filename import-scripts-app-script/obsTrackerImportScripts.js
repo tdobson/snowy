@@ -212,9 +212,9 @@ function prepareImportObject(importSheetData){
 
 
 
-const trackerSheetId = "13LhHn2I3xqvtI4F_vTLxw-MbMgYnr_SdLURo0A7uOKw";
-const queryConfigByIndex = {
-    sheetId: trackerSheetId,
+const obsTrackerSheetId = "13LhHn2I3xqvtI4F_vTLxw-MbMgYnr_SdLURo0A7uOKw";
+const obsQueryConfigByIndex = {
+    sheetId: obsTrackerSheetId,
     sheets: {
         Bookings: {
             joinOn: "Project Number",
@@ -238,7 +238,7 @@ function main() {
     // Import Control sheet data
     importObsControl(conn, '', importId);
 
-    let rowObject = querySheetsByIndex(queryConfigByIndex) //15-20seconds
+    let rowObject = querySheetsByIndex(obsQueryConfigByIndex) //15-20seconds
 
     let importObject = prepareImportObject(rowObject)
 

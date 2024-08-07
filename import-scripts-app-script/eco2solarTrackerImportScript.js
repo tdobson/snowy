@@ -341,9 +341,9 @@ function prepareImportObject(importSheetData){
 
 
 
-const trackerSheetId = "1LxOveglR_AYMz7PnFyZrO3331vJHUoxp2AAdGcTs4LM";
-const queryConfigByIndex = {
-    sheetId: trackerSheetId,
+const eco2solarTrackerSheetId = "1LxOveglR_AYMz7PnFyZrO3331vJHUoxp2AAdGcTs4LM";
+const eco2solarQueryConfigByIndex = {
+    sheetId: eco2solarTrackerSheetId,
     sheets: {
         Plots: {
             joinOn: "Job Code",
@@ -364,7 +364,7 @@ function main() {
     var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
     var importId = insertImportEvent(conn, '', 'Site Log Import', 'Test Import', '4df57691-4d43-4cfb-9338-00e4cfafa63d');
 
-    let rowObject = querySheetsByIndex(queryConfigByIndex) //15-20seconds
+    let rowObject = querySheetsByIndex(eco2solarQueryConfigByIndex) //15-20seconds
 
     let importObject = prepareImportObject(rowObject)
 
