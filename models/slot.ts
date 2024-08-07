@@ -5,8 +5,8 @@ class Slot extends Model<SlotAttributes, SlotCreationAttributes> implements Slot
     public slotId!: string;
     public instanceId!: string;
     public date!: Date;
-    public locationSlot!: number;
-    public timeSlot!: number;
+    public locationSlot!: string;
+    public timeSlot!: string;
     public jobId?: string;
     public importId?: string;
 
@@ -29,11 +29,11 @@ class Slot extends Model<SlotAttributes, SlotCreationAttributes> implements Slot
                 allowNull: false
             },
             locationSlot: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.CHAR(255),
                 allowNull: false
             },
             timeSlot: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.CHAR(255),
                 allowNull: false
             },
             jobId: {

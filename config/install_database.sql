@@ -316,8 +316,8 @@ CREATE TABLE IF NOT EXISTS sn_slots (
     slot_id CHAR(36) NOT NULL,                 -- Unique identifier for each slot.
     instance_id CHAR(36),              -- Instance that the slot is attached to.
     date DATE NOT NULL,                        -- Date for the slot.
-    location_slot INT NOT NULL,                -- Location identifier for the slot.
-    time_slot INT NOT NULL,                    -- Time identifier for the slot.
+    location_slot VARCHAR(255),                -- Location identifier for the slot.
+    time_slot VARCHAR(255),                    -- Time identifier for the slot.
     job_id CHAR(36) NOT NULL,                  -- Linking the slot to a specific job.
     import_id CHAR(36),                        -- Import event ID.
     PRIMARY KEY (slot_id)

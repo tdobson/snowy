@@ -4,8 +4,8 @@ export interface SlotAttributes {
     slotId: string;
     instanceId: string;
     date: Date;
-    locationSlot: number;
-    timeSlot: number;
+    locationSlot: string;
+    timeSlot: string;
     jobId?: string;
     importId?: string;
 }
