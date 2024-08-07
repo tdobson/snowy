@@ -159,49 +159,49 @@ function prepareImportObject(importSheetData){
                         "address_country": "UK", // Assuming UK; adjust if necessary
                     },
                     userData: {
-                        "sso_id": "", // not defined
+                        "sso_id": "",
                         "name": "",
                         "email": "",
                         "phone": "",
                         "employer": "",
-                        "team": "", // No direct mapping available; needs clarification
-                        "dispatch_id": "", // unlikely to be used
-                        "snowy_role": "", // they're a site manager
+                        "team": "",
+                        "dispatch_id": "",
+                        "snowy_role": "",
                         "company_role": "",
                         "category": ""
                     },
                 },
                 dnoDetails: {
                     "mpanId": "",
-                    "dnoName": importSheetData.Tracker.DNO_NAME,
-                    "refNumber": importSheetData.Tracker.DNO_MPAN_ref,
-                    "dnoZone": importSheetData.Bookings.DNO_Zone
+                    "dnoName": "",
+                    "refNumber": "",
+                    "dnoZone": ""
                 },
                 projectProcessData: {
-                    "project_process_id": "", // Needs a UUID or a unique identifier; no direct mapping
-                    "approval_status": importSheetData.Tracker.DNO_Status,
-                    "deadline_to_connect": importSheetData.Tracker.Deadline_to_Connect, // Assuming this field matches; may need conversion to Date
-                    "auth_letter_sent": importSheetData.Tracker.Auth_Letter_Sent,
-                    "mpan_request_sent": importSheetData.Tracker.Mpan_request_Sent,
-                    "schematic_created": importSheetData.Tracker.Schematic_created,
-                    "application_type": importSheetData.Tracker.Application_Type,
-                    "formal_dno_submitted": importSheetData.Tracker.FORMAL_DNO_SUBMITTED,
-                    "submission_date": importSheetData.Tracker.SUBMISSION_DATE, // May need conversion to Date
-                    "dno_due_date": importSheetData.Tracker.DNO_DUE_DATE, // May need conversion to Date
-                    "dno_status": importSheetData.Tracker.DNO_Status,
-                    "approved_kwp": parseFloat(importSheetData.Tracker.Approved_kWp.replace("kW", "")), // Assuming the field contains "kW" and needs parsing as float
-                    "quote_received": importSheetData.Tracker.QUOTE_RECEIVED !== "N/A", // Assuming "N/A" means no quote received
-                    "customer_invoiced_date": importSheetData.Tracker.Customer_Invoiced_Date !== "N/A" ? importSheetData.Tracker.Customer_Invoiced_Date : null, // Assuming "N/A" means not invoiced
-                    "dno_payment_made": importSheetData.Tracker.DNO_Payment_Made !== "N/A" ? importSheetData.Tracker.DNO_Payment_Made : null, // Assuming "N/A" means payment not made
-                    "acceptance_form_returned": importSheetData.Tracker.Acceptance_Form_returned !== "", // Assuming an empty string means the form has not been returned
-                    "date_approved": importSheetData.Tracker.DATE_APPROVED // May need conversion to Date
+                    "project_process_id": "",
+                    "approval_status": "",
+                    "deadline_to_connect": "",
+                    "auth_letter_sent": "",
+                    "mpan_request_sent": "",
+                    "schematic_created": "",
+                    "application_type": "",
+                    "formal_dno_submitted": "",
+                    "submission_date": "",
+                    "dno_due_date": "",
+                    "dno_status": "",
+                    "approved_kwp": "",
+                    "quote_received": "",
+                    "customer_invoiced_date": "",
+                    "dno_payment_made": "",
+                    "acceptance_form_returned": "",
+                    "date_approved": ""
                 },
                 "additionalDetails": {
-                    "refNumber": importSheetData.Tracker.REF_NUMBER,
-                    "projectName": importSheetData.Tracker.PROJECT_NAME,
-                    "jobCode": importSheetData.Tracker.PV_NO,
-                    "comments": importSheetData.Tracker.Comments,
-                    "dnoZone": importSheetData.Bookings.DNO_Zone
+                    "refNumber": "",
+                    "projectName": "",
+                    "jobCode": "",
+                    "comments": "",
+                    "dnoZone": ""
                 }
             }
         }
