@@ -30,11 +30,11 @@ class Slot extends Model<SlotAttributes, SlotCreationAttributes> implements Slot
             },
             locationSlot: {
                 type: DataTypes.CHAR(255),
-                allowNull: false
+                allowNull: true
             },
             timeSlot: {
                 type: DataTypes.CHAR(255),
-                allowNull: false
+                allowNull: true
             },
             jobId: {
                 type: DataTypes.CHAR(36),

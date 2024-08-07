@@ -13,16 +13,15 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "prepare": "husky install",
     "db:init": "ts-node config/initializeDatabase.ts"
-    // "import-scripts": {
-    //   "push": "clasp push --auth ~/.clasprc.obs.json --rootDir import-scripts-app-script",
-    //   "pull": "clasp pull --auth ~/.clasprc.obs.json --rootDir import-scripts-app-script",
-    //   "watch": "clasp push --watch --auth ~/.clasprc.obs.json --rootDir import-scripts-app-script",
-    //   "open": "clasp open --auth ~/.clasprc.obs.json",
-    //   "deploy": "clasp deploy --auth ~/.clasprc.obs.json",
-    //   "undeploy": "clasp undeploy --auth ~/.clasprc.obs.json",
-    //   "version": "clasp version --auth ~/.clasprc.obs.json",
-    //   "logs": "clasp logs --auth ~/.clasprc.obs.json"
-    // }
+       "push:obs": "clasp push --auth ~/.clasprc.obs.json --project config/clasp.obs.json --rootDir import-scripts-app-script",
+       "pull:obs": "clasp pull --auth ~/.clasprc.obs.json --project config/clasp.obs.json --rootDir import-scripts-app-script",
+       "watch:obs": "clasp push --watch --auth ~/.clasprc.obs.json --project config/clasp.obs.json --rootDir import-scripts-app-script",
+       "open:obs": "clasp open --auth ~/.clasprc.obs.json --project config/clasp.obs.json",
+       "deploy-appscript:obs": "clasp deploy --auth ~/.clasprc.obs.json --project config/clasp.obs.json",
+       "undeploy-appscript:obs": "clasp undeploy --auth ~/.clasprc.obs.json --project config/clasp.obs.json",
+       "version-appscript:obs": "clasp version --auth ~/.clasprc.obs.json --project config/clasp.obs.json",
+       "logs:obs": "clasp logs --auth ~/.clasprc.obs.json --project config/clasp.obs.json"
+
   },
   "keywords": [],
   "author": "",
