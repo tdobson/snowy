@@ -11,16 +11,25 @@ function importObsControl(conn, instanceId, importId) {
   const sheet = spreadsheet.getSheetByName("Control");
   const data = sheet.getDataRange().getValues();
 
-  // Skip the header row
+  // Get product types from the first row (index 0)
+  const productTypes = {
+    inverter: data[0][1],
+    panel: data[0][2],
+    roofKit: data[0][3],
+    meter: data[0][7],
+    optimiser: data[0][8]
+  };
+
+  // Start from row 2 (index 1) to skip header
   for (let i = 2; i < data.length; i++) {
     const row = data[i];
     
     // Import products
-    importProductFromControl(conn, instanceId, importId, "Inverter", row[1]);
-    importProductFromControl(conn, instanceId, importId, "Panel", row[2]);
-    importProductFromControl(conn, instanceId, importId, "Roof Kit", row[3]);
-    importProductFromControl(conn, instanceId, importId, "Meter", row[7]);
-    importProductFromControl(conn, instanceId, importId, "Optimiser", row[8]);
+    importProductFromControl(conn, instanceId, importId, productTypes.inverter, row[1]);
+    importProductFromControl(conn, instanceId, importId, productTypes.panel, row[2]);
+    importProductFromControl(conn, instanceId, importId, productTypes.roofKit, row[3]);
+    importProductFromControl(conn, instanceId, importId, productTypes.meter, row[7]);
+    importProductFromControl(conn, instanceId, importId, productTypes.optimiser, row[8]);
 
     // Import user
     if (row[4]) {
@@ -39,7 +48,7 @@ function importObsControl(conn, instanceId, importId) {
  * @param {string} productName - The name of the product.
  */
 function importProductFromControl(conn, instanceId, importId, productType, productName) {
-  if (productName) {
+  if (productName && productName !== "Select Option") {
     const productData = {
       productName: productName,
       productType: productType
@@ -58,12 +67,14 @@ function importProductFromControl(conn, instanceId, importId, productType, produ
  * @param {string} dispatchId - The dispatch ID of the user.
  */
 function importUserFromControl(conn, instanceId, importId, name, dispatchId) {
-  const userData = {
-    name: name,
-    dispatch_id: dispatchId,
-    category: "Human",
-    company_role: "Installer",
-    snowy_role: "Installer"
-  };
-  importUserData(conn, instanceId, importId, userData);
+  if (name !== "Select Installer") {
+    const userData = {
+      name: name,
+      dispatch_id: dispatchId,
+      category: "Human",
+      company_role: "Installer",
+      snowy_role: "Installer"
+    };
+    importUserData(conn, instanceId, importId, userData);
+  }
 }
