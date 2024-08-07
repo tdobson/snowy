@@ -10,6 +10,7 @@ export interface JobAttributes {
     jobStatus: string;
     dispatchId?: string;
     submissionId?: string;
+    jobType?:string;
     dispatchedAt?: Date;
     dispatchedBy?: string;
     returnedAt?: Date;

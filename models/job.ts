@@ -11,6 +11,7 @@ class Job extends Model<JobAttributes, JobCreationAttributes> implements JobAttr
     public jobStatus!: string;
     public dispatchId?: string;
     public submissionId?: string;
+    public jobType?: string;
     public dispatchedAt?: Date;
     public dispatchedBy?: string;
     public returnedAt?: Date;
@@ -75,6 +76,7 @@ class Job extends Model<JobAttributes, JobCreationAttributes> implements JobAttr
                     key: 'submission_id',
                 }
             },
+            jobType: DataTypes.STRING,
             dispatchedAt: DataTypes.DATE,
             dispatchedBy: {
                 type: DataTypes.CHAR(36),

@@ -272,6 +272,7 @@ CREATE TABLE IF NOT EXISTS sn_jobs (
     job_status CHAR(36) NOT NULL,           -- Indicating the status of the job.
     dispatch_id VARCHAR(255),               -- Dispatch identifier for the job.
     submission_id CHAR(36),                 -- Linking the job to a submission.
+    job_type VARCHAR(255),
     dispatched_at DATE,                     -- Date when the job was dispatched.
     dispatched_by CHAR(36),                 -- Identifying the user who dispatched the job.
     returned_at DATE,                       -- Date when the job was returned.
