@@ -29,9 +29,34 @@ Snowy API is a comprehensive backend system designed for managing solar panel in
 1. Clone the repository.
 2. Install dependencies: `npm install`.
 3. Set up your MySQL database and update the `./config/config.json` file with your database credentials.
-4. Run the server: `npm start`.
-5. Access the API at: `http://localhost:3000/`.
-6. Explore the API documentation at: `http://localhost:3000/api-docs`.
+4. Initialize the database:
+   ```
+   npm run db:init
+   ```
+   This command will create the database schema, tables, indexes, views, and insert initial data.
+5. Run the server: `npm start`.
+6. Access the API at: `http://localhost:3000/`.
+7. Explore the API documentation at: `http://localhost:3000/api-docs`.
+
+## Database Initialization
+
+The database initialization process is handled by the `initializeDatabase` function in `config/initializeDatabase.ts`. This function does the following:
+
+1. Establishes a connection to the database using Sequelize.
+2. Executes the following SQL files in order:
+   - `install_database.sql`: Creates the database schema and tables.
+   - `install_indexes.sql`: Creates indexes for optimized queries.
+   - `install_views.sql`: Creates database views.
+   - `install_users.sql`: Sets up initial user accounts.
+   - `install_data.sql`: Inserts initial data into the tables.
+
+To reinitialize the database, you can run:
+
+```
+npm run db:init
+```
+
+Note: This process will reset the database to its initial state. Use with caution in a production environment.
 
 ## Development Scripts
 
