@@ -22,18 +22,18 @@ function importObsControl(conn, instanceId, importId) {
 
   // Start from row 2 (index 1) to skip header
   for (let i = 2; i < data.length; i++) {
-    const row = data[i];
+    const columns = data[i];
     
     // Import products
-    importProductFromControl(conn, instanceId, importId, productTypes.inverter, row[1]);
-    importProductFromControl(conn, instanceId, importId, productTypes.panel, row[2]);
-    importProductFromControl(conn, instanceId, importId, productTypes.roofKit, row[3]);
-    importProductFromControl(conn, instanceId, importId, productTypes.meter, row[7]);
-    importProductFromControl(conn, instanceId, importId, productTypes.optimiser, row[8]);
+    importProductFromControl(conn, instanceId, importId, productTypes.inverter, columns[1]);
+    importProductFromControl(conn, instanceId, importId, productTypes.panel, columns[2]);
+    importProductFromControl(conn, instanceId, importId, productTypes.roofKit, columns[3]);
+    importProductFromControl(conn, instanceId, importId, productTypes.meter, columns[7]);
+    importProductFromControl(conn, instanceId, importId, productTypes.optimiser, columns[8]);
 
     // Import user
-    if (row[4]) {
-      importUserFromControl(conn, instanceId, importId, row[4], row[5]);
+    if (columns[4]) {
+      importUserFromControl(conn, instanceId, importId, columns[4], columns[5]);
     }
   }
 }
