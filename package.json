@@ -12,15 +12,15 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
     "prepare": "husky install",
-    "db:init": "ts-node config/initializeDatabase.ts"
-       "push:obs": "clasp push --auth ~/.clasprc.obs.json --project config/clasp.obs.json --rootDir import-scripts-app-script",
-       "pull:obs": "clasp pull --auth ~/.clasprc.obs.json --project config/clasp.obs.json --rootDir import-scripts-app-script",
-       "watch:obs": "clasp push --watch --auth ~/.clasprc.obs.json --project config/clasp.obs.json --rootDir import-scripts-app-script",
-       "open:obs": "clasp open --auth ~/.clasprc.obs.json --project config/clasp.obs.json",
-       "deploy-appscript:obs": "clasp deploy --auth ~/.clasprc.obs.json --project config/clasp.obs.json",
-       "undeploy-appscript:obs": "clasp undeploy --auth ~/.clasprc.obs.json --project config/clasp.obs.json",
-       "version-appscript:obs": "clasp version --auth ~/.clasprc.obs.json --project config/clasp.obs.json",
-       "logs:obs": "clasp logs --auth ~/.clasprc.obs.json --project config/clasp.obs.json"
+    "db:init": "ts-node config/initializeDatabase.ts",
+       "push:obs": "clasp push --auth ~/.clasprc.obs.json --project config/.clasp.obs.json",
+       "pull:obs": "clasp pull --auth ~/.clasprc.obs.json --project config/.clasp.obs.json ",
+       "watch:obs": "clasp push --watch --auth ~/.clasprc.obs.json --project config/.clasp.obs.json",
+       "open:obs": "clasp open --auth ~/.clasprc.obs.json --project config/.clasp.obs.json",
+       "deploy-appscript:obs": "clasp deploy --auth ~/.clasprc.obs.json --project config/.clasp.obs.json",
+       "undeploy-appscript:obs": "clasp undeploy --auth ~/.clasprc.obs.json --project config/.clasp.obs.json",
+       "version-appscript:obs": "clasp version --auth ~/.clasprc.obs.json --project config/.clasp.obs.json",
+       "logs:obs": "clasp logs --auth ~/.clasprc.obs.json --project config/.clasp.obs.json"
 
   },
   "keywords": [],
