@@ -1,6 +1,6 @@
 /**
  * Imports data from the "Control" sheet in the tracker spreadsheet.
- * This function imports products and users based on the data in the sheet.
+ * This function imports products, users, jobs, and slots based on the data in the sheet.
  *
  * @param {JdbcConnection} conn - An active JDBC connection to the database.
  * @param {string} instanceId - The ID of the instance.
@@ -35,6 +35,32 @@ function importObsControl(conn, instanceId, importId) {
     if (columns[4]) {
       importUserFromControl(conn, instanceId, importId, columns[4], columns[5]);
     }
+
+    // Import job
+    const jobData = {
+      jobType: columns[0],
+      projectNumber: columns[3],
+      plotNumber: columns[4],
+      address: columns[5],
+      notes: columns[6],
+      eventId: columns[15],
+      installer: columns[16],
+      dispatchId: columns[17],
+      completed: columns[18],
+      dateCompleted: columns[19],
+      site: columns[21],
+      client: columns[22],
+      postCode: columns[23]
+    };
+    importJobData(conn, instanceId, importId, jobData);
+
+    // Import slot
+    const slotData = {
+      date: columns[1],
+      slotNumber: columns[2],
+      jobId: '' // This will be set in the importSlotData function
+    };
+    importSlotData(conn, instanceId, importId, slotData);
   }
 }
 
