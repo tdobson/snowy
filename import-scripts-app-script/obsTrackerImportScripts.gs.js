@@ -232,7 +232,7 @@ const queryConfigByIndex = {
 };
 
 
-// This script will try to import everything possible from the eco2 tracker
+// This script will try to import everything possible from the obs tracker
 function main() {
     var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
     var importId = insertImportEvent(conn, '', 'Site Log Import', 'Test Import', '4df57691-4d43-4cfb-9338-00e4cfafa63d');
