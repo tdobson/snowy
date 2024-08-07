@@ -237,6 +237,9 @@ function main() {
     var conn = Jdbc.getConnection(GLOBAL_DB_URL, GLOBAL_DB_USER, GLOBAL_DB_PASSWORD);
     var importId = insertImportEvent(conn, '', 'Site Log Import', 'Test Import', '4df57691-4d43-4cfb-9338-00e4cfafa63d');
 
+    // Import Control sheet data
+    importObsControl(conn, '', importId);
+
     let rowObject = querySheetsByIndex(queryConfigByIndex) //15-20seconds
 
     let importObject = prepareImportObject(rowObject)
